@@ -48,9 +48,9 @@ msgstr "Налаштунки"
 msgid "Choose an option"
 msgstr "Нічого не вибрано"
 
-#: ../classes/Checkout.php:251
+#: ../classes/Checkout.php
 msgid "Region"
-msgstr "Регіон"
+msgstr "Область"
 
 #: ../classes/Checkout.php:260 ../classes/WC_NovaPoshta_Shipping_Method.php:89
 msgid "City"
@@ -160,3 +160,15 @@ msgstr "Altair Solutions, Ltd"
 #. Author URI of the plugin
 msgid "http://altair-solutions.com.ua"
 msgstr "http://altair-solutions.com.ua"
+
+#: ../classes/base/OptionsHelper.php
+msgid "Choose region"
+msgstr "Оберіть область"
+
+#: ../classes/Checkout.php
+msgid "Choose city"
+msgstr "Оберіть місто"
+
+#: ../classes/Checkout.php
+msgid "Choose warehouse"
+msgstr "Оберіть відділення"

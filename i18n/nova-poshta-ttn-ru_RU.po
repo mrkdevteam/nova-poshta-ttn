@@ -35,9 +35,9 @@ msgstr "Спасибо :)"
 msgid "Choose an option"
 msgstr "Выберите опцию"
 
-#: ../classes/Checkout.php:251
+#: ../classes/Checkout.php
 msgid "Region"
-msgstr "Регион"
+msgstr "Область"
 
 #: ../classes/Checkout.php:260 ../classes/WC_NovaPoshta_Shipping_Method.php:89
 msgid "City"
@@ -166,3 +166,15 @@ msgstr "http://altair-solutions.com.ua"
 #: ../woo-shipping-for-nova-poshta.php:316
 msgid "Settings"
 msgstr "Настройки"
+
+#: ../classes/base/OptionsHelper.php
+msgid "Choose region"
+msgstr "Выберите область"
+
+#: ../classes/Checkout.php
+msgid "Choose city"
+msgstr "Выберите город"
+
+#: ../classes/Checkout.php
+msgid "Choose warehouse"
+msgstr "Выберите отделение"

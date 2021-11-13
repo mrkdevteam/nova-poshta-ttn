@@ -101,7 +101,6 @@ abstract class Area extends Base
                 ? $this->content->description_ru
                 : $this->content->description;
         } else return false;
-        
     }
 
     /**

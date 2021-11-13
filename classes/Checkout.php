@@ -412,7 +412,7 @@ class Checkout extends Base
 
         if ( $value_for_checkout_selects == '3fields' ) {
             $fields[Region::key($location)] = [
-                'label' => __('Область', NOVA_POSHTA_TTN_DOMAIN),
+                'label' => __('Region', NOVA_POSHTA_TTN_DOMAIN),
                 'type' => 'select',
                 'required' => $required,
                 'default' => '',
