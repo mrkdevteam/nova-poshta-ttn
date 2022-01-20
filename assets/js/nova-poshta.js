@@ -396,7 +396,7 @@ jQuery(document).ready(function() {
       novaPoshtaBillingOptions.each(function() {
         jQuery(this).attr('disabled', 'disabled').closest('.form-row').hide();
       });
-      enableDefaultBillingOptions();
+      // enableDefaultBillingOptions(); // Цей виклик додає зайві поля на сторінці Checkout, коли обираєш спосіб доставки 'Укрпошта' або 'Justin'
     };
 
     var enableDefaultBillingOptions = function() {

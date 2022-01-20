@@ -4,7 +4,7 @@
  * Plugin Name: Shipping for Nova Poshta
  * Plugin URI: https://www.morkva.co.ua/woocommerce-plugins/avtomatychna-heneratsiia-nakladnykh-nova-poshta?utm_source=nova-poshta-ttn-pro
  * Description: Плагін 2-в-1: спосіб доставки Нова Пошта та генерація накладних Нова Пошта.
- * Version: 1.11.8
+ * Version: 1.12.3
  * Author: MORKVA
  * Text Domain: morkvanp-plugin
  * Domain Path: /i18n/
@@ -80,28 +80,28 @@ function npdata_fetch(){
 
     global $wpdb;
     $table = $wpdb->prefix . 'nova_poshta_city';
-    $results = $wpdb->get_results( "SELECT `ref`, `description` FROM " . $table . 
-        " WHERE `description` LIKE '" . $wpdb->_real_escape($_POST['npcityname']) . 
+    $results = $wpdb->get_results( "SELECT `ref`, `description` FROM " . $table .
+        " WHERE `description` LIKE '" . $wpdb->_real_escape($_POST['npcityname']) .
         "%' ORDER BY `description` LIMIT 0,6" );
     $items = array();
     if ( ! empty( $results ) ) {
         foreach ( $results as $key => $value ) {
             $items[$value->ref] = $value->description;
         }
-    } 
+    }
     if ( mb_strlen($_POST['npcityname']) < 3 ) echo 'Введіть більше символів...';
     $i = 0;
     $out = '<ul id="cities-list">';
     foreach ($items as $k => $v) {
         if ( mb_strlen( $_POST['npcityname'] ) > 2 ) {
-            $out .= '<li style="padding-left:10px;" class="npcityli" 
+            $out .= '<li style="padding-left:10px;" class="npcityli"
                 onclick="selectCity(' . '\'' . esc_attr( str_replace( "'", "\'", $v ) ) . '\'' . ', ' . '\'' . esc_attr($k) . '\'' . ')">' . esc_html($v) .  '</li>';
             $i++;
             if ( $i > 5 ) break;
         }
     }
     echo $out . '</ul>';
-    
+
     die();
 }
 
@@ -113,9 +113,9 @@ function npdata_fetchwh(){
     global $wpdb;
     $table = $wpdb->prefix . 'nova_poshta_warehouse';
     $npcityref = isset($_POST['npcityref']) ? $_POST['npcityref'] : '';
-    $results = $wpdb->get_results( "SELECT `ref`, `description` FROM " . $table . 
+    $results = $wpdb->get_results( "SELECT `ref`, `description` FROM " . $table .
         " WHERE `parent_ref` LIKE '" . $npcityref . "'");
-    $items = array(); 
+    $items = array();
     if ( ! empty( $results ) ) {
         foreach ( $results as $key => $value ) {
             $items[$value->ref] = $value->description;
@@ -124,11 +124,11 @@ function npdata_fetchwh(){
 
     $out = '<ul id="warehouses-list">';
     foreach ($items as $k => $v) {
-        $out .= '<li style="padding-left:10px; white-space:nowrap;" class="npwhli" 
+        $out .= '<li style="padding-left:10px; white-space:nowrap;" class="npwhli"
             onclick="selectWarehouse(' . '\'' . esc_attr($v) . '\'' . ', ' . '\'' . esc_attr($k) . '\'' . ')">' . esc_html($v) .  '</li>';
     }
     echo $out . '</ul>';
-    
+
     die();
 }
 
@@ -324,7 +324,7 @@ function pnp_adjust_shipping_rate($rates)
     }
     $all_shipping_methods[$method_index]; // Метод доставки Новою Поштою
     $modal_settings = get_option( 'woocommerce_nova_poshta_shipping_method_' . $method_index . '_settings' );
-    $plugin_settings = get_option( 'woocommerce_nova_poshta_shipping_method_settings' ); 
+    $plugin_settings = get_option( 'woocommerce_nova_poshta_shipping_method_settings' );
     $fin_plugin_settings = array_merge( $plugin_settings, $modal_settings );
     update_option( 'woocommerce_nova_poshta_shipping_method_settings', $fin_plugin_settings );
 
@@ -696,7 +696,7 @@ class NovattnPoshta extends Base
 
 
         if ($load) {
-            // $suffix = '.min.js'; 
+            // $suffix = '.min.js';
             $suffix = '.js';
             $fileName = 'assets/js/nova-poshta' . $suffix;
             wp_register_script(
