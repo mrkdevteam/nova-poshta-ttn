@@ -3,7 +3,7 @@ Contributors: bandido, olegkovalyov
 Tags: woocommerce, Shipping for Nova Poshta, нова пошта, новая почта, ecommerce
 Requires at least: 5.0
 Tested up to: 5.8
-Stable tag: 1.12.3
+Stable tag: 1.12.4
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 WooComerce tested up to: 6.1
@@ -97,6 +97,9 @@ https://youtu.be/u7oGTA9S_U8
 8. На сторінці оформлення можна використовувати лише 2 поля: пошук міста та відділення. Плагін сам приховає зайві стандартні поля
 
 == Що нового? ==
+
+= 1.12.4 =
+* [fix] додані стандартні поля Woocommerce до Самовивозу та інш. на сторінці Checkout
 
 = 1.12.3 =
 * [fix] прибрано додавання зайвих полів на сторінку Checkout для інших способів доставки

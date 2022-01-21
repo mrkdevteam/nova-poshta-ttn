@@ -392,11 +392,22 @@ jQuery(document).ready(function() {
     };
 
     var disableNovaPoshtaBillingOptions = function() {
-      //console.log('disableNovaPoshtaBillingOptions');
       novaPoshtaBillingOptions.each(function() {
         jQuery(this).attr('disabled', 'disabled').closest('.form-row').hide();
       });
-      // enableDefaultBillingOptions(); // Цей виклик додає зайві поля на сторінці Checkout, коли обираєш спосіб доставки 'Укрпошта' або 'Justin'
+
+      let currentShippingMethod = getNovaPoshta();
+      let shippingMethodToAddDefaultBillingOptions = ['free_shipping', 'npttn_address_shipping_method', 'flat_rate', 'local_pickup'];
+      let isAddDefaultFields = false;
+      for (const element of shippingMethodToAddDefaultBillingOptions) {
+        if (currentShippingMethod.includes(element)) {
+          isAddDefaultFields = true;
+          break;
+        }
+      }
+      if (isAddDefaultFields) {
+        enableDefaultBillingOptions();
+      }
     };
 
     var enableDefaultBillingOptions = function() {
