@@ -127,9 +127,9 @@ $shipping_state = str_replace("область", "", $shipping_state);
 $shipping_phone = '';
 if (isset($order_data)) {
     $shipping_phone = get_shipping_phone($order_data);
-}
+} else $order_data = array(); // Якщо створювати накладну без замовлення, то замовлення порожнє
 
-$alternate_all = alternate_all($order_data);
+$alternate_all = alternate_all($order_data) ?? array(); // Якщо створювати накладну без замовлення, то замовлення порожнє
 $alternate_vol = ( $alternate_all['alternate_vol'] > 0 ) ? $alternate_all['alternate_vol'] : 0.001;
 $list = $alternate_all['list'];
 $list2 = $alternate_all['list2'];
@@ -160,21 +160,24 @@ if (isset($order_data['created_via'])) {
 loadsrcs();
 mnp_display_nav(); ?>
 <div class="container">
-<?php if ( true ) { ?>
-    <?php if ( ! $showpage ) {
-        echo '<h3>Для створення накладної для замовлення перейдіть на <a href="edit.php?post_type=shop_order">сторінку замовлення</a></h3>';
+<?php $getNewTtn = $_GET['newttn'] ?? ''; ?>
+<?php if ( $showpage || $getNewTtn ) { // Якщо є замовлення або обрано створювати накладну без замовлення ?>
+    <?php if ( ! $showpage && $getNewTtn ) { // Якщо створювати накладну без замовлення задаємо заголовок з випадковим номером
+        echo '<h3>Для створення накладної для замовлення перейдіть на <a href="edit.php?post_type=shop_order">сторінку "Замовлення"</a></h3>';
         $hand_feed_invoice = 'HF' . date( 'H' ) . date( 'i' ) . rand( 10000, 99999);
         $order_data = array(
-           "id"             => "$hand_feed_invoice",
+           "id"             => $hand_feed_invoice,
            "payment_method" => "nod",
            "total"          => "",
          );
         $warehouse_billing = array("","","");
+        $order_id = $order_data['id'];
     }
     ?>
     <h2 class="np_order_data_h2">Замовлення № <?php echo $order_data['id'];  ?></h2>
-
-    <!-- <form class="form-invoice" action="admin.php?page=morkvanp_invoice" method="post" name="invoice"> -->
+    <?php if ( $getNewTtn ) : // Якщо створювати накладну без замовлення, додаємо get параметр ?>
+    	<form class="form-invoice" action="admin.php?page=morkvanp_invoice&newttn=1<?php if ( ! empty( $order_id ) ) echo "&post=$order_id" ?>" method="post" name="invoice">
+    <?php endif; ?>
     <form class="form-invoice" action="admin.php?page=morkvanp_invoice<?php if ( ! empty( $order_id ) ) echo "&post=$order_id" ?>" method="post" name="invoice">
         <div id="messageboxnp" class="messagebox_show"></div>
         <?php formlinkbox( $order_data['id'] ); ?>
@@ -235,10 +238,12 @@ mnp_display_nav(); ?>
                               $recipient_address_ref = $value->__get( 'value' );
                           }
                         }
+                      } else { // Якщо створювати накладну без замовлення
+                        $recipient_address_ref = $_POST['invoice_no_order_np_shipping_method_warehouse'] ?? '';
                       }
                       $orderxGetShippingMethod = $orderx->get_shipping_methods();
                       $shipping_method = @array_shift($orderxGetShippingMethod);
-                      $shipping_method_id = $shipping_method['method_id'];
+                      $shipping_method_id = $shipping_method['method_id'] ?? 'nova_poshta_shipping_method';
 
                       if ($shipping_method_id == 'npttn_address_shipping_method') {//print address recipient form block
                           $order_message = 'в замовлені обрано адресну доставку новою поштою';
@@ -258,6 +263,7 @@ mnp_display_nav(); ?>
                     <td><?php echo $order_data['customer_note']; ?></td>
                 </tr>
                 <?php } ?>
+                <?php if ( isset( $_GET['post'] ) && ! isset( $_GET['newttn']) ) : // Якщо створювати накладну без замовлення, то приховуємо цей блок ?>
                 <tr>
                     <th scope="row">Довідка адреси</th>
                     <td>
@@ -273,6 +279,7 @@ mnp_display_nav(); ?>
                         <?php endif; ?>
                     </td>
                 </tr>
+                <?php endif; ?>
                 </tbody>
             </table>
         </div><!-- .tablecontainer -->
@@ -315,7 +322,12 @@ mnp_display_nav(); ?>
 
     </form>
 </div><!-- .container -->
-<?php } // if ( true ) {}
+<?php } // if ( $showpage || $getNewTtn ) {}
+else { // Якщо створювати накладну без замовлення, додаємо підзаголовок та посилання для переходу
+    echo '<h2 class="np_order_data_h2" style="margin-bottom: 1em;">Замовлення не створене</h2>';
+    echo '<h3>Для створення накладної для замовлення перейдіть:</h3>';
+    formlinkbox( -1 );
+}
 
 echo '<pre>';
 //print_r($order_data);
@@ -398,13 +410,18 @@ jQuery(function($) {
   $invoice->getSender();
  // $invoice->createSenderContact();
   $invoice->senderFindArea();
-  $invoice->senderFindStreet();
+
+  if ( get_option( 'woocommerce_nova_poshta_sender_address_type' ) ) $invoice->senderFindStreet(); // Якщо на відділення, то вулицю не шукаємо
+
   $invoice->createSenderAddress();
   $invoice->newFindRecipientArea();
   $invoice->findRecipientArea();
   $recipient = $invoice->createRecipient();
   $invoice->howCosts();
-  $invoice->order_id = $order_data["id"];
+  $invoice->order_id = $order_data["id"] ?? $order_id;
+
+  if ( isset( $_GET['newttn'] ) ) $recipient_address_ref = $_POST['invoice_recipient_city']; // Якщо створювати накладну без замовлення, то назву міста беремо з поля 'Місто'
+
   $invoice->createInvoice( $order_data, $recipient, $recipient_address_ref, $invoice_addweight, $alternate_weight, $invoice_allvolume, $alternate_vol );
 
 //  print_r($invoice);

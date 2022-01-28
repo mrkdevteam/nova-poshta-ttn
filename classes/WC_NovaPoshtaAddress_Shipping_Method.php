@@ -12,21 +12,20 @@
 
  class WC_NovaPoshtaAddress_Shipping_Method extends WC_Shipping_Method
  {
-      public function __construct($instance_id = 0){
+      public function __construct($instance_id = 0)
+      {
+         $this->instance_id = absint( $instance_id );
+         parent::__construct( $instance_id );
+         $this->id = NOVA_POSHTA_TTN_ADDRESS_SHIPPING_METHOD;
+         $this->method_title = __( 'Адресна доставка Нова пошта ', NOVA_POSHTA_TTN_DOMAIN );
+         $this->method_description = $this->getDescription();
 
-     $this->instance_id = absint( $instance_id );
-     parent::__construct($instance_id);
-     $this->id = NOVA_POSHTA_TTN_ADDRESS_SHIPPING_METHOD;
-     $this->method_title = __('Адресна доставка Нова пошта ', NOVA_POSHTA_TTN_DOMAIN);
-     $this->method_description = $this->getDescription();
+         $this->supports = array(
+                 'shipping-zones',
+                 'instance-settings',
+                 'instance-settings-modal',
+             );
 
-     if(get_option('zone_example')){
-     $this->supports = array(
-         'shipping-zones',
-         'instance-settings',
-         'instance-settings-modal',
-         );
-     }
          $this->init();
 
          // Get setting values
@@ -60,8 +59,6 @@
       */
      public function init_form_fields()
      {
-
-         if(get_option('zone_example')){
          $this->instance_form_fields = array(
             'title' => array(
                 'title' => __('Адресна доставка Нова пошта ', NOVA_POSHTA_TTN_DOMAIN),
@@ -95,7 +92,7 @@
                 'type' => 'text',
                 'placeholder' => 'Ваш текст',
                 'description' => __('Введіть текст, який замінить назву способу доставки при досягненні мінімальної суми замовлення<br>Наприклад: "БЕЗКОШТОВНА адресна доставка Нової Пошти".', NOVA_POSHTA_TTN_DOMAIN),
-            ),               
+            ),
 
             'settings' => array(
                 'title' => __('', NOVA_POSHTA_TTN_DOMAIN),
@@ -104,31 +101,7 @@
                 'default' => __(' ', NOVA_POSHTA_TTN_DOMAIN)
             ),
          );
-
      }
-
-     else{
-          $this->form_fields = array(
-             'title' => array(
-                 'title' => __('Nova Poshta', NOVA_POSHTA_TTN_DOMAIN),
-                 'type' => 'text',
-                 'description' => __('This controls the title which the user sees during checkout.', NOVA_POSHTA_TTN_DOMAIN),
-                 'default' => __('Nova Poshta', NOVA_POSHTA_TTN_DOMAIN)
-             ),
-
-
-             'settings' => array(
-                 'title' => __('', NOVA_POSHTA_TTN_DOMAIN),
-                 'type' => 'hidden',
-                 'description' => __('Решта налаштувань доступні за <a href="admin.php?page=morkvanp_plugin">посиланям</a>.', NOVA_POSHTA_TTN_DOMAIN),
-                 'default' => __(' ', NOVA_POSHTA_TTN_DOMAIN)
-             ),
-
-
-          );
-     }
-
- }
 
     /**
      * calculate_shipping function.
@@ -169,7 +142,7 @@
                 add_filter( 'woocommerce_cart_shipping_method_full_label', array($this, 'mrkv_no_display_shipping_cost' ), 10, 2 );
                 $this->rate['cost'] = $this->get_option( Options::FIXED_PRICE );
                 return $this->add_rate($this->rate);
-            }         
+            }
         } elseif ( $this->get_option( Options::FREE_SHIPPING_MIN_SUM ) && ( 'no' == $this->get_option( Options::USE_FIXED_PRICE_ON_DELIVERY ) ) ) {
             // Мінімальна сума для безкоштовної доставки визначена і не встановлена фіксована вартість доставки
             // Розрахунок вартості доставки через API Нової Пошти (початок)
@@ -230,10 +203,10 @@
                     add_filter( 'woocommerce_cart_shipping_method_full_label', array($this, 'mrkv_no_display_shipping_cost' ), 10, 2 );
                     return $this->add_rate($this->rate);
                 }
-            }             
+            }
         }
         $this->add_rate($this->rate);
-    }     
+    }
 
     /**
     * Changes shipping label on '₴0.00', when rate cost is equal 0.00.
@@ -271,7 +244,7 @@
             $label  = $method->get_label() . ': ' . $currency_symbol . $cost;
         }
         return $label;
-    }    
+    }
 
     /**
     * Removes rate cost value/
@@ -281,7 +254,7 @@
             $label = $method->get_label();
         }
         return $label;
-    }       
+    }
 
      /**
       * Is this method available?

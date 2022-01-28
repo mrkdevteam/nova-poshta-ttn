@@ -44,6 +44,9 @@ class DatabaseSync extends BaseDatabaseSync
             $this->updateCities();
 
             $this->updateWarehouses();
+
+            $this->updatePoshtomats();
+
             $this->setLocationsLastUpdateDate($this->updatedAt);
             if (!$this->db->last_error) {
                 $this->db->query('COMMIT');
@@ -105,7 +108,7 @@ class DatabaseSync extends BaseDatabaseSync
         $page = 1;
         $limit = 300;
         $rowsAffected = 0;
-        while (count($cities = NPttn()->api->getCities($page++, $limit)) > 0) {
+        while (count( (array) $cities = NPttn()->api->getCities($page++, $limit)) > 0) {
           //echo '<script>console.log("'.$cities[$page]['Description'].'")</script>';
             $rowsAffected += $this->saveCitiesPage($cities);
         }
@@ -156,7 +159,7 @@ class DatabaseSync extends BaseDatabaseSync
         $rowsAffected = 0;
         $page = 1;
         $limit = 300;
-        while (count($warehouses = NPttn()->api->getWarehouses(null, $page++, $limit)) > 0) {
+        while (count( (array) $warehouses = NPttn()->api->getWarehouses(null, $page++, $limit)) > 0) {
             $rowsAffected += $this->updateWarehousesPage($warehouses);
         }
 
@@ -182,6 +185,57 @@ class DatabaseSync extends BaseDatabaseSync
                 $warehouse['Description'],
                 $warehouse['DescriptionRu'],
                 $warehouse['CityRef'],
+                $updatedAt
+            );
+        }
+        $queryInsert = "INSERT INTO $table (`ref`, `description`, `description_ru`, `parent_ref`, `updated_at`) VALUES ";
+        $queryInsert .= implode(",", $insert);
+        $queryInsert .= ' ON DUPLICATE KEY UPDATE
+            `ref` = VALUES(`ref`),
+            `description` = VALUES(`description`),
+            `description_ru`=VALUES(`description_ru`),
+            `parent_ref`=VALUES(`parent_ref`),
+            `updated_at` = VALUES(`updated_at`)';
+        return $this->db->query($queryInsert);
+
+    }
+
+    /**
+     * Update content of table nova_poshta_poshtomat
+     */
+    private function updatePoshtomats()
+    {
+        $table = AreaRepositoryFactory::instance()->poshtomatRepo()->table();
+        $updatedAt = $this->updatedAt;
+        $rowsAffected = 0;
+        $page = 1;
+        $limit = 300;
+        while (count( (array) $poshtomats = NPttn()->api->getPoshtomats(null, $page++, $limit)) > 0) {
+            $rowsAffected += $this->updatePoshtomatsPage($poshtomats);
+        }
+
+        $queryDelete = $this->db->prepare("DELETE FROM $table WHERE `updated_at` < %d", $updatedAt);
+
+        $rowsDeleted = $this->db->query($queryDelete);
+        $this->log->info("Poshtomats were successfully updated, affected $rowsAffected rows, deleted $rowsDeleted rows", Log::LOCATIONS_UPDATE);
+    }
+
+    /**
+     * @param array $warehouses
+     * @return int
+     */
+    private function updatePoshtomatsPage($poshtomats)
+    {
+        $table = AreaRepositoryFactory::instance()->poshtomatRepo()->table();
+        $updatedAt = $this->updatedAt;
+        $insert = array();
+        foreach ($poshtomats as $poshtomat) {
+            $insert[] = $this->db->prepare(
+                "('%s', '%s', '%s', '%s', %d)",
+                $poshtomat['Ref'],
+                $poshtomat['Description'],
+                $poshtomat['DescriptionRu'],
+                $poshtomat['CityRef'],
                 $updatedAt
             );
         }
@@ -226,7 +280,7 @@ class DatabaseSync extends BaseDatabaseSync
     {
         add_action('admin_notices', function () use ($message) {
             $class = 'notice notice-error';
-            $message = esc_html('Nova Poshta synchronisation failed: ' . $message);
+            $message = esc_html('Morkva Nova Poshta synchronisation failed: ' . $message);
             printf('<div class="%1$s"><p>%2$s</p></div>', esc_attr($class), $message);
         });
     }

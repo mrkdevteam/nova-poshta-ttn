@@ -6,6 +6,7 @@ use plugins\NovaPoshta\classes\base\Base;
 use plugins\NovaPoshta\classes\City;
 use plugins\NovaPoshta\classes\Region;
 use plugins\NovaPoshta\classes\Warehouse;
+use plugins\NovaPoshta\classes\Poshtomat;
 
 /**
  * Class AreaRepositoryFactory
@@ -57,6 +58,14 @@ class AreaRepositoryFactory extends Base
     public function warehouseRepo()
     {
         return $this->ensureRepository(Warehouse::key(), WarehouseRepository::getClass());
+    }
+
+    /**
+     * @return AbstractAreaRepository
+     */
+    public function poshtomatRepo()
+    {
+        return $this->ensureRepository(Poshtomat::key(), PoshtomatRepository::getClass());
     }
 
     /**

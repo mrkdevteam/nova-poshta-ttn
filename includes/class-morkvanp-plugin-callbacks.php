@@ -149,10 +149,12 @@
          $flat = esc_attr(get_option('flat'));
          echo '<input type="text" class="regular-text" name="flat" value="' . $flat . '" placeholder="номер">';
      }
+
      public function emptyfunccalbask()
      {
          echo '';
      }
+
      public function morkvanpWarehouseAddress()
      {
          // $warehouse = esc_attr( get_option( 'warehouse' ) );
@@ -220,15 +222,9 @@
     </tr>
     </tbody>
     </table>';
-
-
-
-
-
          echo '<input class="input-text regular-input jjs-hide-nova-poshta-option" type="hidden" name="woocommerce_nova_poshta_shipping_method_address" id="woocommerce_nova_poshta_shipping_method_address" style="" value="'.$warehouseid.'" placeholder="">';
-
-         ///echo '<p>Налаштування полей міста і регіона беруться із налаштувань плагіну <a href="admin.php?page=wc-settings&tab=shipping&section=nova_poshta_shipping_method">Woocommerce</a></p>';
      }
+
      public function morkvanpload()
      {
          $activate = get_option('invoice_load');
@@ -278,27 +274,6 @@
          $echo = false;
          echo '<input '. $activate .' type="checkbox" class="regular-text" name="update_bases" value="1" ' . checked($checked, $current, $echo) . ' /><br><small>Примітка. Якщо обрати цей пункт, оновлення баз відбуватиметься автоматично кожні 7 днів. </small>';
      }
-
-
-     /*public function morkvanp_address_shpping_notuse()
-     {
-         $activate = get_option('np_address_shpping_notuse');
-
-         $checked = $activate;
-         $current = 1;
-         $echo = false;
-         echo '<input '. $activate .' type="checkbox" class="regular-text" name="np_address_shpping_notuse" value="1" ' . checked($checked, $current, $echo) . ' /> За замовчуванням використовується адресна доставка. Проте цей пункт дозволить її вимкнути.<br><small><span style="color:#dc3232;">Deprecated.</span> Не стосується, якщо використовуються Зони доставки.</small>';
-     }*/
-
-     /*public function morkvanpzone()
-     {
-         $activate = get_option('zone_example');
-
-         $checked = $activate;
-         $current = 1;
-         $echo = false;
-         echo '<input '. $activate .' type="checkbox" class="regular-text" name="zone_example" value="1" ' . checked( $checked, $current, $echo ) . ' /><br><small>Примітка. Щоб додати спосіб доставки Нова Пошта, перейдіть в <a href="admin.php?page=wc-settings&tab=shipping">WooCommerce - Налаштування - Доставка</a></small>';
-     }*/
 
      public function morkvanpcalc()
      {
@@ -365,17 +340,13 @@
 
      public function morkvanpShippingMethodSettings()
      {
-        if (get_option('zone_example')) {
-            /** @noinspection PhpIncludeInspection */
-            require_once NOVA_POSHTA_TTN_SHIPPING_PLUGIN_DIR . 'classes/WC_NovaPoshta_Shipping_Method.php';
-            // require_once NOVA_POSHTA_TTN_SHIPPING_PLUGIN_DIR . 'classes/WC_NovaPoshtaAddress_Shipping_Method.php';
-        } else {
-            require_once NOVA_POSHTA_TTN_SHIPPING_PLUGIN_DIR . 'classes/WC_NovaPoshta_Shipping_Method_old.php';
-        }
+        require_once NOVA_POSHTA_TTN_SHIPPING_PLUGIN_DIR . 'classes/WC_NovaPoshta_Shipping_Method.php';
+        require_once NOVA_POSHTA_TTN_SHIPPING_PLUGIN_DIR . 'classes/WC_NovaPoshta_Shipping_Method_Poshtomat.php';
+        // require_once NOVA_POSHTA_TTN_SHIPPING_PLUGIN_DIR . 'classes/WC_NovaPoshtaAddress_Shipping_Method.php';
 
         $settings_array = array(
             "api_key" => ( null !== get_option( 'text_example' ) ) ? get_option( 'text_example' ) : '',
-            'area_name' => ( null !== get_option('woocommerce_nova_poshta_shipping_method_area_name') ) ? get_option('woocommerce_nova_poshta_shipping_method_area_name') : '', 
+            'area_name' => ( null !== get_option('woocommerce_nova_poshta_shipping_method_area_name') ) ? get_option('woocommerce_nova_poshta_shipping_method_area_name') : '',
             'area' => ( null !== get_option('woocommerce_nova_poshta_shipping_method_area') ) ? get_option('woocommerce_nova_poshta_shipping_method_area') : '',
             'city_name' => ( null !== get_option('woocommerce_nova_poshta_shipping_method_city_name') ) ? get_option('woocommerce_nova_poshta_shipping_method_city_name') : '',
             'city' => ( null !== get_option('woocommerce_nova_poshta_shipping_method_city') ) ? get_option('woocommerce_nova_poshta_shipping_method_city') : '',
@@ -384,5 +355,5 @@
         );
 
         update_option( 'woocommerce_nova_poshta_shipping_method_settings', $settings_array );
-     }     
+     }
  }

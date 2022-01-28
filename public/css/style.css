@@ -150,6 +150,12 @@ p.light{
     padding: 0
 }
 
+.ui-autocomplete {
+    max-height: 200px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
 .form-invoice {
 	display: grid;
 	grid-template-columns: 1fr 1fr 1fr;
@@ -163,8 +169,7 @@ p.light{
 
 .form-invoice>.alink {
 	grid-column: 1 / -1;
-	margin-top: 8px;
-	margin-top: -8px;
+	margin-top: -20px;
 }
 .alink a{
 	margin-right: 20px;
@@ -316,7 +321,7 @@ form.form-invoice .error {
     width: 100%;
     max-width: 100%;
     border: none;
-    border-left-width: 4px;    
+    border-left-width: 4px;
     padding: 15px;
     margin: 0;
     box-shadow: none;

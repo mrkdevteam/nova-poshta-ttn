@@ -8,16 +8,14 @@ use plugins\NovaPoshta\classes\base\OptionsHelper;
 use plugins\NovaPoshta\classes\repository\AreaRepositoryFactory;
 use plugins\NovaPoshta\classes\City;
 use plugins\NovaPoshta\classes\Warehouse;
+use plugins\NovaPoshta\classes\Poshtomat;
 
 /**
- * Class Calculator
+ * Class Checkout
  * @property bool isCheckout
  * @property Customer $customer
  * @package plugins\NovaPoshta\classes
  */
-
-
-
 class Checkout extends Base
 {
 
@@ -90,7 +88,7 @@ class Checkout extends Base
      */
     public function saveNovaPoshtaOptions()
     {
-        if (NPttn()->isPost() && NPttn()->isNPttn() && NPttn()->isCheckout()) {
+        if ( NPttn()->isPost() && NPttn()->isNPttn() && NPttn()->isCheckout() || NPttnPM()->isPost() && NPttnPM()->isNPttnPM() && NPttnPM()->isCheckoutPoshtomat() ) {
             $location = $this->getLocation();
 
             $region = ArrayHelper::getValue($_POST, Region::key($location));
@@ -110,7 +108,7 @@ class Checkout extends Base
      */
     public function maybeDisableDefaultShippingMethods($fields)
     {
-        if (NPttn()->isPost() && NPttn()->isNPttn() && NPttn()->isCheckout()) {
+        if ( NPttn()->isPost() && NPttn()->isNPttn() && NPttn()->isCheckout() || NPttnPM()->isPost() && NPttnPM()->isNPttnPM() && NPttnPM()->isCheckoutPoshtomat() ) {
             $fields = apply_filters('nova_poshta_disable_default_fields', $fields);
             $fields = apply_filters('nova_poshta_disable_nova_poshta_fields', $fields);
         } else {
@@ -171,7 +169,7 @@ class Checkout extends Base
         }
 
         //if not address shipping method:
-        if (NPttn()->isNPttn() && NPttn()->isCheckout()) {
+        if ( NPttn()->isNPttn() && NPttn()->isCheckout() || NPttnPM()->isPost() && NPttnPM()->isNPttnPM() && NPttnPM()->isCheckoutPoshtomat() ) {
             $fieldGroup = $this->getLocation();
 
             $regionKey = Region::key($fieldGroup);
@@ -363,6 +361,14 @@ class Checkout extends Base
     }
 
     /**
+     * @return string
+     */
+    public function getDefaultPoshtomat()
+    {
+        return $this->customer->getMetadata('nova_poshta_poshtomat', Area::SHIPPING);
+    }
+
+    /**
      * @return bool
      * @throws \Exception
      */
@@ -398,9 +404,16 @@ class Checkout extends Base
         $area = $this->customer->getMetadata('nova_poshta_region', $location);
         $city = $this->customer->getMetadata('nova_poshta_city', $location);
         $required = NPttn()->isGet() ?: (NPttn()->isNPttn() && NPttn()->isCheckout());
+        $current_shipping_method = WC()->session->get( 'chosen_shipping_methods' );
 
         $value_for_checkout_selects = esc_attr(get_option('morkvanp_checkout_count'));
 
+        $warehouse_label = __( 'Nova Poshta Warehouse (#)', NOVA_POSHTA_TTN_DOMAIN );
+        $warehouse_options = OptionsHelper::getList( $factory->warehouseRepo()->findByParentRefAndNameSuggestion($city) );
+        if ( 'nova_poshta_shipping_method_poshtomat' == $current_shipping_method[0] ) {
+            // $warehouse_label = __( 'Nova Poshta Poshtomat (#)', NOVA_POSHTA_TTN_DOMAIN );
+            $warehouse_options = OptionsHelper::getList( $factory->poshtomatRepo()->findByParentRefAndNameSuggestion($city) );
+        }
         $fields['shipping_phone'] = array(
             'label'        => __('Phone', 'woocommerce'),
             'type'         => 'text',
@@ -432,10 +445,10 @@ class Checkout extends Base
                 'placeholder' => __('Choose city', NOVA_POSHTA_TTN_DOMAIN),
             ];
             $fields[Warehouse::key($location)] = [
-                'label' => __('Nova Poshta Warehouse (#)', NOVA_POSHTA_TTN_DOMAIN),
+                'label' => $warehouse_label,
                 'type' => 'select',
                 'required' => $required,
-                'options' => OptionsHelper::getList($factory->warehouseRepo()->findByParentRefAndNameSuggestion($city)),
+                'options' => $warehouse_options,
                 'class' => array(),
                 'value' => '',
                 'custom_attributes' => array(),
@@ -559,12 +572,28 @@ class Checkout extends Base
 		        }
 		    });
 		}
+        jQuery('input[name^=shipping_method]').on("change", function() {
+          //console.log('update');
+          jQuery('body').trigger('update_checkout'); // TODO
+          // disableNovaPoshtaOptions();
+          // enableNovaPoshtaShippingOptions();
+        });
+        // jQuery(document.body).on('updated_checkout', function() {
+        //   disableNovaPoshtaOptions();
+        //   enableNovaPoshtaShippingOptions();
+        // });
+        // console.log('Shipping Method = '+ JSON.stringify(jQuery(".shipping_method:checked").val()));
+		// console.dir('Shipping Method = '+ jQuery(".shipping_method:checked").val());
+        var curShipMethod = jQuery(".shipping_method:checked").val();
         // АJAX get Warehouses names of chosen City from "$wpdb->prefix . 'nova_poshta_warehouse'" table of site Database.
         function fetchWarehouses(){
             jQuery.ajax({
                 url: '<?php echo admin_url('admin-ajax.php'); ?>',
                 type: 'post',
-                data: { action: 'npdata_fetchwh', npwhref: jQuery('#billing_mrk_nova_poshta_warehouse').val(), npcityref: jQuery('#billing_mrk_nova_poshta_city').data('ref') },
+                data: { action: 'npdata_fetchwh',
+                        npwhref: jQuery('#billing_mrk_nova_poshta_warehouse').val(),
+                        npcityref: jQuery('#billing_mrk_nova_poshta_city').data('ref'),
+                        shipping_method: curShipMethod },
                 success: function(data) {
                   if ( data.length > 2 ) {
                       jQuery('#npdatafetchwh').show();

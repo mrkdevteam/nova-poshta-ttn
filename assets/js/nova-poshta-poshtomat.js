@@ -1,5 +1,6 @@
-jQuery(document).ready(function() { // Цей файл не задіяний в роботі плагіну
-if ('checkout' == window.location.pathname.replace(/\\|\//g, '')) { console.log('Поточний js-файл nova-posht.js');
+jQuery(document).ready(function() {
+// if ('checkout' == window.location.pathname.replace(/\\|\//g, '')) { // On Checkout page only
+    console.log('Поточний js-файл nova-poshta-poshtomat.js');
   jQuery('#billing_address_1').on("change", function() {
     //console.log('update');
     jQuery('body').trigger('update_checkout');
@@ -8,8 +9,12 @@ if ('checkout' == window.location.pathname.replace(/\\|\//g, '')) { console.log(
     //console.log('update');
     jQuery('body').trigger('update_checkout');
   });
+  jQuery('input[name^=shipping_method]').on("change", function() {
+    //console.log('update');
+    jQuery('body').trigger('update_checkout');
+  });
 
-  // The div-blocks where custom select elements will be added.
+  // 'Місто + Відділення (search in DB)'. The div-blocks where custom select elements will be added for.
   var billingMrkNpCity = jQuery("#billing_mrk_nova_poshta_city");
   var billingMrkNpWarehouse = jQuery("#billing_mrk_nova_poshta_warehouse");
   billingMrkNpCity.after('<div id="npdatafetch">Почніть вводити назву...</div>');
@@ -39,7 +44,7 @@ if ('checkout' == window.location.pathname.replace(/\\|\//g, '')) { console.log(
       jQuery('#warehouses-list .npwhli').css({"border-bottom-right-radius":"0","margin-bottom":".6em","padding":"6px auto"});
   });
 
-  function updatenpdb() {
+  function updatenpdb() { // Update plugin DB tables (this function is disabled now)
     var data2 = {
       action: 'novaposhta_updbasesnp'
     };
@@ -49,7 +54,7 @@ if ('checkout' == window.location.pathname.replace(/\\|\//g, '')) { console.log(
   }
 
   function calcdelivery() { //function to show calculated delivery price
-    ////console.log('calcdelivery');
+    //console.log('calcdelivery');
     var data = {
       action: 'my_actionfogetnpshippngcost',
       c2: jQuery('#billing_nova_poshta_city').val(),
@@ -123,17 +128,15 @@ if ('checkout' == window.location.pathname.replace(/\\|\//g, '')) { console.log(
   }
 
   var ischeckoutpage = document.getElementById("billing_nova_poshta_city");
-
   if (ischeckoutpage) { // adding event listeners for custom calculating
 
     //ask update db if not enough
-    // updatenpdb();
+    updatenpdb();
 
     //fix bad checkout on some sites by change country trigger if not work, increase timeout
     setTimeout(callchangecountry, 500);
 
     //add event listener calculate shipping if billing city changed
-    //jQuery('#billing_nova_poshta_city').change(function() {
     jQuery('#billing_nova_poshta_city').on('change', function() {
       calcdelivery();
       city = jQuery("#billing_nova_poshta_city").val();
@@ -160,13 +163,10 @@ if ('checkout' == window.location.pathname.replace(/\\|\//g, '')) { console.log(
       }, 4000);
     });
 
-
-    //add event listener what to do if shipping method changed
-
-    jQuery('body').on('click', '.shipping_method', function() {
+    jQuery('body').on('click', '.shipping_method', function() { // Add event listener what to do if shipping method changed
       //console.log('changed shipping method');
       //console.log(jQuery(this).val());
-      if (jQuery(this).val() == 'nova_poshta_shipping_method') {
+      if (jQuery(this).val() == 'nova_poshta_shipping_method_poshtomat' || jQuery(this).val() == 'nova_poshta_shipping_method') {
         calcdelivery();
         setTimeout(function() {
           calcdelivery();
@@ -230,8 +230,6 @@ if ('checkout' == window.location.pathname.replace(/\\|\//g, '')) { console.log(
     if (document.getElementById("billing_nova_poshta_region")) {
       //console.log('region found doing select2');
       jQuery("#billing_nova_poshta_city").select2();
-
-
       jQuery("#shipping_nova_poshta_city").select2();
 
       jQuery("#billing_nova_poshta_warehouse").select2();
@@ -322,11 +320,9 @@ if ('checkout' == window.location.pathname.replace(/\\|\//g, '')) { console.log(
         jQuery("#shipping_nova_poshta_warehouse").select3("val", "");
       });
     }
+  } // if (ischeckoutpage)
 
-
-
-  }
-  var NovaPoshtaOptions = (function(jQuery) {
+  var NovaPoshtaOptions = (function(jQuery) { // Checkout Nova Poshta fields controls for warehouses, poshtomats, addresses shipping methods for WooComerce (WC)
     var result = {};
 
     var novaPoshtaBillingOptions = jQuery('#billing_nova_poshta_region, #billing_nova_poshta_city, #billing_nova_poshta_warehouse, #billing_mrk_nova_poshta_city, #billing_mrk_nova_poshta_warehouse');
@@ -334,12 +330,13 @@ if ('checkout' == window.location.pathname.replace(/\\|\//g, '')) { console.log(
     var billingCitySelect = jQuery('#billing_nova_poshta_city');
     var billingWarehouseSelect = jQuery('#billing_nova_poshta_warehouse');
 
-    var novaPoshtaShippingOptions = jQuery('#shipping_phone, #shipping_nova_poshta_region, #shipping_nova_poshta_city, #shipping_nova_poshta_warehouse');
+    var novaPoshtaShippingOptions = jQuery('#shipping_phone, #shipping_nova_poshta_region, #shipping_nova_poshta_city, #shipping_nova_poshta_warehouse, #shipping_mrk_nova_poshta_city, #shipping_mrk_nova_poshta_warehouse');
     var shippingAreaSelect = jQuery('#shipping_nova_poshta_region');
     var shippingCitySelect = jQuery('#shipping_nova_poshta_city');
     var shippingWarehouseSelect = jQuery('#shipping_nova_poshta_warehouse');
 
     var shippingMethods = 'nova_poshta_shipping_method';
+    var shippingMethodsPoshtomat = 'nova_poshta_shipping_method_poshtomat';
     var shippinglocalpickup = 'wcso_local_shipping';
 
     var defaultBillingOptions = jQuery('#billing_company, #billing_address_1, #billing_address_2, #billing_city, #billing_state, #billing_postcode');
@@ -378,14 +375,11 @@ if ('checkout' == window.location.pathname.replace(/\\|\//g, '')) { console.log(
       if (!value) {
         return true;
       }
-
-        // let currentShippingMethodValNP = jQuery(".shipping_method:checked").val();
-        // console.log("currentShippingNP1 :", currentShippingMethodValNP);
-        // if (currentShippingMethodValNP.includes('poshtomat')) {
-        //     return value === 'nova_poshta_shipping_method_poshtomat';
-        // } else {
-        //     return value === 'nova_poshta_shipping_method';
-        // }
+      if (value.includes('poshtomat')) {
+          return value === 'nova_poshta_shipping_method_poshtomat';
+      } else {
+          return value === 'nova_poshta_shipping_method';
+      }
     };
 
     //billing
@@ -398,16 +392,27 @@ if ('checkout' == window.location.pathname.replace(/\\|\//g, '')) { console.log(
     };
 
     var disableNovaPoshtaBillingOptions = function() {
-      //console.log('disableNovaPoshtaBillingOptions');
       novaPoshtaBillingOptions.each(function() {
         jQuery(this).attr('disabled', 'disabled').closest('.form-row').hide();
       });
-      enableDefaultBillingOptions();
+
+      let currentShippingMethod = getNovaPoshta() ? getNovaPoshta() : '';
+      let shippingMethodToAddDefaultBillingOptions = ['free_shipping', 'npttn_address_shipping_method', 'flat_rate', 'local_pickup'];
+      let isAddDefaultFields = false;
+      for (const element of shippingMethodToAddDefaultBillingOptions) {
+        if (currentShippingMethod.includes(element)) {
+          isAddDefaultFields = true;
+          break;
+        }
+      }
+      if (isAddDefaultFields) {
+        enableDefaultBillingOptions();
+      }
     };
 
     var enableDefaultBillingOptions = function() {
       //console.log('enableDefaultBillingOptions');
-      if (!(shippingMethods.includes(getNovaPoshta()))) {
+      if ( !(shippingMethods.includes(getNovaPoshta())) || !(shippingMethodsPoshtomat.includes(getNovaPoshta())) ) {
 
         var strladr = 'npttn_address_shipping_method';
         var str1 = getNovaPoshta() || '1';
@@ -429,24 +434,19 @@ if ('checkout' == window.location.pathname.replace(/\\|\//g, '')) { console.log(
     };
 
     var disableDefaultBillingOptions = function() {
-      if (shippingMethods.includes(getNovaPoshta())) {
+      if ( ensureNovaPoshta() ) {
         //console.log('disable default billiing options');
         defaultBillingOptions.each(function() {
           //console.log(this);
           jQuery(this).attr('disabled', 'disabled').closest('.form-row').hide();
         });
-
-
       } else {
         //console.log('shippingMethods notincludes');
       }
-
     };
 
     var getNovaPoshta = function() {
-
       //console.log('getNovaPoshta');
-
       var value = jQuery('input[name^=shipping_method][type=radio]:checked').val();
       if (!value) {
         value = jQuery('input#shipping_method_0').val();
@@ -454,7 +454,6 @@ if ('checkout' == window.location.pathname.replace(/\\|\//g, '')) { console.log(
       if (!value) {
         value = jQuery('input[name^=shipping_method][type=hidden]').val();
       }
-
       //console.log(value);
       return value;
     };
@@ -496,7 +495,7 @@ if ('checkout' == window.location.pathname.replace(/\\|\//g, '')) { console.log(
 
     var handleShippingMethodChange = function() {
       disableNovaPoshtaOptions();
-      if (ensureNovaPoshta()) {
+      if ( ensureNovaPoshta() ) {
         if (shipToDifferentAddress()) {
           enableNovaPoshtaShippingOptions();
         } else {
@@ -521,7 +520,7 @@ if ('checkout' == window.location.pathname.replace(/\\|\//g, '')) { console.log(
     };
 
     var initOptionsHandlers = function() {
-      billingAreaSelect.on('change', function() {
+      billingAreaSelect.on('change', function() { // Billing '3fields': 'Область + Місто + Відділення'
         //console.log('billing area change');
         var areaRef = this.value;
         jQuery.ajax({
@@ -557,14 +556,22 @@ if ('checkout' == window.location.pathname.replace(/\\|\//g, '')) { console.log(
         });
       });
       billingCitySelect.on('change', function() {
-        var cityRef = this.value;
+          var cityRef = this.value;
+        console.log('getNovaPoshta= '+getNovaPoshta());
+        var dataObj = {
+            'action': NovaPoshtaHelper.getWarehousesAction,
+            'parent_ref': cityRef
+        }; // console.log('if Warehouse');
+        if ( getNovaPoshta().indexOf('poshtomat') > -1 ) { // console.log('if Poshtomat');
+            dataObj = {
+                'action': NovaPoshtaHelper.getPoshtomatsAction,
+                'parent_ref': cityRef
+            };
+        }
         jQuery.ajax({
           url: NovaPoshtaHelper.ajaxUrl,
           method: "POST",
-          data: {
-            'action': NovaPoshtaHelper.getWarehousesAction,
-            'parent_ref': cityRef
-          },
+          data: dataObj,
           success: function(json) {
             try {
               var data = JSON.parse(json);
@@ -581,14 +588,15 @@ if ('checkout' == window.location.pathname.replace(/\\|\//g, '')) { console.log(
               });
 
             } catch (s) {
-              //console.log("Error. Response from server was: " + json);
+              console.log("Error. Response from server was: " + json);
             }
           },
           error: function() {
-            //console.log('Error.');
+            console.log('Error.');
           }
         });
       });
+
       shippingAreaSelect.on('change', function() {
         var areaRef = this.value;
         jQuery.ajax({
@@ -624,12 +632,12 @@ if ('checkout' == window.location.pathname.replace(/\\|\//g, '')) { console.log(
         });
       });
       shippingCitySelect.on('change', function() {
-        var cityRef = this.value;
+        var cityRef = this.value;console.log('if Warehouse2');
         jQuery.ajax({
           url: NovaPoshtaHelper.ajaxUrl,
           method: "POST",
           data: {
-            'action': NovaPoshtaHelper.getWarehousesAction,
+            'action': NovaPoshtaHelper.getPoshtomatsAction,
             'parent_ref': cityRef
           },
           success: function(json) {
@@ -668,14 +676,18 @@ if ('checkout' == window.location.pathname.replace(/\\|\//g, '')) { console.log(
   var Calculator = (function(jQuery) {
     var result = {};
 
-
-
     var ensureNovaPoshta = function() {
       var value = jQuery('input[name^=shipping_method][type=radio]:checked').val();
       if (!value) {
-        value = jQuery('input#shipping_method_0').val();
+          value = jQuery('input#shipping_method_0').val();
       }
-      return value === 'nova_poshta_shipping_method';
+      if (typeof value != "undefined") {
+          if (value.includes('poshtomat')) {
+              return value === 'nova_poshta_shipping_method_poshtomat';
+          } else {
+              return value === 'nova_poshta_shipping_method';
+          }
+      }
     };
 
     var addNovaPoshtaHandlers = function() {
@@ -687,7 +699,9 @@ if ('checkout' == window.location.pathname.replace(/\\|\//g, '')) { console.log(
       });
       jQuery('#calc_shipping_state_field').hide();
 
-      var shippingMethod = jQuery('<input type="hidden" id="calc_nova_poshta_shipping_method" value="nova_poshta_shipping_method" name="shipping_method">');
+      // var shippingMethod = jQuery('<input type="hidden" id="calc_nova_poshta_shipping_method_poshtomat" value="nova_poshta_shipping_method_poshtomat" name="shipping_method">');
+      var shippingMethod = jQuery('<input type="hidden" id="calc_' +
+          ensureNovaPoshta() + '" value="' + ensureNovaPoshta() + '" name="shipping_method">');
       var cityInputKey = jQuery('<input type="hidden" id="calc_nova_poshta_shipping_city" name="calc_nova_poshta_shipping_city">');
       jQuery('#calc_shipping_city_field').append(cityInputKey).append(shippingMethod);
       var cityInputName = jQuery('#calc_shipping_city');
@@ -731,7 +745,6 @@ if ('checkout' == window.location.pathname.replace(/\\|\//g, '')) { console.log(
     };
 
     result.init = function() {
-      // jQuery(document.body).bind('updated_wc_div updated_shipping_method', function() {
       jQuery(document.body).on('updated_wc_div updated_shipping_method', function() {
         if (ensureNovaPoshta()) {
           addNovaPoshtaHandlers();
@@ -749,5 +762,5 @@ if ('checkout' == window.location.pathname.replace(/\\|\//g, '')) { console.log(
   NovaPoshtaOptions.init();
   Calculator.init();
 
-} // if ('checkout' == window.location.pathname.replace(/\\|\//g, ''))
+// } // if ('checkout' == window.location.pathname.replace(/\\|\//g, ''))
 }); // jQuery(document).ready(function()

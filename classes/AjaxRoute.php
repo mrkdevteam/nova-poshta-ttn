@@ -14,10 +14,12 @@ class AjaxRoute extends Base
 
     const GET_CITIES_ROUTE = 'nova_poshta_get_cities_by_area';
     const GET_WAREHOUSES_ROUTE = 'nova_poshta_get_warehouses_by_city';
+    const GET_POSHTOMATS_ROUTE = 'nova_poshta_get_poshtomats_by_city';
 
     const GET_REGIONS_BY_NAME_SUGGESTION = 'get_regions_by_name_suggestion';
     const GET_CITIES_BY_NAME_SUGGESTION = 'get_cities_by_suggestion';
     const GET_WAREHOUSES_BY_NAME_SUGGESTION = 'get_warehouses_by_suggestion';
+    const GET_POSHTOMATS_BY_NAME_SUGGESTION = 'get_poshtomats_by_suggestion';
     const MARK_PLUGIN_AS_RATED = 'woo_shipping_with_nova_poshta_rated';
 
     /**
@@ -53,6 +55,7 @@ class AjaxRoute extends Base
         return array(
             self::GET_CITIES_ROUTE => array($factory->cityRepo(), 'ajaxGetAreasByNameSuggestion'),
             self::GET_WAREHOUSES_ROUTE => array($factory->warehouseRepo(), 'ajaxGetAreasByNameSuggestion'),
+            self::GET_POSHTOMATS_ROUTE => array($factory->poshtomatRepo(), 'ajaxGetAreasByNameSuggestion'),
         );
     }
 
@@ -67,6 +70,7 @@ class AjaxRoute extends Base
             self::GET_REGIONS_BY_NAME_SUGGESTION => array($factory->regionRepo(), 'ajaxGetAreasByNameSuggestion'),
             self::GET_CITIES_BY_NAME_SUGGESTION => array($factory->cityRepo(), 'ajaxGetAreasByNameSuggestion'),
             self::GET_WAREHOUSES_BY_NAME_SUGGESTION => array($factory->warehouseRepo(), 'ajaxGetAreasByNameSuggestion'),
+            self::GET_POSHTOMATS_BY_NAME_SUGGESTION => array($factory->poshtomatRepo(), 'ajaxGetAreasByNameSuggestion'),
         );
     }
 

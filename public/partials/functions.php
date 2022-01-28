@@ -38,8 +38,15 @@ else if ( isset( $order_data["shipping"]["address_1"] ) ) {
   }
 }
 else {
-  $billing_address[0] = "";
-  $billing_address[1] = "";
+  $billing_address = $_POST['invoice_recipient_warehouse'] ?? ''; // Якщо створювати накладну без замовлення
+  $warehouse_billing = explode(" ", $billing_address);
+  $warehouse_billing = str_replace([":", "№"], "", $warehouse_billing);
+  if (empty($warehouse_billing[1])) {
+    unset($warehouse_billing[1]);
+  }
+  else {
+    $warehouse_billing[2] = $warehouse_billing[3];
+  }
 }
 
 //if premmerce active process warehouse array as needed
@@ -53,13 +60,16 @@ else {
 }
 
 //if isset array of $warehouse_billing set [2]element
-if(isset( $warehouse_billing )){
- if ((strpos($warehouse_billing[0], 'Почтомат') !== false) || (strpos($warehouse_billing[0], 'Поштомат') !== false)) {
-    $warehouse_billingg = explode("№", $order_data["shipping"]["address_1"]);
-    $warehouse_billing = explode(":", $warehouse_billingg[1]);
-    $warehouse_billing[2] = $warehouse_billing[0];
+if(isset( $warehouse_billing )){ // На поштомат без замовлення
+ if ( ( strpos( $warehouse_billing[0], 'Почтомат' ) !== false) ||
+    ( strpos( $warehouse_billing[0], 'Почтмат' ) !== false) ||
+    (strpos($warehouse_billing[0], 'Поштомат') !== false)) {
+    $warehouse_billing[2] = $warehouse_billing[3];
+} else { // На відділення без замовлення
+   $warehouse_billing[2] = $warehouse_billing[1] ?? '';
  }
 }
+
 //if village with only one warwhouse but number not described
 if(isset( $warehouse_billing[1] )){
  if (strpos($warehouse_billing[1], 'приймання') !== false) {
@@ -70,7 +80,7 @@ if(isset( $warehouse_billing[1] )){
  }
 }
 
-return $warehouse_billing;
+return $warehouse_billing ?? '';
 
 
 
@@ -166,13 +176,13 @@ function convertweight($weight_unit, $weight_total){
 function get_shipping_phone($order_data) {
   //set up billing/shipping phone
   $shipping_phone = '';
-  if ( get_post_meta( $order_data['id'],'_shipping_phone', true ) ) {
-      $shipping_phone = get_post_meta( $order_data['id'],'_shipping_phone',true );     
+  if ( isset( $order_data['id'] ) && get_post_meta( $order_data['id'],'_shipping_phone', true ) ) {
+      $shipping_phone = get_post_meta( $order_data['id'],'_shipping_phone',true );
   } elseif ( isset($order_data["billing"]["phone"]) ) {
     $shipping_phone = $order_data["billing"]["phone"];
   }
-  else {
-    $shipping_phone = "";
+  else { // Якщо створювати накладну без замовлення
+    $shipping_phone = $_POST['invoice_recipient_phone'] ?? '';
   }
   $shipping_phone = strtr($shipping_phone, [' '=>'', ')'=>'', '('=>'', '+'=>'']);
   //if phone need to be fulled
@@ -366,7 +376,7 @@ function loadsrcs(){?>
   <?php
 }
 
- function mnp_display_nav(){//display nav bar
+ function mnp_display_nav(){ // Display tabs
 
   $arr_of_pages = array(
     array(
@@ -416,20 +426,14 @@ function loadsrcs(){?>
 
 }
 
-function formlinkbox($id){//displat top link box
-  echo '<div class="alink">';
-    if ( !empty( $id ) ) {
-      echo '<a class="btn" href="/wp-admin/post.php?post=' . $id . '&action=edit">Повернутись до замовлення</a>';
-      echo '';
+function formlinkbox($id){ // Display top link box
+    echo '<div class="alink">';
+    if ( !empty( $id ) && -1 != $id ) { // Якщо створювати накладну без замовлення, то повернутись до замовлення не можна
+        echo '<a class="btn" href="/wp-admin/post.php?post=' . $id . '&action=edit">Повернутись до замовлення</a>';
     }
     echo '<a href="edit.php?post_type=shop_order" >Повернутись до замовлень</a>';
-    if ( !empty( $id ) ) {
-      echo '<a class="btn" href="admin.php?page=morkvanp_invoice&newttn=1">Накладна без замовлення</a>';
-      echo '';
-    }
-
-
-echo '</div>';
+    echo '<a class="btn" href="admin.php?page=morkvanp_invoice&newttn=1">Накладна без замовлення</a>';
+    echo '</div>';
 }
 
 function process_shipping_settings($arr)
@@ -538,10 +542,10 @@ function formblock_recipient($shipping_first_name,$shipping_last_name,$city, $sh
    </tr>
    <tr>
       <th scope=\"row\">
-        <label for=\"recipient_city\">Місто</label>
+        <label for=\"invoice_no_order_np_shipping_method_city_all_name\">Місто</label>
       </th>
       <td>
-       <input type=\"text\" name=\"invoice_recipient_city\" id=\"woocommerce_nova_poshta_shipping_method_city_all_name\" class=\"input-text regular-input  ui-autocomplete-input\" autocomplete=\"nope\" value=\"".$city."\"  />
+       <input type=\"text\" name=\"invoice_recipient_city\" id=\"invoice_no_order_np_shipping_method_city_all_name\" class=\"input-text regular-input  ui-autocomplete-input\" autocomplete=\"nope\" value=\"".$city."\"  />
     </tr>
     <!--tr>
        <th scope=\"row\">
@@ -553,10 +557,11 @@ function formblock_recipient($shipping_first_name,$shipping_last_name,$city, $sh
 
      <tr>
         <th scope=\"row\">
-          <label for=\"warenumber\">Відділення / Поштомат</label>
+          <label for=\"invoice_no_order_np_shipping_method_warehouse_name\">Відділення / Поштомат</label>
         </th>
         <td>
-         <input id=\"warenumber\" type=\"text\" name=\"invoice_recipient_warehouse\" class=\"input recipient_region\" value=\"".$warehouse ."\" />
+         <input id=\"invoice_no_order_np_shipping_method_warehouse_name\" type=\"text\" name=\"invoice_recipient_warehouse\" class=\"input recipient_region regular-input  ui-autocomplete-input\"  autocomplete=\"nope\" value=\"".$warehouse ."\" />
+         <input class=\"input-text regular-input jjs-hide-nova-poshta-option\" type=\"hidden\" name=\"invoice_no_order_np_shipping_method_warehouse\" id=\"invoice_no_order_np_shipping_method_warehouse\" style=\"\" value=\"\" placeholder=\"\">
       </tr>
       <tr>
          <th scope=\"row\">
@@ -642,7 +647,7 @@ function formblock_address_recipient($shipping_first_name,$shipping_last_name, $
 function formblock_param($value, $invoice_dpay, $invoice_payer, $alternate_weight, $invoice_addweight, $invoice_allvolume,$dimentions,
 $alternate_vol, $volumemessage,  $weighte, $order_data ){
 
-  $billing_address = $order_data["billing"]["address_1"];
+  $billing_address = $order_data["billing"]["address_1"] ?? $_POST['invoice_recipient_warehouse'] ?? ''; // З замовлення або з поля 'Відділення/Поштомат'
   $warehouse_billing = explode(" ", $billing_address);
   $warehouse_billing = str_replace([":", "№"], "", $warehouse_billing);
   if ((strpos($warehouse_billing[0], 'Почтомат') !== false) || (strpos($warehouse_billing[0], 'Поштомат') !== false)) {
@@ -651,12 +656,10 @@ $alternate_vol, $volumemessage,  $weighte, $order_data ){
     $volues= array('Посилка', 'Документи' );
   } else {
     // Відділення
-    // $values= array('Cargo','Documents','TiresWheels', 'Pallet', 'Parcel' );
-    // $volues= array('Вантаж','Документи','Диски', 'Паллети', 'Посилка' );
     $values= array( 'Parcel',  'Cargo',  'Documents', 'TiresWheels', 'Pallet' );
-    $volues= array( 'Посилка', 'Вантаж','Документи', 'Шини-диски',  'Палета' );    
+    $volues= array( 'Посилка', 'Вантаж','Документи', 'Шини-диски',  'Палета' );
   }
-  
+
   $vilues= array();
   for( $i=0; $i<sizeof($values); $i++){
     if( $values[$i] == $value){

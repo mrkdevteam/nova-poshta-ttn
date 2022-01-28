@@ -710,10 +710,10 @@ class MNP_Plugin_Invoice extends MNP_Plugin_Invoice_Controller {
 
 	public function createRecipient()
 	{
-		$recipient_names = $this->recipient_name;
+		$recipient_names = sanitize_text_field($this->recipient_name);
 		if ( strpos ( $recipient_names, "'" ) !== false ) {
 			$recipient_names = str_replace( "\\", "", $recipient_names );
-		}		
+		}
 		$recipient_names = explode(" ", $recipient_names);
 
 		$first_name = $recipient_names[1];
@@ -848,7 +848,7 @@ class MNP_Plugin_Invoice extends MNP_Plugin_Invoice_Controller {
 
 	public function createInvoice($order_data, $recipient, $recipient_address_ref, $invoice_addweight, $alternate_weight, $invoice_allvolume, $alternate_vol)
 	{
-		require_once("functions.php");		
+		require_once("functions.php");
 
 		if(isset( $_POST['invoice_sender_ref'])){
 
@@ -871,8 +871,8 @@ class MNP_Plugin_Invoice extends MNP_Plugin_Invoice_Controller {
 
 		}
 
-		$typeOfWarehouseRef = $order_data["billing"]["address_1"];
-
+		// $typeOfWarehouseRef = $order_data["billing"]["address_1"] ?? $_POST['invoice_recipient_warehouse'];
+		$typeOfWarehouse = $order_data["billing"]["address_1"] ?? $_POST['invoice_recipient_warehouse']; // З замовлення або з поля для вводу 'Відділення/Поштомат'
 
 		// $invoice_weight = get_option( 'invoice_weight' );
 
@@ -939,13 +939,16 @@ class MNP_Plugin_Invoice extends MNP_Plugin_Invoice_Controller {
 		}
 		$warehouse_billing = process_warehouse_billing($order_data);
 		$this->recipient_address_name = $warehouse_billing[2];
-		$typeOfWarehouse = $order_data["billing"]["address_1"];
-		if ((strpos($typeOfWarehouse, 'Почтомат') !== false) || (strpos($typeOfWarehouse, 'Поштомат') !== false)) {
+
+		$typeOfWarehouse = $order_data["billing"]["address_1"] ?? $_POST['invoice_recipient_warehouse']; // З замовлення або з поля для вводу 'Відділення/Поштомат'
+		if ( ( strpos( $typeOfWarehouse, 'Почтомат' ) !== false) ||
+				( strpos( $typeOfWarehouse, 'Почтмат' ) !== false) ||
+				(strpos($typeOfWarehouse, 'Поштомат') !== false)) { // Накладна для поштомату
 		    $typeOfWarehouseRef = "f9316480-5f2d-425d-bc2c-ac7cd29decf0"; // Поштомат
 		    // $this->recipient_address_name = str_replace(' "Нова Пошта"', '', $order_data["billing"]["address_1"]);
 			if ( empty( $this->cargo_weight ) ) {	// Розрахунок ваги
 					$this->cargo_weight = 0.5;
-			}		    
+			}
 		    $weight = ( $this->cargo_weight > 0 ) ? $this->cargo_weight > 0 : 0.5;
 			$alternate_all = alternate_all($order_data);
 		    $dimentions = $alternate_all['dimentions'];	// Розрахунок об'єму
@@ -964,21 +967,21 @@ class MNP_Plugin_Invoice extends MNP_Plugin_Invoice_Controller {
 			} else {
 				if ( ! empty( $dimentions ) ) {
 					foreach($dimentions as $key => $value) {
-					    $length_array[$key] = $value['length'];
-					    $width_array[$key] = $width['width'];
-					}				
+					    $length_array[] = $value['length'];
+					    $width_array[] = $value['width'];
+					}
 					$max_length_prod = max( 10, max( $length_array ) );
 					$max_width_prod = max( 10, max( $width_array ) );
 				} else {
 					$max_length_prod = 10;
 					$max_width_prod = 10;
-					$max_height_prod = 10;					
+					$max_height_prod = 10;
 				}
 				if ( isset( $_POST['invoice_volume'] ) ) {
 					$max_height_prod = $_POST['invoice_volume'] / $max_length_prod / $max_width_prod * 100;
 				} else {
 					$max_height_prod = 23;
-				}											
+				}
 			}
 			$methodProperties = array(
 				// General params
@@ -989,7 +992,7 @@ class MNP_Plugin_Invoice extends MNP_Plugin_Invoice_Controller {
 				// Cargo
 				"CargoType" => $this->cargo_type,
 				"TypeOfWarehouseRef" => $typeOfWarehouseRef,
-				"OptionsSeat" => array( 
+				"OptionsSeat" => array(
 					array (
 						"volumetricVolume" => $max_length_prod * $max_width_prod * $max_height_prod / 4000,
 						"volumetricLength" => $max_length_prod,
@@ -1190,6 +1193,7 @@ class MNP_Plugin_Invoice extends MNP_Plugin_Invoice_Controller {
 				$eng = $objforerror['data'][$i]['MessageText'];
 
 				$newarray[$mc]['ua'] = $ua;
+				$newarray[$mc]['eng'] = $eng; // Сповіщення API-НП англійською
 			}
 			echo '<hr>';
 
@@ -1207,7 +1211,8 @@ class MNP_Plugin_Invoice extends MNP_Plugin_Invoice_Controller {
 						echo "<h3>Помилки з API Нова Пошта</h3>";
 						echo "<span>  ";
 							foreach ( $errors as $code ) {
-								echo $newarray[$code]['ua'] . ". ";
+								$errorText = $newarray[$code]['ua'] ?? $newarray[$code]['eng']; // Якщо в API-НП немає сповіщення українською
+								echo $errorText . ". ";
 							}
 
 
@@ -1271,7 +1276,7 @@ class MNP_Plugin_Invoice extends MNP_Plugin_Invoice_Controller {
 				)
 			);
             $this->invoice_id = $invoice_number;
-            $this->invoice_ref = $invoice_ref;			
+            $this->invoice_ref = $invoice_ref;
 
 			// $_SESSION['invoice_id_for_order'] = $_SESSION['invoice_id'];
 			// unset( $_SESSION['invoice_id'] );
