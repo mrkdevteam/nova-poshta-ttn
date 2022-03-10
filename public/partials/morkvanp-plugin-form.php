@@ -197,12 +197,12 @@ mnp_display_nav(); ?>
                         echo $servicetype; ?>">
                         <?php
                         $path = PLUGIN_PATH . '/public/partials/morkvanp-plugin-invoices-page.php';
-                        if ( file_exists( $path ) ) {
+                        // if ( file_exists( $path ) ) {
                             $descriptionarea = decodedescription( get_option( 'invoice_description' ),
                                 $list3, $list2, $list, $prod_quantity, $prod_quantity2, $order_data['total'] );
-                        } else {
-                            $descriptionarea = '';
-                        }
+                        // } else {
+                        //     $descriptionarea = '';
+                        // }
                         formblock_sender( get_option( 'names' ), $wooshipping_settings, get_option( 'phone' ), $descriptionarea );
                         ?>
                 </tbody>

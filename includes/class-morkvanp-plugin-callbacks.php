@@ -149,7 +149,7 @@
          $flat = esc_attr(get_option('flat'));
          echo '<input type="text" class="regular-text" name="flat" value="' . $flat . '" placeholder="номер">';
      }
-
+     
      public function emptyfunccalbask()
      {
          echo '';
@@ -342,7 +342,7 @@
      {
         require_once NOVA_POSHTA_TTN_SHIPPING_PLUGIN_DIR . 'classes/WC_NovaPoshta_Shipping_Method.php';
         require_once NOVA_POSHTA_TTN_SHIPPING_PLUGIN_DIR . 'classes/WC_NovaPoshta_Shipping_Method_Poshtomat.php';
-        // require_once NOVA_POSHTA_TTN_SHIPPING_PLUGIN_DIR . 'classes/WC_NovaPoshtaAddress_Shipping_Method.php';
+        require_once NOVA_POSHTA_TTN_SHIPPING_PLUGIN_DIR . 'classes/WC_NovaPoshtaAddress_Shipping_Method.php';
 
         $settings_array = array(
             "api_key" => ( null !== get_option( 'text_example' ) ) ? get_option( 'text_example' ) : '',

@@ -231,7 +231,7 @@ jQuery(document).ready(function() {
       //console.log('region found doing select2');
       jQuery("#billing_nova_poshta_region").select2();
       jQuery("#shipping_nova_poshta_region").select2();
-      
+
       jQuery("#billing_nova_poshta_city").select2();
       jQuery("#shipping_nova_poshta_city").select2();
 
