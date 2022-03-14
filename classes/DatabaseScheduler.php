@@ -29,7 +29,8 @@ class DatabaseScheduler extends Base
     protected function requiresUpdate()
     {
       if( get_option('update_bases')){
-        return ($this->locationsLastUpdateDate + 604800 ) < time(); //base more than 7 days old
+        // return ($this->locationsLastUpdateDate + 604800 ) < time(); //base more than 7 days old
+        return ($this->locationsLastUpdateDate + 86400 ) < time(); //base more than 1 day old
       }
     }
 

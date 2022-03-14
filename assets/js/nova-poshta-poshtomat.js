@@ -44,14 +44,14 @@ jQuery(document).ready(function() {
       jQuery('#warehouses-list .npwhli').css({"border-bottom-right-radius":"0","margin-bottom":".6em","padding":"6px auto"});
   });
 
-  function updatenpdb() { // Update plugin DB tables (this function is disabled now)
-    var data2 = {
-      action: 'novaposhta_updbasesnp'
-    };
-    jQuery.post(NovaPoshtaHelper.ajaxUrl, data2, function(response) {
-      //console.log(response);
-    });
-  }
+  // function updatenpdb() { // Update plugin DB tables (this function is disabled now)
+  //   var data2 = {
+  //     action: 'novaposhta_updbasesnp'
+  //   };
+  //   jQuery.post(NovaPoshtaHelper.ajaxUrl, data2, function(response) {
+  //     //console.log(response);
+  //   });
+  // }
 
   function calcdelivery() { //function to show calculated delivery price
     //console.log('calcdelivery');
@@ -131,7 +131,7 @@ jQuery(document).ready(function() {
   if (ischeckoutpage) { // adding event listeners for custom calculating
 
     //ask update db if not enough
-    updatenpdb();
+    // updatenpdb(); // Вимкнене оновлення таблиць за кількістю їх рядків в зв'язку з воєнним станом
 
     //fix bad checkout on some sites by change country trigger if not work, increase timeout
     setTimeout(callchangecountry, 500);
@@ -374,7 +374,7 @@ jQuery(document).ready(function() {
           //console.log('185: return false')
           return false;
         }
-      }
+      } else jQuery('#billing_country').val('UA');
       if (!value) {
         return true;
       }

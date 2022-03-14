@@ -1,5 +1,6 @@
 <?php
 use plugins\NovaPoshta\classes\Database;
+use plugins\NovaPoshta\classes\DatabasePM;
 use plugins\NovaPoshta\classes\DatabaseSync;
 
 require("functions.php");
@@ -12,7 +13,7 @@ function is_it_a_shop_order($givenNumber){
 }
 
 function get_last_order_id(){
-	if ( class_exists( 'WooCommerce' ) ) {	
+	if ( class_exists( 'WooCommerce' ) ) {
         global $wpdb;
         $statuses = array_keys(wc_get_order_statuses());
         $statuses = implode( "','", $statuses );
@@ -111,19 +112,23 @@ if(isset($_GET['test'])){
 				<h2>Оновити базу відділень</h2>
 				<?php
 
-				if(isset($_POST['upds'])){
+				if( isset( $_POST['upds'] ) ) {
 					Database::instance()->upgrade();
-	        DatabaseSync::instance()->synchroniseLocations();
+					DatabasePM::instance()->upgrade();
+	        		DatabaseSync::instance()->synchroniseLocations();
 				}
 				global $wpdb;
-				$results = $wpdb->get_results( 'select distinct updated_at from '.$wpdb->prefix.'nova_poshta_region');
-				$time = $results[0]->updated_at;
-				$r2=$wpdb->get_results('SELECT COUNT(`ref`) as result  FROM `'.$wpdb->prefix.'nova_poshta_city`');
-				$r2w = $r2[0]->result;
-				$r3=$wpdb->get_results('SELECT COUNT(`ref`) as result FROM `'.$wpdb->prefix.'nova_poshta_warehouse`');
-				$r3w = $r3[0]->result;
+				$results = $wpdb->get_results( 'select distinct updated_at from ' . $wpdb->prefix.'nova_poshta_region' );
+				$time = $results[0]->updated_at ?? 0;
+				$r2 = $wpdb->get_results( 'SELECT COUNT( `ref` ) as result  FROM `' . $wpdb->prefix . 'nova_poshta_city`' );
+				$r2w = $r2[0]->result ?? 0;
+				$r3 = $wpdb->get_results( 'SELECT COUNT( `ref` ) as result FROM `' . $wpdb->prefix . 'nova_poshta_warehouse`' );
+				$r3w = $r3[0]->result ?? 0;
+				$r4 = $wpdb->get_results( 'SELECT COUNT( `ref` ) as result FROM `' . $wpdb->prefix . 'nova_poshta_poshtomat`' );
+				$r4p = $r4[0]->result ?? 0;
 				?>
-				Останнє оновлення бази (<?php echo $r2w . ' міст / ' .$r3w; ?> відділень) відбулось: <?php echo date("Y-m-d H:i:s", $time); ?> (UTC+0)<form action="admin.php?page=morkvanp_about" method="post" style="display: inline;display: inline-flex;margin-left: 10px;">
+				Останнє оновлення бази (<?php echo ' ' . $r2w . ' міст / ' . $r3w . ' відділень / ' . $r4p . ' поштоматів'; ?> ) відбулось: <?php echo date("Y-m-d H:i:s", $time); ?> (UTC)
+				<form action="admin.php?page=morkvanp_about" method="post" style="display: inline;display: inline-flex;margin-left: 10px;">
 					<input type="submit" name=upds value="Оновити" class="button">
 				</form>
 			</div>

@@ -39,14 +39,14 @@ if ('checkout' == window.location.pathname.replace(/\\|\//g, '')) { console.log(
       jQuery('#warehouses-list .npwhli').css({"border-bottom-right-radius":"0","margin-bottom":".6em","padding":"6px auto"});
   });
 
-  function updatenpdb() {
-    var data2 = {
-      action: 'novaposhta_updbasesnp'
-    };
-    jQuery.post(NovaPoshtaHelper.ajaxUrl, data2, function(response) {
-      //console.log(response);
-    });
-  }
+  // function updatenpdb() {
+  //   var data2 = {
+  //     action: 'novaposhta_updbasesnp'
+  //   };
+  //   jQuery.post(NovaPoshtaHelper.ajaxUrl, data2, function(response) {
+  //     //console.log(response);
+  //   });
+  // }
 
   function calcdelivery() { //function to show calculated delivery price
     ////console.log('calcdelivery');
@@ -374,7 +374,7 @@ if ('checkout' == window.location.pathname.replace(/\\|\//g, '')) { console.log(
           //console.log('185: return false')
           return false;
         }
-      }
+      } else jQuery('#billing_country').val('UA');
       if (!value) {
         return true;
       }

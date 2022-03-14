@@ -149,7 +149,7 @@
          $flat = esc_attr(get_option('flat'));
          echo '<input type="text" class="regular-text" name="flat" value="' . $flat . '" placeholder="номер">';
      }
-     
+
      public function emptyfunccalbask()
      {
          echo '';
@@ -272,7 +272,8 @@
          $checked = $activate;
          $current = 1;
          $echo = false;
-         echo '<input '. $activate .' type="checkbox" class="regular-text" name="update_bases" value="1" ' . checked($checked, $current, $echo) . ' /><br><small>Примітка. Якщо обрати цей пункт, оновлення баз відбуватиметься автоматично кожні 7 днів. </small>';
+         // echo '<input '. $activate .' type="checkbox" class="regular-text" name="update_bases" value="1" ' . checked($checked, $current, $echo) . ' /><br><small>Примітка. Якщо обрати цей пункт, оновлення баз відбуватиметься автоматично кожні 7 днів. </small>';
+         echo '<input '. $activate .' type="checkbox" class="regular-text" name="update_bases" value="1" ' . checked($checked, $current, $echo) . ' /><br><small>Примітка. <span style="color: #dc3232;"> Якщо обрати цей пункт, оновлення таблиць БД плагіну відбуватиметься автоматично щодня в зв\'зку з воєнним станом в Україні для забезпечення актуальними даними.</span></small>';
      }
 
      public function morkvanpcalc()

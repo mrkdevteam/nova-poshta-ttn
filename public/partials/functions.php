@@ -408,20 +408,30 @@ function loadsrcs(){?>
   echo "</nav>";
 
   global $wpdb;
+  $cityerr = $warehouserr = $poshtomaterr = '';
   $citiescountsqlobject=$wpdb->get_results('SELECT COUNT(`ref`) as result  FROM `'.$wpdb->prefix.'nova_poshta_city`');
-  $citycountsqlobjectresult = $citiescountsqlobject[0]->result;
+  $citycountsqlobjectresult = $citiescountsqlobject[0]->result ?? false;
+  if ( false === $citycountsqlobjectresult || 0 == $citycountsqlobjectresult ) $cityerr = 'міста';
   $warehousecountsqlobject=$wpdb->get_results('SELECT COUNT(`ref`) as result FROM `'.$wpdb->prefix.'nova_poshta_warehouse`');
-  $warehousecountsqlobjectresult = $warehousecountsqlobject[0]->result;
-   if ( ($citycountsqlobjectresult < 4300) || ($warehousecountsqlobjectresult < 6000) ){
+  $warehousecountsqlobjectresult = $warehousecountsqlobject[0]->result ?? false;
+  if ( false === $warehousecountsqlobjectresult || 0 == $warehousecountsqlobjectresult ) $warehouserr = 'відділення';
+  $poshtomatcountsqlobject=$wpdb->get_results('SELECT COUNT(`ref`) as result FROM `'.$wpdb->prefix.'nova_poshta_poshtomat`');
+  $poshtomatcountsqlobjectresult = $poshtomatcountsqlobject[0]->result ?? false;
+  if ( false === $poshtomatcountsqlobjectresult || 0 == $poshtomatcountsqlobjectresult ) $poshtomaterr = 'поштомати';
 
-  echo '<div id="message" class="error ml0"style="margin:10px 0"><p style="color:#000">База відділень/міст потребує ручного оновлення!
-  Щодня Нова Пошта додає нові відділення, і плагін періодично все це актуалізує. Але останнього разу щось пішло не так. Рекомендуємо оновити базу для коректної роботи плагіна .</p>
-  <form action="admin.php?page=morkvanp_about" method="post" style="display: inline;display: inline-flex;margin-left: 10px;">
-  	<input type="submit" name="upds" value="Оновити базу" class="button"><br>
-  </form>
-<p  style="color:#000">Оновлення може зайняти 10-20 секунд. <span style="color:#dc3232;">Для оновлення  бази потрібен дійсний API ключ нової пошти</span></p>
-        </div>';
-      }
+  if ( $cityerr || $warehouserr || $poshtomaterr ) {
+    echo '<div id="message" class="error ml0" style="margin:10px 0"><p style="color:#000">Shipping for Nova Poshta: Дані про <span style="font-style: italic;">' . $cityerr . ' ' . $warehouserr . ' ' . $poshtomaterr . '</span> відсутні.</p></div>';
+  }
+//    if ( ($citycountsqlobjectresult < 4300) || ($warehousecountsqlobjectresult < 6000) ) {
+//
+//   echo '<div id="message" class="error ml0"style="margin:10px 0"><p style="color:#000">База відділень/міст потребує ручного оновлення!
+//   Щодня Нова Пошта додає нові відділення, і плагін періодично все це актуалізує. Але останнього разу щось пішло не так. Рекомендуємо оновити базу для коректної роботи плагіна .</p>
+//   <form action="admin.php?page=morkvanp_about" method="post" style="display: inline;display: inline-flex;margin-left: 10px;">
+//   	<input type="submit" name="upds" value="Оновити базу" class="button"><br>
+//   </form>
+// <p  style="color:#000">Оновлення може зайняти 10-20 секунд. <span style="color:#dc3232;">Для оновлення  бази потрібен дійсний API ключ нової пошти</span></p>
+//         </div>';
+//       }
 
 
 }
