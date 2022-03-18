@@ -551,7 +551,7 @@ class MNP_Plugin_Loader
             array(
                 'option_group' => 'morkvanp_options_group',
                 'option_name' => 'morkvanp_shipping_method_settings'
-            )            
+            )
         );
 
         $this->settings = $args;
@@ -593,13 +593,13 @@ class MNP_Plugin_Loader
             $args = array(
 
             // Базові налаштування
-            array(
-                'id' => 'title_base_settings',
-                'title' => '<h3 style="margin:0;">Базові налаштування</h3>',
-                'callback' => function () {},
-                'page' => 'morkvanp_plugin',
-                'section' => 'morkvanp_admin_index',
-            ),              
+            // array(
+            //     'id' => 'title_base_settings',
+            //     'title' => '<h3 style="margin:0;">Базові налаштування</h3>',
+            //     'callback' => function () {},
+            //     'page' => 'morkvanp_plugin',
+            //     'section' => 'morkvanp_admin_index',
+            // ),              
             array(
                 'id' => 'text_example',
                 'title' => 'API ключ',
@@ -643,7 +643,7 @@ class MNP_Plugin_Loader
                     'label_for' => 'morkvanp_checkout_count',
                     'class' => 'additional allsettings show'
                 )
-            ), 
+            ),
             array(
                 'id' => 'names',
                 'title' => 'Назва Відправника (П.І.Б. повністю)',
@@ -710,7 +710,7 @@ class MNP_Plugin_Loader
                     'label_for' => 'warehouse',
                     'class' => 'basesettings allsettings show'
                 )
-            ),                                                      
+            ),
                 // Відправка з адреси:
             array(
                 'id' => 'woocommerce_nova_poshta_shipping_method_address',
@@ -744,7 +744,7 @@ class MNP_Plugin_Loader
                     'label_for' => 'show_calc',
                     'class' => 'allsettings additional show'
                 )
-            ),                       
+            ),
             array(
                 'id' => 'plus_calc',
                 'title' => 'Додати розрахунок вартості доставки до замовлення ',
@@ -828,7 +828,7 @@ class MNP_Plugin_Loader
                     'label_for' => 'invoice_description',
                     'class' => 'allsettings additional show'
                 )
-            ),            
+            ),
             array(
                 'id' => 'type_example',
                 'title' => 'Тип відправлення за замовчуванням',
@@ -851,7 +851,7 @@ class MNP_Plugin_Loader
                     'label_for' => 'morkvanp_shipping_method_settings',
                     'class' => 'autosettings allsettings hidden'
                 )
-            ),            
+            ),
 
         );
 
@@ -998,11 +998,11 @@ class MNP_Plugin_Loader
             $number_result = $wpdb->get_row("SELECT * FROM {$wpdb->prefix}novaposhta_ttn_invoices WHERE order_id = '$order_id'", ARRAY_A);
 
             if ( ! empty( $number_result ) ) {
-                echo '<a taget="_blank" href="https://novaposhta.ua/tracking/?cargo_number=' . 
+                echo '<a taget="_blank" href="https://novaposhta.ua/tracking/?cargo_number=' .
                 	$number_result["order_invoice"] . '">' . $number_result["order_invoice"] . '</a>';
             } else {
                 if ( isset( $meta_ttn ) ) {
-                    echo '<a taget="_blank" href="https://novaposhta.ua/tracking/?cargo_number=' . 
+                    echo '<a taget="_blank" href="https://novaposhta.ua/tracking/?cargo_number=' .
                     	$meta_ttn . '">' . $meta_ttn . '</a>';
                 } else {
                     echo "";

@@ -4,7 +4,7 @@
  * Plugin Name: Shipping for Nova Poshta
  * Plugin URI: https://morkva.co.ua/shop/nova-poshta-ttn-pro-lifetime
  * Description: Плагін 2-в-1: спосіб доставки Нова Пошта та генерація накладних Нова Пошта.
- * Version: 1.12.8
+ * Version: 1.13.1
  * Author: MORKVA
  * Text Domain: morkvanp-plugin
  * Domain Path: /i18n/
@@ -12,7 +12,7 @@
  * WC tested up to: 6.1
  */
 
-if (! defined('WPINC')) {
+if ( ! defined( 'WPINC' ) ) {
     die;
 }
 
@@ -90,10 +90,16 @@ function npdata_fetch(){
 // The AJAX function - autocomplete for Warehouse on Checkout page for SelectDB
 add_action('wp_ajax_npdata_fetchwh' , 'npdata_fetchwh');
 add_action('wp_ajax_nopriv_npdata_fetchwh','npdata_fetchwh');
-function npdata_fetchwh(){
+function npdata_fetchwh() {
 
     global $wpdb;
-    $table = $wpdb->prefix . 'nova_poshta_warehouse';
+    $shipping_method = $_POST['shipping_method'];
+    if ( false === strpos( $shipping_method, 'poshtomat' ) ) {
+        $table = $wpdb->prefix . 'nova_poshta_warehouse';
+    } else {
+        $table = $wpdb->prefix . 'nova_poshta_poshtomat';
+    }
+
     $npcityref = isset($_POST['npcityref']) ? $_POST['npcityref'] : '';
     $results = $wpdb->get_results( "SELECT `ref`, `description` FROM " . $table .
         " WHERE `parent_ref` LIKE '" . $npcityref . "'");
@@ -114,6 +120,33 @@ function npdata_fetchwh(){
     die();
 }
 
+// The AJAX function - autocomplete for Poshtomat on Checkout page for SelectDB
+// add_action('wp_ajax_npdata_fetchpm' , 'npdata_fetchpm');
+// add_action('wp_ajax_nopriv_npdata_fetchpm','npdata_fetchpm');
+// function npdata_fetchpm() {
+//
+//     global $wpdb;
+//     $table = $wpdb->prefix . 'nova_poshta_poshtomat';
+//     $npcityref = isset($_POST['npcityref']) ? $_POST['npcityref'] : '';
+//     $results = $wpdb->get_results( "SELECT `ref`, `description` FROM " . $table .
+//         " WHERE `parent_ref` LIKE '" . $npcityref . "'");
+//     $items = array();
+//     if ( ! empty( $results ) ) {
+//         foreach ( $results as $key => $value ) {
+//             $items[$value->ref] = $value->description;
+//         }
+//     }
+//
+//     $out = '<ul id="poshtomats-list">';
+//     foreach ($items as $k => $v) {
+//         $out .= '<li style="padding-left:10px; white-space:nowrap;" class="nppmli"
+//             onclick="selectPoshtomat(' . '\'' . esc_attr($v) . '\'' . ', ' . '\'' . esc_attr($k) . '\'' . ')">' . esc_html($v) .  '</li>';
+//     }
+//     echo $out . '</ul>';
+//
+//     die();
+// }
+
 add_action('wp_ajax_novaposhta_updbasesnp', 'novaposhta_updbasesnp');
 add_action('wp_ajax_nopriv_novaposhta_updbasesnp', 'novaposhta_updbasesnp');
 function novaposhta_updbasesnp() // This function is disabled temporally
@@ -123,7 +156,9 @@ function novaposhta_updbasesnp() // This function is disabled temporally
     $citycountsqlobjectresult = $citiescountsqlobject[0]->result;
     $warehousecountsqlobject=$wpdb->get_results('SELECT COUNT(`ref`) as result FROM `'.$wpdb->prefix.'nova_poshta_warehouse`');
     $warehousecountsqlobjectresult = $warehousecountsqlobject[0]->result;
-    if (($citycountsqlobjectresult < 4300) || ($warehousecountsqlobjectresult < 6000)) {
+    $poshtomatcountsqlobject=$wpdb->get_results('SELECT COUNT(`ref`) as result FROM `'.$wpdb->prefix.'nova_poshta_poshtomat`');
+    $poshtomatcountsqlobjectresult = $poshtomatcountsqlobject[0]->result;
+    if ( ( $citycountsqlobjectresult < 4300 ) || ( $warehousecountsqlobjectresult < 6000 ) || ( $poshtomatcountsqlobjectresult < 10000 ) ) {
         Database::instance()->upgrade();
         DatabasePM::instance()->upgrade();
         DatabaseSync::instance()->synchroniseLocations();
@@ -140,11 +175,9 @@ add_action('wp_ajax_nopriv_my_actionfogetnpshippngcost', 'my_actionfogetnpshippn
 
 function my_actionfogetnpshippngcost_callback()
 {
+    global $woocommerce;
     WC()->cart->calculate_shipping();
     WC()->cart->calculate_totals();
-
-
-    global $woocommerce;
 
     $weight_total = max(1, WC()->cart->cart_contents_weight);
 
@@ -172,7 +205,7 @@ function my_actionfogetnpshippngcost_callback()
     }
     $cod = "";
 
-    $c2 = $_POST['c2'] ;
+    $c2 = isset( $_POST['c2'] ) ? $_POST['c2'] : '';
     if (isset($_POST['cod'])) {
         $cod = $_POST['cod'];
     }
@@ -188,13 +221,25 @@ function my_actionfogetnpshippngcost_callback()
 
     $codarray = array("CargoType" => "Money",   "Amount" => $total);
 
-    $methodProperties = array("CitySender" => $sender_city,"CityRecipient" => $c2,"Weight" => $weight_total,"ServiceType" => $serviceType ,"Cost" => $total,"SeatsAmount" => "10" );
+    $methodProperties = array(
+        "CitySender" => $sender_city,
+        "CityRecipient" => $c2,
+        "Weight" => $weight_total,
+        "ServiceType" => $serviceType ,
+        "Cost" => $total,
+        "SeatsAmount" => "10"
+    );
 
     if ($cod == 'checked') {
         $methodProperties['RedeliveryCalculate'] = $codarray;
     }
 
-    $costs = array("modelName" => "InternetDocument","calledMethod" => "getDocumentPrice","methodProperties" => $methodProperties,"apiKey" => get_option('text_example'));
+    $costs = array(
+        "modelName" => "InternetDocument",
+        "calledMethod" => "getDocumentPrice",
+        "methodProperties" => $methodProperties,
+        "apiKey" => get_option('text_example')
+    );
 
     $curl = curl_init();
 
@@ -220,9 +265,9 @@ function my_actionfogetnpshippngcost_callback()
         echo '01234';//signal to stop calculating injection
     } else {
         $obj = json_decode($response, true);
-        $echovar = 0;
-        $echovar += $obj["data"][0]["Cost"];
-        if ($obj["data"][0]["CostRedelivery"]) {
+        $echovar = 0.00;
+        $echovar += isset( $obj["data"][0]["Cost"] ) ? $obj["data"][0]["Cost"] : 0.00;
+        if ( isset( $obj["data"][0]["CostRedelivery"] ) ) {
             $echovar += $obj["data"][0]["CostRedelivery"];
         }
         echo $echovar;
@@ -230,7 +275,7 @@ function my_actionfogetnpshippngcost_callback()
     wp_die();
 }
 
-function np_get_price_shipping($citycost)
+function np_get_price_shipping($citycost) // Ця функція не задіяна
 {
     $cartWeight = max(1, WC()->cart->cart_contents_weight);
     $cartTotal = max(1, WC()->cart->cart_contents_total);

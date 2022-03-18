@@ -78,7 +78,8 @@ class NovaPoshtaApi extends Base
      */
     private function __construct()
     {
-        $this->api = new NovaPoshtaApi2($this->apiKey, 'ru', true);
+        // $this->api = new NovaPoshtaApi2($this->apiKey, 'ru', true);
+        $this->api = new NovaPoshtaApi2('', 'ru', true);
     }
 
     /**
