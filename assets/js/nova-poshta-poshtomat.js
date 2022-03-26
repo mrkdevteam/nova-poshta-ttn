@@ -323,6 +323,8 @@ jQuery(document).ready(function() {
         jQuery("#shipping_nova_poshta_warehouse").select3("val", "");
       });
     }
+    // Set Checkout spinner color from 'Колір спінера в Checkout' plugin setting
+    jQuery("head").append('<style> .statenp-loading:after {border: 2px solid '+ NovaPoshtaHelper.spinnerColor +';border-left-color: #fff;}</style>');
   } // if (ischeckoutpage)
 
   var NovaPoshtaOptions = (function(jQuery) { // Checkout Nova Poshta fields controls for warehouses, poshtomats, addresses shipping methods for WooComerce (WC)
@@ -533,6 +535,12 @@ jQuery(document).ready(function() {
             'action': NovaPoshtaHelper.getCitiesAction,
             'parent_ref': areaRef
           },
+          beforeSend: function() {
+             jQuery("#billing_nova_poshta_region_field").addClass('statenp-loading');
+          },
+          complete: function(){
+             jQuery("#billing_nova_poshta_region_field").removeClass('statenp-loading');
+          },
           success: function(json) {
             try {
               var data = JSON.parse(json);
@@ -575,6 +583,12 @@ jQuery(document).ready(function() {
           url: NovaPoshtaHelper.ajaxUrl,
           method: "POST",
           data: dataObj,
+          beforeSend: function() {
+             jQuery("#billing_nova_poshta_city_field").addClass('statenp-loading');
+          },
+          complete: function(){
+             jQuery("#billing_nova_poshta_city_field").removeClass('statenp-loading');
+          },
           success: function(json) {
             try {
               var data = JSON.parse(json);

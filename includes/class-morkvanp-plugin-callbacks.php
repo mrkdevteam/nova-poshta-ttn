@@ -276,6 +276,15 @@
          echo '<input '. $activate .' type="checkbox" class="regular-text" name="update_bases" value="1" ' . checked($checked, $current, $echo) . ' /><br><small>Примітка. <span style="color: #dc3232;"> Якщо обрати цей пункт, оновлення таблиць БД плагіну відбуватиметься автоматично щодня в зв\'зку з воєнним станом в Україні для забезпечення актуальними даними.</span></small>';
      }
 
+     public function spinnercolorcb()
+     {
+         $spinnercolor = get_option('spinnercolor');
+         $current = 1;
+         $echo = false;
+         echo '<input value="'. $spinnercolor .'" type="text" class="regular-text" name="spinnercolor" id="spinnercolor" data-default-color="#808080"/>';
+         echo '<small><br>Тут можна визначити колір спінера, який буде з\'являтися на сторінці Chekout.</small>';
+     }
+
      public function morkvanpcalc()
      {
          $activate = get_option('show_calc');

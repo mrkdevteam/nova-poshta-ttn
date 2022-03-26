@@ -150,11 +150,16 @@ class NovattnPoshtaPoshtomat extends Base
                 filemtime(NOVA_POSHTA_TTN_SHIPPING_PLUGIN_DIR . $fileName)
             );
 
-            wp_enqueue_style('select3', NOVA_POSHTA_TTN_SHIPPING_PLUGIN_URL.'/assets/select3.min.css', array(), MNP_PLUGIN_VERSION);
-            // wp_register_script('select3', NOVA_POSHTA_TTN_SHIPPING_PLUGIN_URL.'/assets/select3.min.js', array(), MNP_PLUGIN_VERSION);
-            wp_register_script('select3', NOVA_POSHTA_TTN_SHIPPING_PLUGIN_URL.'/assets/select3.js', array(), MNP_PLUGIN_VERSION);
-            wp_enqueue_script('select3', NOVA_POSHTA_TTN_SHIPPING_PLUGIN_URL.'/assets/select3.min.js', array('jquery'), MNP_PLUGIN_VERSION, true);
-            wp_enqueue_script('nova-poshta-poshtomat-js', array('jquery', 'select3'));
+            wp_enqueue_style( 'wp-color-picker' ); // WP Color Picker dependency styles
+
+            wp_enqueue_style('select2css', NOVA_POSHTA_TTN_SHIPPING_PLUGIN_URL.'assets/select2.min.css', array(), MNP_PLUGIN_VERSION);
+            wp_register_script('select2js', NOVA_POSHTA_TTN_SHIPPING_PLUGIN_URL.'assets/select2.min.js', array(), MNP_PLUGIN_VERSION);
+            wp_register_script('select2i18nuk', NOVA_POSHTA_TTN_SHIPPING_PLUGIN_URL.'assets/i18n/uk.js', array(), MNP_PLUGIN_VERSION);
+            wp_register_script('select2i18nru', NOVA_POSHTA_TTN_SHIPPING_PLUGIN_URL.'assets/i18n/ru.js', array(), MNP_PLUGIN_VERSION);
+            wp_enqueue_script('select2js', NOVA_POSHTA_TTN_SHIPPING_PLUGIN_URL.'assets/select3.min.js', array('jquery'), MNP_PLUGIN_VERSION, true);
+            wp_enqueue_script('select2i18nuk', NOVA_POSHTA_TTN_SHIPPING_PLUGIN_URL.'assets/select3.min.js', array('select2js'), MNP_PLUGIN_VERSION, true);
+            wp_enqueue_script('select2i18nru', NOVA_POSHTA_TTN_SHIPPING_PLUGIN_URL.'assets/select3.min.js', array('select2js'), MNP_PLUGIN_VERSION, true);
+            wp_enqueue_script('nova-poshta-poshtomat-js', array('jquery', 'select2js'));
             // wp_dequeue_script( 'nova-poshta-js' );
 
             $this->localizeHelper('nova-poshta-poshtomat-js');
@@ -245,6 +250,7 @@ class NovattnPoshtaPoshtomat extends Base
             'getWarehousesAction' => AjaxRoute::GET_WAREHOUSES_ROUTE,
             'getPoshtomatsAction' => AjaxRoute::GET_POSHTOMATS_ROUTE,
             'markPluginsAsRated' => AjaxRoute::MARK_PLUGIN_AS_RATED,
+            'spinnerColor' =>get_option( 'spinnercolor' ), // 'Колір спінера в Checkout' setting value for front-end
         ]);
     }
 

@@ -64,3 +64,52 @@
 .border-radius-zero {
 	border-radius: 4px !important;
 }
+
+/* Spinner on Checkout page */
+.statenp-loading {
+    position: relative;
+}
+.statenp-loading:after,
+.statenp-loading:before {
+    content: "";
+}
+.statenp-loading:before {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.7); /* Колір тла блоку */
+    z-index: 2;
+}
+.statenp-loading:after {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    display: inline-block;
+    width: 21px;
+    height: 21px;
+    border: 2px solid #808080; /* Колір кільця */
+    border-left-color: #fff; /* Колір розриву кільця */
+    border-radius: 21px;
+    -webkit-animation: checkoutnp-loader-animation 0.3s linear infinite;
+    animation: checkoutnp-loader-animation 0.3s linear infinite;
+    z-index: 3;
+}
+@-webkit-keyframes checkoutnp-loader-animation {
+    from {
+        transform: rotate(0);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+@keyframes checkoutnp-loader-animation {
+    from {
+        transform: rotate(0);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}

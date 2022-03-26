@@ -486,6 +486,11 @@ class MNP_Plugin_Loader
 
             array(
                 'option_group' => 'morkvanp_options_group',
+                'option_name' => 'spinnercolor'
+            ),
+
+            array(
+                'option_group' => 'morkvanp_options_group',
                 'option_name' => 'type_example'
             ),
 
@@ -599,7 +604,7 @@ class MNP_Plugin_Loader
             //     'callback' => function () {},
             //     'page' => 'morkvanp_plugin',
             //     'section' => 'morkvanp_admin_index',
-            // ),              
+            // ),
             array(
                 'id' => 'text_example',
                 'title' => 'API ключ',
@@ -778,6 +783,17 @@ class MNP_Plugin_Loader
                     'class' => 'autosettings allsettings show'
                 )
             ),
+            array(
+                'id' => 'spinnercolor',
+                'title' => 'Колір спінера в Checkout',
+                'callback' => array( $this->callbacks, 'spinnercolorcb' ),
+                'page' => 'morkvanp_plugin',
+                'section' => 'morkvanp_admin_index',
+                'args' => array(
+                    'label_for' => 'spinnercolor',
+                    'class' => 'autosettings show'
+                )
+            ),   
 
             // Відправка e-mail з ТТН
             array(
