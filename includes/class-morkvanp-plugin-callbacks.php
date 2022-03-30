@@ -125,22 +125,26 @@
 
      public function morkvanpCheckoutExample()
      {
-         $value = esc_attr(get_option('morkvanp_checkout_count'));
-         $values= array('3fields', '2fields', '2fieldsdb');
-         $volues= array('Область + Місто + Відділення', 'Місто + Відділення (select3)', 'Місто + Відділення (search in DB)' );
-         $vilues= array(' ',' ',' ', ' ', '  ');
-         for ($i=0; $i<sizeof($values); $i++) {
-             if ($values[$i] == $value) {
+         $value = esc_attr( get_option('morkvanp_checkout_count' ) );
+         $values = array( '3fields', '2fields', '2fieldsdb' );
+         $volues = array( 'Область + Місто + Відділення', 'Місто + Відділення (select3)', 'Місто + Відділення (search in DB)' );
+         $vilues = array(' ', ' ', ' ');
+         for ( $i = 0; $i < sizeof( $values ); $i++) {
+             if (  $value == $values[$i] ) {
                  $vilues[$i] = 'selected';
+             } elseif ( '3fields' != $values[$i] ) {
+                $vilues[$i] = 'disabled';
              }
          }
-
+         for ( $i = 0; $i < sizeof( $values ); $i++) {
+             if (  '3fields' != $values[$i] ) {
+                 $vilues[$i] .= ' style="color: gray"';
+             }
+         }
          echo '<select '.$value.' id="morkvanp_checkout_count" name="morkvanp_checkout_count">';
-
-         for ($i=0; $i<sizeof($values); $i++) {
+         for ( $i = 0; $i < sizeof( $values ); $i++ ) {
              echo '<option ' . $vilues[$i] . ' value="' . $values[$i].'">' . $volues[$i] . '</option>';
          }
-
          echo '</select>';
      }
 
