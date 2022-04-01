@@ -244,7 +244,19 @@ jQuery(document).ready(function() {
 
         jQuery("#billing_nova_poshta_city").select2({
           sorter: function(data) {
-            data.sort(function(a, b) {
+              var first = [ 'Львів', 'Київ', 'Тернопіль', 'Івано-Франківськ', 'Вінниця', 'Дніпро', 'Хмельницький', 'Рівне', 'Харків', 'Чернівці', 'Луцьк', 'Одеса', 'Полтава', 'Черкаси',
+              'Запоріжжя', 'Житомир', 'Кропивницький', 'Ужгород', 'Миколаїв', 'Суми', 'Херсон', 'Чернігів', 'Донецьк', 'Луганськ', 'Сімферополь' ];
+              var firstRu = [ 'Львов', 'Киев', 'Тернополь', 'Ивано-Франковск', 'Винница', 'Днепр', 'Хмельницкий', 'Ровно', 'Харьков', 'Черновцы', 'Луцк', 'Одесса', 'Полтава', 'Черкассы',
+              'Запорожье', 'Житомир', 'Кропивницкий', 'Ужгород', 'Николаев', 'Сумы', 'Херсон', 'Чернигов', 'Донецк', 'Луганск', 'Симферополь' ];
+              data.sort(function(a, b) {
+                if ( first.includes( a.text ) ) { // Set region sity on the first place in city list - UA
+                  let indx = first.indexOf( a.text );
+                  return a.text == first[indx] ? -1 : b.text == first[indx] ? 1 : 0;
+                }
+                if ( firstRu.includes( a.text ) ) { // Set region sity on the first place in city list - RU
+                  let indxRu = firstRu.indexOf( a.text );
+                  return a.text == firstRu[indxRu] ? -1 : b.text == firstRu[indxRu] ? 1 : 0;
+                }
               var jQuerysearch = jQuery('.select2-search__field');
               if (0 === jQuerysearch.length || '' === jQuerysearch.val()) {
                 return data;
