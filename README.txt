@@ -2,9 +2,9 @@
 Contributors: bandido, olegkovalyov
 Tags: woocommerce, Shipping for Nova Poshta, нова пошта, новая почта, ecommerce
 Requires at least: 5.0
-Tested up to: 5.9
+Tested up to: 6.0
 Requires PHP: 7.0
-Stable tag: 1.13.5
+Stable tag: 1.13.6
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -98,6 +98,9 @@ https://youtu.be/u7oGTA9S_U8
 8. На сторінці оформлення можна використовувати лише 2 поля: пошук міста та відділення. Плагін сам приховає зайві стандартні поля
 
 == Що нового? ==
+
+= 1.13.6 =
+* [fix] змінена формула розрахунку об'ємної ваги
 
 = 1.13.5 =
 * [new] в переліку міст області першим стоїть обласний центр

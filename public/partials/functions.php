@@ -121,18 +121,12 @@ function getsendersaddr(){
 
   $resultgetCounterparties = httpPost($url, $data);
 
- $resultgetCounterparties = json_decode($resultgetCounterparties);
+  $resultgetCounterparties = json_decode($resultgetCounterparties);
 
   $totals = $resultgetCounterparties->info->totalCount;
 
-  //$resultgetCounterparties = $resultgetCounterparties->data;
-
-  //$resultgetCounterparties = explode(" ", $resultgetCounterparties);
-
-
   return $resultgetCounterparties;
 }
-
 
 function getsenders(){
   $ref =  getCounterpartiestoref();
@@ -147,8 +141,6 @@ function getsenders(){
   $totals = $resultgetCounterparties->info->totalCount;
 
   $resultgetCounterparties = $resultgetCounterparties->data;
-
-  //$resultgetCounterparties = explode(" ", $resultgetCounterparties);
 
   return $resultgetCounterparties;
 }
@@ -327,10 +319,15 @@ function alternate_all($order_data){
   		}
   	}
   }
-  $alternate_vol = $alternate_vol / 1000000;
+    $dimension_unit = get_option('woocommerce_dimension_unit');
+    if ( 'cm' == $dimension_unit ) $alternate_vol = $alternate_vol / 1000000;
+    if ( 'm' == $dimension_unit ) $alternate_vol = $alternate_vol;
+    if ( 'mm' == $dimension_unit ) $alternate_vol = $alternate_vol / 1000000000;
+    $weight_unit = get_option('woocommerce_weight_unit');
+    if ( 'g' == $weight_unit ) $alternate_weight = $alternate_weight / 1000;
   $arrayreturn = array(
-    'weight'=> $alternate_weight,
-    'alternate_vol'=> $alternate_vol,
+    'weight'=> $alternate_weight, // Must be in kg
+    'alternate_vol'=> $alternate_vol, // Must be volume in m3
     'volumemessage'=>$volumemessage,
     'list'=>$list,
     'list2'=>$list2,
@@ -422,18 +419,6 @@ function loadsrcs(){?>
   if ( $cityerr || $warehouserr || $poshtomaterr ) {
     echo '<div id="message" class="error ml0" style="margin:10px 0"><p style="color:#000">Shipping for Nova Poshta: Дані про <span style="font-style: italic;">' . $cityerr . ' ' . $warehouserr . ' ' . $poshtomaterr . '</span> відсутні.</p></div>';
   }
-//    if ( ($citycountsqlobjectresult < 4300) || ($warehousecountsqlobjectresult < 6000) ) {
-//
-//   echo '<div id="message" class="error ml0"style="margin:10px 0"><p style="color:#000">База відділень/міст потребує ручного оновлення!
-//   Щодня Нова Пошта додає нові відділення, і плагін періодично все це актуалізує. Але останнього разу щось пішло не так. Рекомендуємо оновити базу для коректної роботи плагіна .</p>
-//   <form action="admin.php?page=morkvanp_about" method="post" style="display: inline;display: inline-flex;margin-left: 10px;">
-//   	<input type="submit" name="upds" value="Оновити базу" class="button"><br>
-//   </form>
-// <p  style="color:#000">Оновлення може зайняти 10-20 секунд. <span style="color:#dc3232;">Для оновлення  бази потрібен дійсний API ключ нової пошти</span></p>
-//         </div>';
-//       }
-
-
 }
 
 function formlinkbox($id){ // Display top link box
@@ -474,10 +459,7 @@ if(!empty( get_option( 'woocommerce_nova_poshta_shipping_method_warehouse' )) )
 {
   $arr['warehouse']=get_option('woocommerce_nova_poshta_shipping_method_warehouse');
   }
-
-
 return $arr;
-
 }
 function formblock_title($string){
   echo "<tr>
@@ -534,10 +516,8 @@ function formblock_sender($name, $shipping_settings, $phone,$descriptionarea  ){
       <p id=\"error_dec\"></p>
     </td>
   </tr>";
-  // echo '<tr><td><pre>';
-  // print_r(getsendersaddr());
-  // echo '</pre></td></td>';
 }
+
 function formblock_recipient($shipping_first_name,$shipping_last_name,$city, $shipping_state, $warehouse, $shipping_phone){
   $warehouse = intval($warehouse)>0 ? intval($warehouse) : '';
   $shipping_phone = intval($shipping_phone)>0 ? $shipping_phone  : '';
@@ -585,10 +565,6 @@ function formblock_recipient($shipping_first_name,$shipping_last_name,$city, $sh
 }
 function formblock_address_recipient($shipping_first_name,$shipping_last_name, $city,$order_data_billing ,$order_data_shipping, $shipping_phone){
   if(isset($_GET['debug']) ){
-    echo '<pre>';
-    // print_r($order_data_billing);
-    // print_r($order_data_shipping);
-    echo '</pre>';
   }
   //розділяємо адресу пробілами
   $shipping_address_array = explode(" ", $order_data_shipping['address_1']) ;
@@ -619,7 +595,6 @@ function formblock_address_recipient($shipping_first_name,$shipping_last_name, $
   if(!empty($order_data_shipping['address_1'])){
     $addressfull = $order_data_shipping['address_1'];
   }
-
 
   echo "<tr>
      <th scope=row>
@@ -812,7 +787,6 @@ $alternate_vol, $volumemessage,  $weighte, $order_data ){
     </tr>
   <tr>";
 
-
      if (isset($invoice_allvolume) && $invoice_allvolume > 0){
 
        echo "<th scope=\"row\" class=\"pb0\">
@@ -891,7 +865,6 @@ echo "</td>
          <td>
            <input class=w24 type=checkbox id=invoice_redelivery name=invoice_redelivery value=ON ";
 
-
            $cod = get_option( 'invoice_cod' );
 
            $codlimit = get_option( 'invoice_dpay' );
@@ -899,22 +872,11 @@ echo "</td>
            if(($order_data['payment_method'] == 'cod') && (!$cod ))
              {
                echo ' checked ';
-
               }
            echo "
            />
          </td>
        </tr>";
-
-
-
-
-
-
-
-
-
-
         echo "<tr><th scope=\"row\">
         <label for=\"invoice_payer\">Платник зворотньої доставки</label>
       </th>
@@ -947,17 +909,7 @@ echo "</td>
         echo ">Відправник</option></select>";
       }
       echo "</td></tr>";
-
-
-
-
-
-
-
-
-
-
-       echo "<tr>
+      echo "<tr>
           <th scope=row>
             <label for=invoice_descriptionred>Штрихкод RedBoxBarcode</label>
           </th>
@@ -970,10 +922,5 @@ echo "</td>
           <p class=light>Штрихкод RedBoxBarcode - не обов'язкове поле.</p>
         </th>
       </tr>";
-
       }
-
 }
-
-
-?>
