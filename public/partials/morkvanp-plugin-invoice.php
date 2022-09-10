@@ -124,7 +124,7 @@ class MNP_Plugin_Invoice extends MNP_Plugin_Invoice_Controller {
 
 	public function register()
 	{
-		$this->api_key = get_option('text_example');
+		$this->api_key = get_option('mrkvnp_sender_api_key');
 
 		$invoiceController = new MNP_Plugin_Invoice_Controller();
 
@@ -205,7 +205,7 @@ class MNP_Plugin_Invoice extends MNP_Plugin_Invoice_Controller {
 						"modelName" => "Address",
 						"calledMethod" => "getCities",
 						"methodProperties" => $methodProperties,
-						"apiKey" => get_option('text_example')
+						"apiKey" => get_option('mrkvnp_sender_api_key')
 					);
 
 					$curl = curl_init();
@@ -552,7 +552,7 @@ class MNP_Plugin_Invoice extends MNP_Plugin_Invoice_Controller {
 				"modelName" => "Address",
 				"calledMethod" => "getCities",
 				"methodProperties" => $cityMethodProperties,
-				"apiKey" => get_option('text_example')
+				"apiKey" => get_option('mrkvnp_sender_api_key')
 			);
 
 			logiftestpage('$recipientCity', $recipientCity);

@@ -428,9 +428,12 @@ jQuery(document).ready(function() {
     };
 
     var enableDefaultBillingOptions = function() {
-      //console.log('enableDefaultBillingOptions');
       if ( !(shippingMethods.includes(getNovaPoshta())) || !(shippingMethodsPoshtomat.includes(getNovaPoshta())) ) {
-
+        if ( document.body.classList.contains('checkout-field-editor-active') ) {
+          // If Checkout manager 'Checkout Field Editor for WooCommerce is active
+          jQuery('#billing_state_field').attr('value', '').css('display', 'none');
+          jQuery('#billing_postcode').attr('value', '').css('display', 'none');
+        }
         var strladr = 'npttn_address_shipping_method';
         var str1 = getNovaPoshta() || '1';
 
@@ -456,6 +459,7 @@ jQuery(document).ready(function() {
         defaultBillingOptions.each(function() {
           //console.log(this);
           jQuery(this).attr('disabled', 'disabled').closest('.form-row').hide();
+          jQuery('#billing_state').attr('disabled', 'disabled').closest('.form-row').hide();
         });
       } else {
         //console.log('shippingMethods notincludes');

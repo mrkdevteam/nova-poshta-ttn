@@ -4,12 +4,12 @@
  * Plugin Name: Shipping for Nova Poshta
  * Plugin URI: https://morkva.co.ua/shop/nova-poshta-ttn-pro-lifetime
  * Description: Плагін 2-в-1: спосіб доставки Нова Пошта та генерація накладних Нова Пошта.
- * Version: 1.13.6
+ * Version: 1.14
  * Author: MORKVA
  * Text Domain: morkvanp-plugin
  * Domain Path: /i18n/
  * WC requires at least: 3.8
- * WC tested up to: 6.1
+ * WC tested up to: 6.8
  */
 
 if ( ! defined( 'WPINC' ) ) {
@@ -28,6 +28,22 @@ if ($plugData['Name'] == 'Shipping for Nova Poshta') {
         require_once 'freemius/freemiusimport.php';
     }
 }
+
+if ( ! function_exists( 'mrkvnp_isCheckoutFieldEditorPluginActive' ) ) {
+
+    function mrkvnp_isCheckoutFieldEditorPluginActive($classes) {
+        // Add css class to body html tag if Checkout manager is active
+        $pluginList = get_option( 'active_plugins' );
+        $plugin = 'woo-checkout-field-editor-pro/checkout-form-designer.php';
+        if ( in_array( $plugin , $pluginList ) ) {
+            $classes[] = 'checkout-field-editor-active';
+        }
+        return $classes;
+    }
+
+}
+add_filter('body_class', 'mrkvnp_isCheckoutFieldEditorPluginActive');
+
 define('MNP_PLUGIN_VERSION', $plugData['Version']);
 define('MNP_PLUGIN_NAME', $plugData['Name']);
 
@@ -120,33 +136,6 @@ function npdata_fetchwh() {
     die();
 }
 
-// The AJAX function - autocomplete for Poshtomat on Checkout page for SelectDB
-// add_action('wp_ajax_npdata_fetchpm' , 'npdata_fetchpm');
-// add_action('wp_ajax_nopriv_npdata_fetchpm','npdata_fetchpm');
-// function npdata_fetchpm() {
-//
-//     global $wpdb;
-//     $table = $wpdb->prefix . 'nova_poshta_poshtomat';
-//     $npcityref = isset($_POST['npcityref']) ? $_POST['npcityref'] : '';
-//     $results = $wpdb->get_results( "SELECT `ref`, `description` FROM " . $table .
-//         " WHERE `parent_ref` LIKE '" . $npcityref . "'");
-//     $items = array();
-//     if ( ! empty( $results ) ) {
-//         foreach ( $results as $key => $value ) {
-//             $items[$value->ref] = $value->description;
-//         }
-//     }
-//
-//     $out = '<ul id="poshtomats-list">';
-//     foreach ($items as $k => $v) {
-//         $out .= '<li style="padding-left:10px; white-space:nowrap;" class="nppmli"
-//             onclick="selectPoshtomat(' . '\'' . esc_attr($v) . '\'' . ', ' . '\'' . esc_attr($k) . '\'' . ')">' . esc_html($v) .  '</li>';
-//     }
-//     echo $out . '</ul>';
-//
-//     die();
-// }
-
 add_action('wp_ajax_novaposhta_updbasesnp', 'novaposhta_updbasesnp');
 add_action('wp_ajax_nopriv_novaposhta_updbasesnp', 'novaposhta_updbasesnp');
 function novaposhta_updbasesnp() // This function is disabled temporally
@@ -238,7 +227,7 @@ function my_actionfogetnpshippngcost_callback()
         "modelName" => "InternetDocument",
         "calledMethod" => "getDocumentPrice",
         "methodProperties" => $methodProperties,
-        "apiKey" => get_option('text_example')
+        "apiKey" => get_option('mrkvnp_sender_api_key')
     );
 
     $curl = curl_init();
@@ -462,7 +451,7 @@ function get_city_id_by_name($city)
         "modelName" => "Address",
         "calledMethod" => "getCities",
         "methodProperties" => $methodProperties,
-        "apiKey" => get_option('text_example')
+        "apiKey" => get_option('mrkvnp_sender_api_key')
     );
 
     $curl = curl_init();
@@ -543,7 +532,7 @@ function nova_poshta_address_delivery_calculate($city, $address)
         $methodProperties['RedeliveryCalculate'] = $codarray;
     }
 
-    $costs = array("modelName" => "InternetDocument","calledMethod" => "getDocumentPrice","methodProperties" => $methodProperties,"apiKey" => get_option('text_example'));
+    $costs = array("modelName" => "InternetDocument","calledMethod" => "getDocumentPrice","methodProperties" => $methodProperties,"apiKey" => get_option('mrkvnp_sender_api_key'));
 
     $curl = curl_init();
 

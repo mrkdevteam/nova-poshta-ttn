@@ -58,69 +58,57 @@
 
      public function morkvanpTextExample()
      {
-         $value = esc_attr(get_option('text_example'));
-         echo '<input type="text"  id="npttnapikey" class="regular-text" name="text_example" value="' . $value . '" placeholder="API ключ">';
-         echo '<small><span>Якщо у вас немає API ключа, то можете отримати його за посиланням <a href="http://my.novaposhta.ua/settings/index#apikeys">my.novaposhta.ua/settings/index#apikeys</a></span></small>';
+        $value = $this->setOldOptionInNewOne( 'mrkvnp_sender_api_key', 'text_example' );
+        echo '<input type="text"  id="npttnapikey" class="regular-text" name="mrkvnp_sender_api_key" value="' . $value . '" placeholder="API ключ">';
+        echo '<small><span>Якщо у вас немає API ключа, то можете отримати його за посиланням <a href="http://my.novaposhta.ua/settings/index#apikeys">my.novaposhta.ua/settings/index#apikeys</a></span></small>';
      }
 
      public function morkvanpSelectRegion()
      {
-         $region = esc_attr(get_option('region'));
-
-         $shipping_settings = get_option('woocommerce_nova_poshta_shipping_method_settings'); //1.6.x support
-         $region = ( null !== $shipping_settings["area_name"] ) ? $shipping_settings["area_name"] : ''; //1.6.x support
-
-        if (get_option('woocommerce_nova_poshta_shipping_method_area_name')) {
-            $region = get_option('woocommerce_nova_poshta_shipping_method_area_name');
+        $region = $this->setOldOptionInNewOne( 'mrkvnp_invoice_sender_region_name', 'woocommerce_nova_poshta_shipping_method_area_name' );
+        $shipping_settings = get_option( 'woocommerce_nova_poshta_shipping_method_settings' ); //1.6.x support
+        $region = ( null !== $shipping_settings["area_name"] ) ? $shipping_settings["area_name"] : ''; //1.6.x support
+        if ( get_option( 'mrkvnp_invoice_sender_region_name' ) ) {
+            $region = get_option( 'mrkvnp_invoice_sender_region_name' );
         }
-
-
-         echo '<input type="text" class="input-text regular-input  ui-autocomplete-input" name="woocommerce_nova_poshta_shipping_method_area_name" id="woocommerce_nova_poshta_shipping_method_area_name" value="' . $region . '" placeholder=" " readonlyd>';
-         echo '<small><span>Підказка. Введіть перші 2-3 літери і дочекайтеся підвантаження даних з бази.<small><span>';
-
-
-
-         $regionid = get_option('woocommerce_nova_poshta_shipping_method_area');
-
-         echo '<input class="input-text regular-input jjs-hide-nova-poshta-option" type="hidden" name="woocommerce_nova_poshta_shipping_method_area" id="woocommerce_nova_poshta_shipping_method_area" style="" value="'.$regionid.'" placeholder="">';
+        echo '<input type="text" class="input-text regular-input  ui-autocomplete-input" name="mrkvnp_invoice_sender_region_name"
+            id="mrkvnp_invoice_sender_region_name" value="' . $region . '" placeholder=" " readonlyd>';
+        echo '<small><span>Підказка. Введіть перші 2-3 літери і дочекайтеся підвантаження даних з бази.<small><span>';
+        $regionid = get_option('woocommerce_nova_poshta_shipping_method_area');
+        echo '<input class="input-text regular-input jjs-hide-nova-poshta-option" type="hidden"
+            name="woocommerce_nova_poshta_shipping_method_area" id="woocommerce_nova_poshta_shipping_method_area" style=""
+            value="'.$regionid.'" placeholder="">';
      }
 
      public function morkvanpSelectCity()
      {
-         $value1 = esc_attr(get_option('city'));
-
-         /**
-          * Getting settings of WooShipping plugin
-          */
+         $value1 = $this->setOldOptionInNewOne( 'mrkvnp_invoice_sender_city_name', 'woocommerce_nova_poshta_shipping_method_city_name' );
+         // Getting settings of WooShipping plugin
          $shipping_settings = get_option('woocommerce_nova_poshta_shipping_method_settings');
          $value1 = ( null !== $shipping_settings["city_name"] ) ? $shipping_settings["city_name"] : '';
-
-
-
-         if (get_option('woocommerce_nova_poshta_shipping_method_city_name')) {
-             $value1 = get_option('woocommerce_nova_poshta_shipping_method_city_name');
+         if ( get_option( 'mrkvnp_invoice_sender_city_name' ) ) {
+             $value1 = get_option( 'mrkvnp_invoice_sender_city_name' );
          }
-
-         echo '<input type="text" class="input-text regular-input  ui-autocomplete-input" name="woocommerce_nova_poshta_shipping_method_city_name" id="woocommerce_nova_poshta_shipping_method_city_name" value="' . $value1 . '" placeholder=" " readonlyd>';
+         echo '<input type="text" class="input-text regular-input  ui-autocomplete-input"
+             name="mrkvnp_invoice_sender_city_name" id="mrkvnp_invoice_sender_city_name"
+             value="' . $value1 . '" placeholder=" " readonlyd>';
          echo '<small><span>Підказка. Введіть перші 2-3 літери і дочекайтеся підвантаження даних з бази.</small></span>';
-
          $city = get_option('woocommerce_nova_poshta_shipping_method_city') ?? '';
-
-
-         echo '<input class="input-text regular-input" type="hidden" name="woocommerce_nova_poshta_shipping_method_city" id="woocommerce_nova_poshta_shipping_method_city" style="" value="'.$city.'" placeholder="">';
+         echo '<input class="input-text regular-input" type="hidden" name="woocommerce_nova_poshta_shipping_method_city"
+             id="woocommerce_nova_poshta_shipping_method_city" style="" value="'.$city.'" placeholder="">';
      }
 
      public function morkvanpPhone()
      {
-         $phone = esc_attr(get_option('phone'));
-         echo '<input type="text" class="regular-text" name="phone" value="' . $phone . '" placeholder="380901234567">';
+         $phone = $this->setOldOptionInNewOne( 'mrkvnp_sender_phone', 'phone' );
+         echo '<input type="text" class="regular-text" name="mrkvnp_sender_phone" value="' . $phone . '" placeholder="380901234567">';
          echo '<small><span>Підказка. Вводьте телефон у такому форматі: 380901234567</span></small>';
      }
 
      public function morkvanpNames()
      {
-         $names = esc_attr(get_option('names'));
-         echo '<input type="text" class="regular-text" name="names" value="' . $names . '" placeholder="Петронко Петро Петрович">';
+         $names = $this->setOldOptionInNewOne( 'mrkvnp_invoice_sender_names', 'names' );
+         echo '<input type="text" class="regular-text" name="mrkvnp_invoice_sender_names" value="' . $names . '" placeholder="Петронко Петро Петрович">';
      }
 
      public function morkvanpCheckoutExample()
@@ -161,28 +149,31 @@
 
      public function morkvanpWarehouseAddress()
      {
-         // $warehouse = esc_attr( get_option( 'warehouse' ) );
-         $shipping_settings = get_option('woocommerce_nova_poshta_shipping_method_settings');
-         // $shipping_settings["warehouse_name"];
-         $warehouse = ( null !== $shipping_settings["warehouse_name"] ) ? $shipping_settings["warehouse_name"] : '';
+        $shipping_settings = get_option( 'woocommerce_nova_poshta_shipping_method_settings' );
+        $warehouse = ( null !== $shipping_settings["warehouse_name"] ) ? $shipping_settings["warehouse_name"] : '';
+        $warehouse = $this->setOldOptionInNewOne(
+            'mrkvnp_invoice_sender_warehouse_name',
+            'woocommerce_nova_poshta_shipping_method_warehouse_name'
+        );
+
+        $address_type = get_option( 'woocommerce_nova_poshta_sender_address_type' ) ? 'unchecked' : 'checked';
+        echo '<input type=radio name=woocommerce_nova_poshta_sender_address_type value=0 '.$address_type.'>
+            <input type="text" class="uai input-text regular-input  ui-autocomplete-input"
+            id="mrkvnp_invoice_sender_warehouse_name" name="mrkvnp_invoice_sender_warehouse_name"
+            value="' .htmlspecialchars($warehouse) . '" placeholder="" readonlyd>';
+        echo '<small><span style="margin-left: 30px;">Підказка. Введіть перші 2-3 літери і дочекайтеся підвантаження даних з бази.</small></span>';
 
 
-         if (get_option('woocommerce_nova_poshta_shipping_method_warehouse_name')) {
-             $warehouse = get_option('woocommerce_nova_poshta_shipping_method_warehouse_name');
-         }
-
-         $address_type = get_option('woocommerce_nova_poshta_sender_address_type') ? 'unchecked' : 'checked';
-         echo '<input type=radio name=woocommerce_nova_poshta_sender_address_type value=0 '.$address_type.'> <input type="text" class="uai input-text regular-input  ui-autocomplete-input" id="woocommerce_nova_poshta_shipping_method_warehouse_name" name="woocommerce_nova_poshta_shipping_method_warehouse_name" value="' .htmlspecialchars($warehouse) . '" placeholder="" readonlyd>';
-         echo '<small><span style="margin-left: 30px;">Підказка. Введіть перші 2-3 літери і дочекайтеся підвантаження даних з бази.</small></span>';
-
-
-         if (get_option('woocommerce_nova_poshta_shipping_method_warehouse')) {
-             $warehouseid = get_option('woocommerce_nova_poshta_shipping_method_warehouse');
-             echo '<input class="input-text regular-input jjs-hide-nova-poshta-option" type="hidden" name="woocommerce_nova_poshta_shipping_method_warehouse" id="woocommerce_nova_poshta_shipping_method_warehouse" style="" value="'.$warehouseid.'" placeholder="">';
-         } else {
-             echo '<input class="input-text regular-input jjs-hide-nova-poshta-option" type="hidden" name="woocommerce_nova_poshta_shipping_method_warehouse" id="woocommerce_nova_poshta_shipping_method_warehouse" style="" value="" placeholder="">';
-         }
-         ///echo '<p>Налаштування полей міста і регіона беруться із налаштувань плагіну <a href="admin.php?page=wc-settings&tab=shipping&section=nova_poshta_shipping_method">Woocommerce</a></p>';
+        if ( get_option( 'woocommerce_nova_poshta_shipping_method_warehouse' ) ) {
+         $warehouseid = get_option( 'woocommerce_nova_poshta_shipping_method_warehouse' );
+         echo '<input class="input-text regular-input jjs-hide-nova-poshta-option" type="hidden"
+             name="woocommerce_nova_poshta_shipping_method_warehouse" id="woocommerce_nova_poshta_shipping_method_warehouse"
+             style="" value="'.$warehouseid.'" placeholder="">';
+        } else {
+         echo '<input class="input-text regular-input jjs-hide-nova-poshta-option" type="hidden"
+             name="woocommerce_nova_poshta_shipping_method_warehouse" id="woocommerce_nova_poshta_shipping_method_warehouse"
+             style="" value="" placeholder="">';
+        }
      }
 
      public function morkvanpWarehouseAddress2()
@@ -241,9 +232,9 @@
 
      public function morkvanpInvoiceDescription()
      {
-         $invoice_description = get_option('invoice_description');
+         $invoice_description = $this->setOldOptionInNewOne( 'mrkvnp_invoice_description', 'invoice_description' );
 
-         echo '<textarea  id=td45 name="invoice_description" rows="5" cols="54">' . $invoice_description . '</textarea>
+         echo '<textarea  id=td45 name="mrkvnp_invoice_description" rows="5" cols="54">' . $invoice_description . '</textarea>
 		<span id=sp1 class=shortspan>+ Вартість</span>
 		<select class=shortspan id=shortselect>
 			<option value="0" disabled selected style="display:none"> + Перелік</option>
@@ -359,15 +350,26 @@
         require_once NOVA_POSHTA_TTN_SHIPPING_PLUGIN_DIR . 'classes/WC_NovaPoshtaAddress_Shipping_Method.php';
 
         $settings_array = array(
-            "api_key" => ( null !== get_option( 'text_example' ) ) ? get_option( 'text_example' ) : '',
-            'area_name' => ( null !== get_option('woocommerce_nova_poshta_shipping_method_area_name') ) ? get_option('woocommerce_nova_poshta_shipping_method_area_name') : '',
+            "api_key" => ( null !== get_option( 'mrkvnp_sender_api_key' ) ) ? get_option( 'mrkvnp_sender_api_key' ) : '',
+            'area_name' => ( null !== get_option('mrkvnp_invoice_sender_region_name') ) ? get_option('mrkvnp_invoice_sender_region_name') : '',
             'area' => ( null !== get_option('woocommerce_nova_poshta_shipping_method_area') ) ? get_option('woocommerce_nova_poshta_shipping_method_area') : '',
-            'city_name' => ( null !== get_option('woocommerce_nova_poshta_shipping_method_city_name') ) ? get_option('woocommerce_nova_poshta_shipping_method_city_name') : '',
+            'city_name' => ( null !== get_option('mrkvnp_invoice_sender_city_name') ) ? get_option('mrkvnp_invoice_sender_city_name') : '',
             'city' => ( null !== get_option('woocommerce_nova_poshta_shipping_method_city') ) ? get_option('woocommerce_nova_poshta_shipping_method_city') : '',
-            'warehouse_name' => ( null !== get_option('woocommerce_nova_poshta_shipping_method_warehouse_name') ) ? get_option('woocommerce_nova_poshta_shipping_method_warehouse_name') : '',
+            'warehouse_name' => ( null !== get_option('mrkvnp_invoice_sender_warehouse_name') ) ? get_option('mrkvnp_invoice_sender_warehouse_name') : '',
             'warehouse' => ( null !== get_option('woocommerce_nova_poshta_shipping_method_warehouse') ) ? get_option('woocommerce_nova_poshta_shipping_method_warehouse') : ''
         );
 
         update_option( 'woocommerce_nova_poshta_shipping_method_settings', $settings_array );
+     }
+
+     public function setOldOptionInNewOne($newOptionName, $oldOptionName)
+     {
+         $value = sanitize_text_field( get_option( $newOptionName ) );
+         $old_value = sanitize_text_field( get_option( $oldOptionName ) );
+         if ( ! $value ) {
+             $value = $old_value;
+             update_option( $newOptionName, $value );
+         }
+         return $value;
      }
  }

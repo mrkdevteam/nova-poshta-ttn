@@ -39,7 +39,7 @@ class MNP_Plugin_Admin {
                 </p></div>';
         }
 
-		if ( ! get_option( 'text_example' ) ) {
+		if ( ! get_option( 'mrkvnp_sender_api_key' ) ) {
         	echo '<div style="margin-left: 2px;" class="notice notice-error is-dismissible">
                 <p style="font-size:14px;">
                      <img src="' . NOVA_POSHTA_TTN_SHIPPING_PLUGIN_URL . '/includes/nova_poshta_25px.png"

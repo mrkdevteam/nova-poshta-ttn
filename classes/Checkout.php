@@ -41,8 +41,8 @@ class Checkout extends Base
     public function init()
     {
         add_filter('woocommerce_checkout_fields', array($this, 'maybeDisableDefaultShippingMethods'));
-        add_filter('woocommerce_billing_fields', array($this, 'addNovaPoshtaBillingFields'));
-        add_filter('woocommerce_shipping_fields', array($this, 'addNovaPoshtaShippingFields'));
+        add_filter('woocommerce_billing_fields', array($this, 'addNovaPoshtaBillingFields'), 99999, 1);
+        add_filter('woocommerce_shipping_fields', array($this, 'addNovaPoshtaShippingFields'), 99999, 1);
         add_action('woocommerce_checkout_process', array($this, 'saveNovaPoshtaOptions'), 10, 2);
         add_action('woocommerce_checkout_update_order_meta', array($this, 'updateOrderMeta'));
 
@@ -115,7 +115,7 @@ class Checkout extends Base
             $location = $this->getLocation();
             $fields[$location][$location . '_state']['required'] = false;
             $fields[$location][$location . '_state']['required'] = false;
-            $fields[$location][$location . '_postcode']['required'] = false;
+            $fields[$location][$location . '_postcode']['required'] = false;           
         }
         return $fields;
     }

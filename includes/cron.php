@@ -87,7 +87,7 @@ function npmrk_function_to_run()
         $results = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}novaposhta_ttn_invoices", ARRAY_A);
         $results = array_reverse($results);
         foreach ($results as $invoice):
-        $api_key = get_option('text_example');
+        $api_key = get_option('mrkvnp_sender_api_key');
         $invoice_number = $invoice['order_invoice'];
 
         $methodProperties = array(

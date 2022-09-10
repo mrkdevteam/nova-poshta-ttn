@@ -203,7 +203,7 @@ mnp_display_nav(); ?>
                         // } else {
                         //     $descriptionarea = '';
                         // }
-                        formblock_sender( get_option( 'names' ), $wooshipping_settings, get_option( 'phone' ), $descriptionarea );
+                        formblock_sender( get_option( 'mrkvnp_invoice_sender_names' ), $wooshipping_settings, get_option( 'phone' ), $descriptionarea );
                         ?>
                 </tbody>
             </table>

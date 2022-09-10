@@ -100,7 +100,7 @@ function httpPost($url, $data)
 
 function getCounterpartiestoref(){
   $url = 'https://api.novaposhta.ua/v2.0/json/Counterparty/json/getCounterparties/';
-  $data = array('apiKey' => get_option('text_example'), 'modelName' => 'Counterparty', 'calledMethod'=> 'getCounterparties', 'methodProperties'=> array('CounterpartyProperty'=>'Sender', 'Page'=>1));
+  $data = array('apiKey' => get_option('mrkvnp_sender_api_key'), 'modelName' => 'Counterparty', 'calledMethod'=> 'getCounterparties', 'methodProperties'=> array('CounterpartyProperty'=>'Sender', 'Page'=>1));
 
   $resultgetCounterparties = httpPost($url, $data);
 
@@ -117,7 +117,7 @@ function getsendersaddr(){
   $ref =  getCounterpartiestoref();
 
   $url = 'https://api.novaposhta.ua/v2.0/json/Counterparty/json/getCounterparties';
-  $data = array('apiKey' => get_option('text_example'), 'modelName' => 'Counterparty', 'calledMethod'=> 'getCounterparties', 'methodProperties'=> array('Ref'=>$ref, "CounterpartyProperty"=>"Sender"));
+  $data = array('apiKey' => get_option('mrkvnp_sender_api_key'), 'modelName' => 'Counterparty', 'calledMethod'=> 'getCounterparties', 'methodProperties'=> array('Ref'=>$ref, "CounterpartyProperty"=>"Sender"));
 
   $resultgetCounterparties = httpPost($url, $data);
 
@@ -132,7 +132,7 @@ function getsenders(){
   $ref =  getCounterpartiestoref();
 
   $url = 'https://api.novaposhta.ua/v2.0/json/Counterparty/json/getCounterparties/';
-  $data = array('apiKey' => get_option('text_example'), 'modelName' => 'Counterparty', 'calledMethod'=> 'getCounterpartyContactPersons', 'methodProperties'=> array('Ref'=>$ref, 'Page'=>1));
+  $data = array('apiKey' => get_option('mrkvnp_sender_api_key'), 'modelName' => 'Counterparty', 'calledMethod'=> 'getCounterpartyContactPersons', 'methodProperties'=> array('Ref'=>$ref, 'Page'=>1));
 
   $resultgetCounterparties = httpPost($url, $data);
 
@@ -434,13 +434,13 @@ function formlinkbox($id){ // Display top link box
 function process_shipping_settings($arr)
 {
 
-  if(!empty( get_option( 'woocommerce_nova_poshta_shipping_method_city_name' )) )
+  if(!empty( get_option( 'mrkvnp_invoice_sender_city_name' )) )
   {
-    $arr['city_name']=get_option('woocommerce_nova_poshta_shipping_method_city_name');
+    $arr['city_name']=get_option('mrkvnp_invoice_sender_city_name');
   }
-  if(!empty( get_option( 'woocommerce_nova_poshta_shipping_method_area_name' )) )
+  if(!empty( get_option( 'mrkvnp_invoice_sender_region_name' )) )
   {
-  $arr['area_name']=get_option('woocommerce_nova_poshta_shipping_method_area_name');
+  $arr['area_name']=get_option('mrkvnp_invoice_sender_region_name');
   }
   if(!empty( get_option( 'woocommerce_nova_poshta_shipping_method_area' )) )
   {
@@ -451,9 +451,9 @@ if(!empty( get_option( 'woocommerce_nova_poshta_shipping_method_city' )) )
 {
   $arr['city']=get_option('woocommerce_nova_poshta_shipping_method_city');
 }
-if(!empty( get_option( 'woocommerce_nova_poshta_shipping_method_warehouse_name' )) )
+if(!empty( get_option( 'mrkvnp_invoice_sender_warehouse_name' )) )
 {
-  $arr['warehouse_name']=get_option('woocommerce_nova_poshta_shipping_method_warehouse_name');
+  $arr['warehouse_name']=get_option('mrkvnp_invoice_sender_warehouse_name');
 }
 if(!empty( get_option( 'woocommerce_nova_poshta_shipping_method_warehouse' )) )
 {

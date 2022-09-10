@@ -397,7 +397,7 @@ class MNP_Plugin_Loader
 
             array(
                 'option_group' => 'morkvanp_options_group',
-                'option_name' => 'woocommerce_nova_poshta_shipping_method_area_name'
+                'option_name' => 'mrkvnp_invoice_sender_region_name'
             ),
 
             array(
@@ -407,7 +407,7 @@ class MNP_Plugin_Loader
 
             array(
                 'option_group' => 'morkvanp_options_group',
-                'option_name' => 'woocommerce_nova_poshta_shipping_method_city_name'
+                'option_name' => 'mrkvnp_invoice_sender_city_name'
             ),
 
             array(
@@ -417,7 +417,7 @@ class MNP_Plugin_Loader
 
             array(
                 'option_group' => 'morkvanp_options_group',
-                'option_name' => 'woocommerce_nova_poshta_shipping_method_warehouse_name'
+                'option_name' => 'mrkvnp_invoice_sender_warehouse_name'
             ),
 
             array(
@@ -456,7 +456,7 @@ class MNP_Plugin_Loader
             ),
             array(
                 'option_group' => 'morkvanp_options_group',
-                'option_name' => 'text_example'
+                'option_name' => 'mrkvnp_sender_api_key'
             ),
 
             /*array(
@@ -501,20 +501,20 @@ class MNP_Plugin_Loader
 
             array(
                 'option_group' => 'morkvanp_options_group',
-                'option_name' => 'city'
+                'option_name' => 'mrkvnp_invoice_sender_city_name'
             ),
             array(
                 'option_group' => 'morkvanp_options_group',
-                'option_name' => 'names'
+                'option_name' => 'mrkvnp_invoice_sender_names'
             ),
             array(
                 'option_group' => 'morkvanp_options_group',
-                'option_name' => 'region'
+                'option_name' => 'mrkvnp_invoice_sender_region_name'
             ),
 
             array(
                 'option_group' => 'morkvanp_options_group',
-                'option_name' => 'phone'
+                'option_name' => 'mrkvnp_sender_phone'
             ),
             array(
                 'option_group' => 'morkvanp_options_group',
@@ -522,11 +522,11 @@ class MNP_Plugin_Loader
             ),
             array(
                 'option_group' => 'morkvanp_options_group',
-                'option_name' => 'warehouse'
+                'option_name' => 'mrkvnp_invoice_sender_warehouse_name'
             ),
             array(
                 'option_group' => 'morkvanp_options_group',
-                'option_name' => 'invoice_description'
+                'option_name' => 'mrkvnp_invoice_description'
             ),
 
             array(
@@ -606,13 +606,13 @@ class MNP_Plugin_Loader
             //     'section' => 'morkvanp_admin_index',
             // ),
             array(
-                'id' => 'text_example',
+                'id' => 'mrkvnp_sender_api_key',
                 'title' => 'API ключ',
                 'callback' => array( $this->callbacks, 'morkvanpTextExample' ),
                 'page' => 'morkvanp_plugin',
                 'section' => 'morkvanp_admin_index',
                 'args' => array(
-                    'label_for' => 'text_example',
+                    'label_for' => 'mrkvnp_sender_api_key',
                     'class' => 'basesettings allsettings show'
                 )
             ),
@@ -650,24 +650,24 @@ class MNP_Plugin_Loader
                 )
             ),
             array(
-                'id' => 'names',
+                'id' => 'mrkvnp_invoice_sender_names',
                 'title' => 'Назва Відправника (П.І.Б. повністю)',
                 'callback' => array( $this->callbacks, 'morkvanpNames' ),
                 'page' => 'morkvanp_plugin',
                 'section' => 'morkvanp_admin_index',
                 'args' => array(
-                    'label_for' => 'names',
+                    'label_for' => 'mrkvnp_invoice_sender_names',
                     'class' => 'basesettings allsettings show'
                 )
             ),
             array(
-                'id' => 'phone',
+                'id' => 'mrkvnp_sender_phone',
                 'title' => 'Номер телефону Відправника',
                 'callback' => array( $this->callbacks, 'morkvanpPhone' ),
                 'page' => 'morkvanp_plugin',
                 'section' => 'morkvanp_admin_index',
                 'args' => array(
-                    'label_for' => 'phone',
+                    'label_for' => 'mrkvnp_sender_phone',
                     'class' => 'basesettings allsettings show'
                 )
             ),
@@ -684,35 +684,35 @@ class MNP_Plugin_Loader
                 )
             ),
             array(
-                'id' => 'region',
+                'id' => 'mrkvnp_invoice_sender_region_name',
                 'title' => '<span style="font-weight:normal;margin-left:10px;">Область</span>',
                 'callback' => array( $this->callbacks, 'morkvanpSelectRegion' ),
                 'page' => 'morkvanp_plugin',
                 'section' => 'morkvanp_admin_index',
                 'args' => array(
-                    'label_for' => 'region',
+                    'label_for' => 'mrkvnp_invoice_sender_region_name',
                     'class' => 'basesettings allsettings show'
                 )
             ),
             array(
-                'id' => 'city',
+                'id' => 'mrkvnp_invoice_sender_city_name',
                 'title' => '<span style="font-weight:normal;margin-left:10px;">Місто</span>',
                 'callback' => array( $this->callbacks, 'morkvanpSelectCity' ),
                 'page' => 'morkvanp_plugin',
                 'section' => 'morkvanp_admin_index',
                 'args' => array(
-                    'label_for' => 'city',
+                    'label_for' => 'mrkvnp_invoice_sender_city_name',
                     'class' => 'basesettings allsettings show'
                 )
             ),
             array(
-                'id' => 'warehouse',
+                'id' => 'mrkvnp_invoice_sender_warehouse_name',
                 'title' => '<span style="font-weight:normal;margin-left:10px;">Віділення</span>',
                 'callback' => array( $this->callbacks, 'morkvanpWarehouseAddress'),
                 'page' => 'morkvanp_plugin',
                 'section' => 'morkvanp_admin_index',
                 'args' => array(
-                    'label_for' => 'warehouse',
+                    'label_for' => 'mrkvnp_invoice_sender_warehouse_name',
                     'class' => 'basesettings allsettings show'
                 )
             ),
@@ -793,7 +793,7 @@ class MNP_Plugin_Loader
                     'label_for' => 'spinnercolor',
                     'class' => 'autosettings show'
                 )
-            ),   
+            ),
 
             // Відправка e-mail з ТТН
             array(
@@ -835,13 +835,13 @@ class MNP_Plugin_Loader
                 'section' => 'morkvanp_admin_index',
             ),
             array(
-                'id' => 'invoice_description',
+                'id' => 'mrkvnp_invoice_description',
                 'title' => 'Опис відправлення (за замовчуванням)',
                 'callback' => array( $this->callbacks, 'morkvanpInvoiceDescription' ),
                 'page' => 'morkvanp_plugin',
                 'section' => 'morkvanp_admin_index',
                 'args' => array(
-                    'label_for' => 'invoice_description',
+                    'label_for' => 'mrkvnp_invoice_description',
                     'class' => 'allsettings additional show'
                 )
             ),
@@ -1051,7 +1051,7 @@ class MNP_Plugin_Loader
         }
 
         global $wpdb;
-        $api_key = get_option('text_example');
+        $api_key = get_option('mrkvnp_sender_api_key');
         $selected_order = wc_get_order($order_id);
 
         $order = $selected_order->get_data();
@@ -1073,7 +1073,7 @@ class MNP_Plugin_Loader
             echo '<a style="margin: 5px;" href="https://my.novaposhta.ua/orders/printMarkings/orders[]/' . $invoice_number . '/type/pdf/apiKey/' . $api_key . '" class="button" target="_blank">' . '<img src="' . plugins_url('img/003-barcode.png', __FILE__) . '" height="15" width="15"  />' . ' Друк стікера</a>';
 
 
-            $api_key = get_option('text_example');
+            $api_key = get_option('mrkvnp_sender_api_key');
 
             $methodProperties = array(
             "Documents" => array(

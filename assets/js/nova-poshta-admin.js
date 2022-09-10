@@ -2,12 +2,12 @@ jQuery(document).ready(function () {
     var NovaPoshtaSettings = (function ($) {
 
         var result = {};
-        var areaInputName = $('#woocommerce_nova_poshta_shipping_method_area_name');
+        var areaInputName = $('#mrkvnp_invoice_sender_region_name');
         var areaInputKey = $('#woocommerce_nova_poshta_shipping_method_area');
         var cityAllInputName = $('#woocommerce_nova_poshta_shipping_method_city_all_name');
-        var cityInputName = $('#woocommerce_nova_poshta_shipping_method_city_name');
+        var cityInputName = $('#mrkvnp_invoice_sender_city_name');
         var cityInputKey = $('#woocommerce_nova_poshta_shipping_method_city');
-        var warehouseInputName = $('#woocommerce_nova_poshta_shipping_method_warehouse_name');
+        var warehouseInputName = $('#mrkvnp_invoice_sender_warehouse_name');
         var warehouseInputKey = $('#woocommerce_nova_poshta_shipping_method_warehouse');
 
         var addressInputName = $('#woocommerce_nova_poshta_shipping_method_address_name');//1

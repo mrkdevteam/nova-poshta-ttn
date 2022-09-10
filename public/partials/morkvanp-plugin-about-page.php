@@ -46,7 +46,7 @@ if(isset($_GET['test'])){
 		//print_r($number);
 
 		if( $number>0 ){
-			echo "3. Номер ТТН:" . $number .". Перейдіть за <a href=\"https://my.novaposhta.ua/orders/printDocument/orders[]/".$number."/type/pdf/apiKey/".get_option('text_example')."\" >посиланням</a> щоб звірити дані автостворення для <a href=post.php?post=".$order_id."&action=edit >замовлення ".$order_id."</a>";
+			echo "3. Номер ТТН:" . $number .". Перейдіть за <a href=\"https://my.novaposhta.ua/orders/printDocument/orders[]/".$number."/type/pdf/apiKey/".get_option('mrkvnp_sender_api_key')."\" >посиланням</a> щоб звірити дані автостворення для <a href=post.php?post=".$order_id."&action=edit >замовлення ".$order_id."</a>";
 		}
 		else{
 			echo "3. ТТН не створено. ";

@@ -143,7 +143,7 @@ class Options extends Base
      */
     protected function getApiKey()
     {
-        return get_option('text_example');
+        return get_option('mrkvnp_sender_api_key');
         //deprecated
         //return $this->shippingMethodSettings[self::API_KEY];
     }
