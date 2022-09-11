@@ -4,7 +4,7 @@
  * Plugin Name: Shipping for Nova Poshta
  * Plugin URI: https://morkva.co.ua/shop/nova-poshta-ttn-pro-lifetime
  * Description: Плагін 2-в-1: спосіб доставки Нова Пошта та генерація накладних Нова Пошта.
- * Version: 1.14
+ * Version: 1.14.1
  * Author: MORKVA
  * Text Domain: morkvanp-plugin
  * Domain Path: /i18n/

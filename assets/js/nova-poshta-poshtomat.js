@@ -519,11 +519,43 @@ jQuery(document).ready(function() {
       if ( ensureNovaPoshta() ) {
         if (shipToDifferentAddress()) {
           enableNovaPoshtaShippingOptions();
+          setFieldsPlaceholders('shipping');
+          setFieldsNames('shipping');
         } else {
           enableNovaPoshtaBillingOptions();
+          setFieldsPlaceholders('billing');
+          setFieldsNames('billing');
         }
       }
     };
+
+    function setFieldsPlaceholders(fieldsLocation) {
+		let whPh, pmPh, shippingMethod = getNovaPoshta(), wp_lang = jQuery("html").attr("lang");
+		const fieldsTranslation = { 'uk': ['Оберіть відділення', 'Оберіть поштомат'], 'ru-RU': ['Выберите отделение', 'Выберите почтомат'] }
+		if (wp_lang) { whPh = fieldsTranslation[wp_lang][0]; pmPh = fieldsTranslation[wp_lang][1]; }
+		if ( 'nova_poshta_shipping_method' == shippingMethod ) {
+			jQuery('#select2-' + fieldsLocation + '_nova_poshta_warehouse-container .select2-selection__placeholder')
+			.text(whPh);
+		}
+		if ( 'nova_poshta_shipping_method_poshtomat' == shippingMethod ) {
+			jQuery('#select2-' + fieldsLocation + '_nova_poshta_warehouse-container .select2-selection__placeholder')
+			.text(pmPh);
+		}
+	}
+
+	function setFieldsNames(fieldsLocation) {
+    	let whName, pmName, shippingMethod = getNovaPoshta(), wp_lang = jQuery("html").attr("lang");
+    	const fieldsTranslation = { 'uk': ['Відділення', 'Поштомат'], 'ru-RU': ['Отделение', 'Почтомат'] }
+    	if (wp_lang) { whName = fieldsTranslation[wp_lang][0]; pmName = fieldsTranslation[wp_lang][1]; }
+      	if ( 'nova_poshta_shipping_method' == shippingMethod ) {
+	        jQuery('#' + fieldsLocation + '_nova_poshta_warehouse_field label')
+	        	.html(whName+'<span style="color:#e2401c">&nbsp;*</span>');
+	    }
+	    if ( 'nova_poshta_shipping_method_poshtomat' == shippingMethod ) {
+	        jQuery('#' + fieldsLocation + '_nova_poshta_warehouse_field label')
+	        	.html(pmName+'<span style="color:#e2401c">&nbsp;*</span>');
+	    }
+    }
 
     var initShippingMethodHandlers = function() {
       //TODO check count of call of this method during initialisation and other actions

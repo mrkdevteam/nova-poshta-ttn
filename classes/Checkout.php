@@ -115,7 +115,7 @@ class Checkout extends Base
             $location = $this->getLocation();
             $fields[$location][$location . '_state']['required'] = false;
             $fields[$location][$location . '_state']['required'] = false;
-            $fields[$location][$location . '_postcode']['required'] = false;           
+            $fields[$location][$location . '_postcode']['required'] = false;
         }
         return $fields;
     }
@@ -408,11 +408,15 @@ class Checkout extends Base
 
         $value_for_checkout_selects = esc_attr(get_option('morkvanp_checkout_count'));
 
-        $warehouse_label = __( 'Nova Poshta Warehouse (#)', NOVA_POSHTA_TTN_DOMAIN );
+        $warehouse_label = __( 'Відділення', NOVA_POSHTA_TTN_DOMAIN );
+        if ( NPttnPM()->isNPttnPM() && NPttnPM()->isCheckoutPoshtomat() || NPttnPM()->isPost() ) {
+            $warehouse_label = __( 'Поштомат', NOVA_POSHTA_TTN_DOMAIN );
+        }
         $warehouse_options = OptionsHelper::getList( $factory->warehouseRepo()->findByParentRefAndNameSuggestion($city) );
+        $warehouse_placeholder = 'Choose warehouse';
         if ( 'nova_poshta_shipping_method_poshtomat' == $current_shipping_method[0] ) {
-            // $warehouse_label = __( 'Nova Poshta Poshtomat (#)', NOVA_POSHTA_TTN_DOMAIN );
             $warehouse_options = OptionsHelper::getList( $factory->poshtomatRepo()->findByParentRefAndNameSuggestion($city) );
+            $warehouse_placeholder = 'Оберіть поштомат';
         }
         $fields['shipping_phone'] = array(
             'label'        => __('Phone', 'woocommerce'),
@@ -452,7 +456,7 @@ class Checkout extends Base
                 'class' => array(),
                 'value' => '',
                 'custom_attributes' => array(),
-                'placeholder' => __('Choose warehouse', NOVA_POSHTA_TTN_DOMAIN),
+                'placeholder' => __($warehouse_placeholder, NOVA_POSHTA_TTN_DOMAIN),
             ];
         } elseif ( $value_for_checkout_selects == '2fields' ) {
               $fields[City::key($location)] = [

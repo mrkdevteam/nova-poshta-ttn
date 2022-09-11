@@ -167,3 +167,7 @@ msgstr ""
 #: ../classes/Checkout.php
 msgid "Choose warehouse"
 msgstr ""
+
+#: ../classes/WC_NovaPoshta_Shipping_Method_Poshtomat.php
+msgid "Nova Poshta Poshtomat"
+msgstr ""

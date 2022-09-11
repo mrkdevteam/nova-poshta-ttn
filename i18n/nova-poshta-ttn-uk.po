@@ -172,3 +172,7 @@ msgstr "Оберіть місто"
 #: ../classes/Checkout.php
 msgid "Choose warehouse"
 msgstr "Оберіть відділення"
+
+#: ../classes/WC_NovaPoshta_Shipping_Method_Poshtomat.php
+msgid "Nova Poshta Poshtomat"
+msgstr "Нова Пошта Поштомат"
