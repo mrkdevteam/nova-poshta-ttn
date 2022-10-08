@@ -29,7 +29,7 @@ class NovattnPoshta extends Base
         register_deactivation_hook(__FILE__, array($this, 'deactivatePlugin'));
 
         if ($this->isWoocommerce()) {
-            //general plugin actions
+            // General plugin actions
             add_action('init', array(AjaxRoute::getClass(), 'init'));
             add_action('admin_init', array(new DatabaseScheduler(), 'ensureSchedule'));
             add_action('plugins_loaded', array($this, 'checkDatabaseVersion'));
@@ -39,14 +39,13 @@ class NovattnPoshta extends Base
             add_action('admin_enqueue_scripts', array($this, 'adminScripts'));
             add_action('admin_enqueue_scripts', array($this, 'adminStyles'));
 
-            //register new shipping method
+            // Register new shipping method
             add_action('woocommerce_shipping_init', array($this, 'initNovaPoshtaShippingMethod'));
             add_filter('woocommerce_shipping_methods', array($this, 'addNovaPoshtaShippingMethod'));
 
             add_filter('plugin_action_links_' . plugin_basename(__FILE__), array($this, 'pluginActionLinks'));
 
             Checkout::instance()->init();
-            // CheckoutPoshtomat::instance()->init();
             Calculator::instance()->init();
         }
     }
@@ -92,10 +91,6 @@ class NovattnPoshta extends Base
         } elseif (isset($sessionMethods) && count($sessionMethods) > 0) {
             $chosenMethods = $sessionMethods;
         }
-        //echo '<script>console.log("'.
-        //$chosenMethods[0] == nova_poshta_shipping_method
-        //.'")</script>';
-        //return true;
         return in_array(NOVA_POSHTA_TTN_SHIPPING_METHOD, $chosenMethods);
     }
 
@@ -146,23 +141,23 @@ class NovattnPoshta extends Base
         if ($load) {
             // $suffix = '.min.js';
             $suffix = '.js';
-            $fileName = 'assets/js/nova-poshta' . $suffix;
+            $fileName = 'assets/js/nova-poshta-poshtomat' . $suffix;
             wp_register_script(
-                'nova-poshta-js',
+                'nova-poshta-poshtomat-js',
                 NOVA_POSHTA_TTN_SHIPPING_PLUGIN_URL . $fileName,
                 ['jquery-ui-autocomplete'],
                 filemtime(NOVA_POSHTA_TTN_SHIPPING_PLUGIN_DIR . $fileName)
             );
 
-            wp_enqueue_style('select3', NOVA_POSHTA_TTN_SHIPPING_PLUGIN_URL.'/assets/select3.min.css', array(), MNP_PLUGIN_VERSION);
-            // wp_register_script('select3', NOVA_POSHTA_TTN_SHIPPING_PLUGIN_URL.'/assets/select3.min.js', array(), MNP_PLUGIN_VERSION);
-            wp_register_script('select3', NOVA_POSHTA_TTN_SHIPPING_PLUGIN_URL.'/assets/select3.js', array(), MNP_PLUGIN_VERSION);
-            wp_enqueue_script('select3', NOVA_POSHTA_TTN_SHIPPING_PLUGIN_URL.'/assets/select3.min.js', array('jquery'), MNP_PLUGIN_VERSION, true);
-            wp_enqueue_script('nova-poshta-js', array('jquery', 'select3'));
-            // wp_dequeue_script( 'nova-poshta-poshtomat-js' );
-            wp_dequeue_script( 'nova-poshta-js' ); // Without this both shipping methods not work
+            wp_enqueue_style( 'wp-color-picker' ); // WP Color Picker dependency styles
 
-            $this->localizeHelper('nova-poshta-js');
+            wp_enqueue_style('select2css', NOVA_POSHTA_TTN_SHIPPING_PLUGIN_URL.'assets/select2.min.css', array(), MNP_PLUGIN_VERSION);
+            wp_register_script('select2js', NOVA_POSHTA_TTN_SHIPPING_PLUGIN_URL.'assets/select2.min.js', array(), MNP_PLUGIN_VERSION);
+            wp_register_script('select2i18nuk', NOVA_POSHTA_TTN_SHIPPING_PLUGIN_URL.'assets/i18n/uk.js', array(), MNP_PLUGIN_VERSION);
+            wp_register_script('select2i18nru', NOVA_POSHTA_TTN_SHIPPING_PLUGIN_URL.'assets/i18n/ru.js', array(), MNP_PLUGIN_VERSION);
+            
+            wp_enqueue_script('nova-poshta-poshtomat-js', array('jquery', 'select2js'));
+            $this->localizeHelper('nova-poshta-poshtomat-js');
         }
     }
 
@@ -250,6 +245,7 @@ class NovattnPoshta extends Base
             'getWarehousesAction' => AjaxRoute::GET_WAREHOUSES_ROUTE,
             'getPoshtomatsAction' => AjaxRoute::GET_POSHTOMATS_ROUTE,
             'markPluginsAsRated' => AjaxRoute::MARK_PLUGIN_AS_RATED,
+            'spinnerColor' =>get_option( 'spinnercolor' ), // 'Колір спінера в Checkout' setting value for front-end
         ]);
     }
 
@@ -289,8 +285,6 @@ class NovattnPoshta extends Base
     public function addNovaPoshtaShippingMethod($methods)
     {
         $methods[] = 'WC_NovaPoshta_Shipping_Method';
-        // $methods[] = 'WC_NovaPoshtaAddress_Shipping_Method';
-        // $methods[] = 'WC_NovaPoshtaAddress_Shipping_Method_Poshtomat';
         return $methods;
     }
 

@@ -332,6 +332,7 @@ class NovaPoshtaApi2 {
 			'CityRef' => $cityRef,
 			'Page' => $page,
 			'Limit' => $limit,
+			'TypeOfWarehouseRef' => '841339c7-591a-42e2-8233-7a0a00f0ed6f',
 		));
 	}
 

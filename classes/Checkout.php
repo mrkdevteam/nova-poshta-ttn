@@ -18,7 +18,6 @@ use plugins\NovaPoshta\classes\Poshtomat;
  */
 class Checkout extends Base
 {
-
     /**
      * @var Checkout
      */
@@ -41,8 +40,13 @@ class Checkout extends Base
     public function init()
     {
         add_filter('woocommerce_checkout_fields', array($this, 'maybeDisableDefaultShippingMethods'));
-        add_filter('woocommerce_billing_fields', array($this, 'addNovaPoshtaBillingFields'), 99999, 1);
-        add_filter('woocommerce_shipping_fields', array($this, 'addNovaPoshtaShippingFields'), 99999, 1);
+
+        $wc_ship_to_destination = \get_option( 'woocommerce_ship_to_destination' );
+        if ( 'billing' == $wc_ship_to_destination || 'billing_only' == $wc_ship_to_destination )
+            add_filter('woocommerce_billing_fields', array($this, 'addNovaPoshtaBillingFields'), 99999, 1);
+        if ( 'shipping' == $wc_ship_to_destination )
+            add_filter('woocommerce_shipping_fields', array($this, 'addNovaPoshtaShippingFields'), 99999, 1);
+
         add_action('woocommerce_checkout_process', array($this, 'saveNovaPoshtaOptions'), 10, 2);
         add_action('woocommerce_checkout_update_order_meta', array($this, 'updateOrderMeta'));
 
@@ -62,6 +66,31 @@ class Checkout extends Base
         add_filter('default_checkout_shipping_nova_poshta_warehouse', array($this, 'getDefaultWarehouse'));
 
         add_action( 'wp_footer', array($this, 'np_ajax_fetch' ));
+
+        add_action( 'woocommerce_admin_order_data_after_billing_address', array( $this, 'addDefaultRegionCustomField') );
+        add_action( 'woocommerce_admin_order_data_after_billing_address', array( $this, 'addDefaultCityCustomField') );
+        add_action( 'woocommerce_admin_order_data_after_billing_address', array( $this, 'addDefaultWarehouseCustomField') );
+    }
+
+    public function addDefaultRegionCustomField( $order ) {
+        // Add 'np_region_ref' custom field on 'Edit order' admin page
+        $order_id = method_exists( $order, 'get_id' ) ? $order->get_id() : $order->id;
+        $regionRef = get_post_meta( $order_id, 'billing_nova_poshta_region', true );
+        if ( $regionRef )add_post_meta( $order_id, 'np_region_ref', $regionRef, true );
+    }
+
+    public function addDefaultCityCustomField( $order ) {
+        // Add 'np_city_ref' custom field on 'Edit order' admin page
+        $order_id = method_exists( $order, 'get_id' ) ? $order->get_id() : $order->id;
+        $cityRef = get_post_meta( $order_id, '_billing_nova_poshta_city', true );
+        if ( $cityRef )add_post_meta( $order_id, 'np_city_ref', $cityRef, true );
+    }
+
+    public function addDefaultWarehouseCustomField( $order ) {
+        // Add 'np_warehouse_ref' custom field on 'Edit order' admin page
+        $order_id = method_exists( $order, 'get_id' ) ? $order->get_id() : $order->id;
+        $cityRef = get_post_meta( $order_id, '_billing_nova_poshta_warehouse', true );
+        if ( $cityRef )add_post_meta( $order_id, 'np_warehouse_ref', $cityRef, true );
     }
 
     public function displayShippingPhoneInOrderMeta($order) {
@@ -89,6 +118,7 @@ class Checkout extends Base
     public function saveNovaPoshtaOptions()
     {
         if ( NPttn()->isPost() && NPttn()->isNPttn() && NPttn()->isCheckout() || NPttnPM()->isPost() && NPttnPM()->isNPttnPM() && NPttnPM()->isCheckoutPoshtomat() ) {
+            // Nova Poshta on warehouse or Nova Poshta on poshtomat
             $location = $this->getLocation();
 
             $region = ArrayHelper::getValue($_POST, Region::key($location));
@@ -108,7 +138,8 @@ class Checkout extends Base
      */
     public function maybeDisableDefaultShippingMethods($fields)
     {
-        if ( NPttn()->isPost() && NPttn()->isNPttn() && NPttn()->isCheckout() || NPttnPM()->isPost() && NPttnPM()->isNPttnPM() && NPttnPM()->isCheckoutPoshtomat() ) {
+        if ( NPttn()->isPost() && NPttn()->isNPttn() && NPttn()->isCheckout() ||
+            NPttnPM()->isPost() && NPttnPM()->isNPttnPM() && NPttnPM()->isCheckoutPoshtomat() ) {
             $fields = apply_filters('nova_poshta_disable_default_fields', $fields);
             $fields = apply_filters('nova_poshta_disable_nova_poshta_fields', $fields);
         } else {
@@ -146,17 +177,13 @@ class Checkout extends Base
      */
     public function updateOrderMeta($orderId)
     {
-
         //address shipping method address_trigger
-
         $billing_city = "";
-
         if (isset($_POST['billing_city'])) {
             $billing_city = $_POST['billing_city'];
         }
 
         $billing_address = "";
-
         if (isset($_POST['billing_address_1'])) {
             $billing_address = $_POST['billing_address_1'];
         }
@@ -164,16 +191,22 @@ class Checkout extends Base
         if (!get_post_meta($orderId, '_billing_city')) {
             update_post_meta($orderId, '_billing_city', $billing_city);
             update_post_meta($orderId, '_billing_address_1', $billing_address);
+        }
+
+        if ( ! get_post_meta($orderId, '_shipping_city'  ) ) {
             update_post_meta($orderId, '_shipping_city', $billing_city);
             update_post_meta($orderId, '_shipping_address_1', $billing_address);
         }
 
-        //if not address shipping method:
-        if ( NPttn()->isNPttn() && NPttn()->isCheckout() || NPttnPM()->isPost() && NPttnPM()->isNPttnPM() && NPttnPM()->isCheckoutPoshtomat() ) {
+        // If not address shipping method
+        if ( NPttn()->isNPttn() && NPttn()->isCheckout() ||
+                NPttnPM()->isNPttnPM() && NPttnPM()->isCheckoutPoshtomat() ) {
+            // Nova Poshta on warehouse or Nova Poshta on poshtomat
             $fieldGroup = $this->getLocation();
 
             $regionKey = Region::key($fieldGroup);
-            $regionRef = isset( $_POST[$regionKey] ) ? sanitize_text_field($_POST[$regionKey]) : '';
+            // $regionRef = isset( $_POST[$regionKey] ) ? sanitize_text_field($_POST[$regionKey]) : '';
+            $regionRef = isset( $_POST['npregionref'] ) ? sanitize_text_field($_POST['npregionref']) : '';
             $area = new Region($regionRef);
             update_post_meta($orderId, '_' . $fieldGroup . '_state', $area->description);
 
@@ -185,7 +218,8 @@ class Checkout extends Base
 
             $warehouseKey = Warehouse::key($fieldGroup);
             $warehouseRef = isset($_POST['npwhref']) ? sanitize_text_field($_POST['npwhref']) : sanitize_text_field($_POST[$warehouseKey]);
-            $warehouse = new Warehouse($warehouseRef);
+            if ( NPttn()->isNPttn() && NPttn()->isCheckout() ) $warehouse = new Warehouse($warehouseRef);
+            if ( NPttnPM()->isNPttnPM() && NPttnPM()->isCheckoutPoshtomat() ) $warehouse = new Poshtomat($warehouseRef);
             update_post_meta($orderId, '_' . $fieldGroup . '_address_1', $warehouse->description);
 
             //TODO this part should be refactored
@@ -400,6 +434,7 @@ class Checkout extends Base
      */
     private function addNovaPoshtaFields($fields, $location)
     {
+        if ( 'UA' !== WC()->customer->get_shipping_country() ) return $fields;
         $factory = AreaRepositoryFactory::instance();
         $area = $this->customer->getMetadata('nova_poshta_region', $location);
         $city = $this->customer->getMetadata('nova_poshta_city', $location);
@@ -412,12 +447,7 @@ class Checkout extends Base
         if ( NPttnPM()->isNPttnPM() && NPttnPM()->isCheckoutPoshtomat() || NPttnPM()->isPost() ) {
             $warehouse_label = __( 'Поштомат', NOVA_POSHTA_TTN_DOMAIN );
         }
-        $warehouse_options = OptionsHelper::getList( $factory->warehouseRepo()->findByParentRefAndNameSuggestion($city) );
-        $warehouse_placeholder = 'Choose warehouse';
-        if ( 'nova_poshta_shipping_method_poshtomat' == $current_shipping_method[0] ) {
-            $warehouse_options = OptionsHelper::getList( $factory->poshtomatRepo()->findByParentRefAndNameSuggestion($city) );
-            $warehouse_placeholder = 'Оберіть поштомат';
-        }
+
         $fields['shipping_phone'] = array(
             'label'        => __('Phone', 'woocommerce'),
             'type'         => 'text',
@@ -428,6 +458,13 @@ class Checkout extends Base
         );
 
         if ( $value_for_checkout_selects == '3fields' ) {
+            $factory = AreaRepositoryFactory::instance();
+            $warehouse_options = OptionsHelper::getList( $factory->warehouseRepo()->findByParentRefAndNameSuggestion($city) );
+            $warehouse_placeholder = 'Choose warehouse';
+            if ( 'nova_poshta_shipping_method_poshtomat' == $current_shipping_method[0] ) {
+                $warehouse_options = OptionsHelper::getList( $factory->poshtomatRepo()->findByParentRefAndNameSuggestion($city) );
+                $warehouse_placeholder = 'Оберіть поштомат';
+            }
             $fields[Region::key($location)] = [
                 'label' => __('Region', NOVA_POSHTA_TTN_DOMAIN),
                 'type' => 'select',

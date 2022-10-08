@@ -105,7 +105,7 @@
       });
 
 		function ukr(obj) {
-		    obj = obj.replace(/[^а-яА-ЯіІїЇєЄёыэЭ ]/ig,'');
+		    obj = obj.replace(/[^а-яА-ЯіІїЇєЄёыэЭ' ]/ig,'');
 			return obj
 		}
 
@@ -181,20 +181,6 @@
         //jQuery('#wp-morkvanp_email_editor_id-editor-tools').hide();
       }
     });
-
-
-
-   // var MyDiv1 = document.getElementById("errnonp");
-   //  if(MyDiv1){
-   //      var h = document.getElementById('errnonp').childNodes[0].clientHeight;
-   //      h-=20; console.log(h);
-   //      var MyDiv2 = document.getElementById('messageboxnp');
-   //      MyDiv2.innerHTML = MyDiv1.innerHTML;
-   //      MyDiv2.style.height = h + 'px';
-   //      MyDiv1.childNodes[0].style.height = 0 + 'px';
-   //      MyDiv1.childNodes[0].style.padding = 0 ;
-   //      MyDiv2.classList.add('error');
-   //  }
 
     var MyDiv3 = document.getElementById("nnnid");
     if(MyDiv3){

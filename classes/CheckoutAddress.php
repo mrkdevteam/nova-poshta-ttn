@@ -12,9 +12,8 @@ namespace plugins\NovaPoshta\classes;
 
 
 
-class CheckoutAddress extends Base
+class CheckoutAddress extends Checkout
 {
-
     /**
      * @var CheckoutAddress
      */

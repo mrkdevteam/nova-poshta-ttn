@@ -1,12 +1,12 @@
 <?php
 
 if ( ! function_exists( 'is_woocommerce_activated_np' ) ) {
-        function is_woocommerce_activated_np() {
-          if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ) ) ){
-            return true;
-          }
-          return false;
-        }
+    function is_woocommerce_activated_np() {
+      if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ) ) ){
+        return true;
+      }
+      return false;
+    }
 }
 
 function process_warehouse_billing($order_data){
@@ -323,6 +323,7 @@ function alternate_all($order_data){
     if ( 'cm' == $dimension_unit ) $alternate_vol = $alternate_vol / 1000000;
     if ( 'm' == $dimension_unit ) $alternate_vol = $alternate_vol;
     if ( 'mm' == $dimension_unit ) $alternate_vol = $alternate_vol / 1000000000;
+    $alternate_vol = ( $alternate_vol > 0.0001 ) ? $alternate_vol : 0.0001;
     $weight_unit = get_option('woocommerce_weight_unit');
     if ( 'g' == $weight_unit ) $alternate_weight = $alternate_weight / 1000;
   $arrayreturn = array(
