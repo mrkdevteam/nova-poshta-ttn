@@ -3,7 +3,6 @@
 namespace plugins\NovaPoshta\classes;
 
 use NovattnPoshta;
-use NovattnPoshtaPoshtomat;
 use plugins\NovaPoshta\classes\base\Base;
 use plugins\NovaPoshta\classes\repository\AbstractAreaRepository;
 use stdClass;

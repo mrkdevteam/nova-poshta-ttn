@@ -1,831 +1,676 @@
 jQuery(document).ready(function() {
-// if ('checkout' == window.location.pathname.replace(/\\|\//g, '')) { // On Checkout page only
-    console.log('Поточний js-файл nova-poshta-poshtomat.js');
-  jQuery('#billing_address_1').on("change", function() {
-    //console.log('update');
-    jQuery('body').trigger('update_checkout');
-  });
-  jQuery('#billing_city').on("change", function() {
-    //console.log('update');
-    jQuery('body').trigger('update_checkout');
-  });
-  jQuery('input[name^=shipping_method]').on("change", function() {
-    //console.log('update');
-    jQuery('body').trigger('update_checkout');
-  });
+  	if (jQuery('form[name="checkout"]').length == 0) return; // On Checkout page only
+  		console.log('Поточний js-файл nova-poshta-poshtomat.js');
+	    /**
+		 * JS Class for 'nova_poshta_shipping_method' (на відділення) and
+		 * for 'nova_poshta_shipping_method_poshtomat' (на поштомат)
+		 */
+	    class NPWarehouse {
 
-  // 'Місто + Відділення (search in DB)'. The div-blocks where custom select elements will be added for.
-  var billingMrkNpCity = jQuery("#billing_mrk_nova_poshta_city");
-  var billingMrkNpWarehouse = jQuery("#billing_mrk_nova_poshta_warehouse");
-  billingMrkNpCity.after('<div id="npdatafetch">Почніть вводити назву...</div>');
-  billingMrkNpWarehouse.after('<div id="npdatafetchwh">Почніть ввод...</div>');
-  // 'Місто' and 'Склад(№)' fields styling like Select2/3 (option: 'Місто + Відділення (search in DB)').
-  billingMrkNpCity.css("color", "transparent");
-  billingMrkNpCity.on('focus', function() {
-      jQuery(this).val("");
-      jQuery(this).css("color", "#444");
-      jQuery("#npdatafetch").show(300);
-  });
-  billingMrkNpWarehouse.css("color", "transparent");
-  billingMrkNpWarehouse.on('focus', function() {
-      jQuery(this).val("");
-      jQuery(this).css("color", "#444");
-      jQuery("#npdatafetchwh").show(300);
-  });
-  billingMrkNpCity.on('keyup', function() {
-      if( this.value.length < 3 ) return;
-      jQuery('#npdatafetch').css({"border":"1px solid #aaa","border-radius":"4px","border-top-left-radius":"0","border-top-right-radius":"0"});
-      billingMrkNpCity.css({"border-bottom-left-radius":"0","border-bottom-right-radius":"0"});
-      jQuery('#cities-list .npcityli').css({"border-bottom-right-radius":"0","margin-bottom":".6em","padding":"6px auto"});
-  });
-  billingMrkNpWarehouse.on('keyup', function() {
-      jQuery('#npdatafetchwh').css({"border":"1px solid #aaa","border-radius":"4px","border-top-left-radius":"0","border-top-right-radius":"0"});
-      billingMrkNpWarehouse.css({"border-bottom-left-radius":"0","border-bottom-right-radius":"0"});
-      jQuery('#warehouses-list .npwhli').css({"border-bottom-right-radius":"0","margin-bottom":".6em","padding":"6px auto"});
-  });
+	    	static config = {
+		    	npwhOffFields: ['_address_1', '_address_2', '_city', '_state', '_postcode',
+		    		'_mrkvnp_street', '_mrkvnp_house', '_mrkvnp_flat', '_mrkvnp_patronymics'],
+		    	npwhOnFields: ['_nova_poshta_region', '_nova_poshta_city', '_nova_poshta_warehouse'],
+			}
 
-  // function updatenpdb() { // Update plugin DB tables (this function is disabled now)
-  //   var data2 = {
-  //     action: 'novaposhta_updbasesnp'
-  //   };
-  //   jQuery.post(NovaPoshtaHelper.ajaxUrl, data2, function(response) {
-  //     //console.log(response);
-  //   });
-  // }
+	    	constructor(shippingMethodName, fieldsLocation) {
+	    		this.shippingMethodName = shippingMethodName;
+		        this.fieldsLocation = fieldsLocation;
 
-  function calcdelivery() { //function to show calculated delivery price
-    //console.log('calcdelivery');
-    var data = {
-      action: 'my_actionfogetnpshippngcost',
-      c2: jQuery('#billing_nova_poshta_city').val(),
-      cod: jQuery('#payment_method_cod').attr('checked')
-    };
+		        this.npwhOffFields = NPWarehouse.config.npwhOffFields;
+	    		this.npwhOnFields = NPWarehouse.config.npwhOnFields;
+	    	}
 
-    jQuery.post(NovaPoshtaHelper.ajaxUrl, data, function(response) {
-      jQuery('#shipcost').remove();
-      if (!(response.includes('01234')) && (response != 0)) {
-        jQuery('.order-total').after('<tr id=shipcost class=order-total><th>Розрахунок вартості доставки</th><td><strong><span class="woocommerce-Price-currencySymbol">₴</span>' + response + '<strong><input type="hidden" name=deliveryprice value="' + response + '"/ ></td></tr>')
-        //console.log(response);
-      } else {
-        //console.log(response);
-        //console.log('shipping calculation not available. ');
-      }
+	    	addSelect2() {
+				let fieldNames = NPWarehouse.makefieldNamesIds(this.npwhOnFields, this.fieldsLocation);
+	    		for (let i = 0; i < fieldNames.length; i++) {
+				  	jQuery(fieldNames[i]).select2();
+				}
+	    	}
 
-    });
-  }
+	    	static makefieldNamesIds(fields = [], fieldsLocation) {
+	        	let fieldNames = fields.map(item => '#' + fieldsLocation + item);
+				return fieldNames;
+	        }
 
-  function calculated() { //function to remove  calcuated post
-    jQuery('#shipcost').remove();
-  }
+		    offWCFields() {
+		    	const fieldNames = NPWarehouse.makefieldNamesIds(this.npwhOffFields, this.fieldsLocation);
+	        	const elementsString = fieldNames.join(',');
+			    jQuery(elementsString).attr('disabled', 'disabled').closest('.form-row').hide();
+	        }
 
-  //function custom select3 matcher
-  function matchCustom(params, data) { //matcher function
-    // If there are no search terms, return all of the data
-    if (jQuery.trim(params.term) === '') {
-      return data;
-    }
+	        onNPwhFields() {
+	        	const fieldNames = NPWarehouse.makefieldNamesIds(this.npwhOnFields, this.fieldsLocation);
+	        	const elementsString = fieldNames.join(',');
+			    jQuery(elementsString).prop('disabled', false).closest('.form-row').show();
+	        }
 
-    // Do not display the item if there is no 'text' property
-    if (typeof data.text === 'undefined') {
-      return null;
-    }
+	        offWCBillingFields() { // Off billing WooCommerce fields when shipping fields are active
+		    	const fieldNames = NPWarehouse.makefieldNamesIds(this.npwhOffFields, 'billing');
+	        	const elementsString = fieldNames.join(',');
+			    jQuery(elementsString).attr('disabled', 'disabled').closest('.form-row').hide();
+	        }
 
-    // `params.term` should be the term that is used for searching
-    // `data.text` is the text that is displayed for the data object
-    var s = jQuery.trim(params.term).toLowerCase();
-    var s2 = jQuery.trim(data.text).toLowerCase();
-    if (s === s2.substr(0, s.length)) {
-      return data;
-    }
+	        offNPwhBillingFields() { // Off billing nova poshta fields when shipping fields are active
+		    	const fieldNames = NPWarehouse.makefieldNamesIds(this.npwhOnFields, 'billing');
+	        	const elementsString = fieldNames.join(',');
+			    jQuery(elementsString).attr('disabled', 'disabled').closest('.form-row').hide();
+	        }
 
-    // Return `null` if the term should not be displayed
-    return null;
-  }
+	    }
 
-  //custom select3 func
-  function isNotEmpty(res) {
-    return false;
-  }
+	    /**
+		 * JS Class for 'npttn_address_shipping_method' (на адресу)
+		 */
+	    class NPAddress {
 
-  //template result funtion to display city options
-  function myTemplateResult(res) { //custom func
-    if (res.loading) return res.text;
-    res.id = res.id;
-    if (isNotEmpty(res.code)) {
-      return res.code + ":" + res.text;
-    } else {
-      return res.text;
-    }
-  }
+	    	static config = {
+		    	npadrOffFields: ['_address_1', '_address_2', '_city', '_state', '_postcode',
+		    		'_mrkvnp_street', '_mrkvnp_house', '_mrkvnp_flat', '_mrkvnp_patronymics',
+		    		'_nova_poshta_warehouse'],
+		    	npadrOnFields: ['_nova_poshta_region', '_nova_poshta_city',
+		    		'_mrkvnp_street', '_mrkvnp_house', '_mrkvnp_flat', '_mrkvnp_patronymics'],
+			}
 
-  //custom select3 function
-  function myTemplateSelection(res) {
-    return res.text;
-  }
+	    	constructor(shippingMethodName, fieldsLocation) {
+	    		this.shippingMethodName = shippingMethodName;
+		        this.fieldsLocation = fieldsLocation;
 
-  function callchangecountry() {
-    jQuery('#billing_country').trigger('change', []);
-  }
+		        this.npadrOffFields = NPAddress.config.npadrOffFields;
+	    		this.npadrOnFields = NPAddress.config.npadrOnFields;
 
-  var ischeckoutpage = document.getElementById("billing_nova_poshta_city");
-  if (ischeckoutpage) { // adding event listeners for custom calculating
+	    		this.addSelect2;
+	    	}
 
-    //ask update db if not enough
-    // updatenpdb(); // Вимкнене оновлення таблиць за кількістю їх рядків в зв'язку з воєнним станом
+	    	addSelect2() {
+				let fieldNames = [
+					'#' + this.fieldsLocation + '_nova_poshta_region',
+					'#' + this.fieldsLocation + '_nova_poshta_city'
+				];
+	    		for (let i = 0; i < fieldNames.length; i++) {
+				  	jQuery(fieldNames[i]).select2();
+				}
+	    	}
 
-    //fix bad checkout on some sites by change country trigger if not work, increase timeout
-    setTimeout(callchangecountry, 500);
+		    offWCFields() {
+		    	const fieldNames = NPWarehouse.makefieldNamesIds(this.npadrOffFields, this.fieldsLocation);
+	        	const elementsString = fieldNames.join(',');
+			    jQuery(elementsString).attr('disabled', 'disabled').closest('.form-row').hide();
+	        }
 
-    //add event listener calculate shipping if billing city changed
-    jQuery('#billing_nova_poshta_city').on('change', function() {
-      calcdelivery();
-      city = jQuery("#billing_nova_poshta_city").val();
-      // document.cookie = "city=" + city;
-      let date = new Date(Date.now() + 86400e3);
-      date = date.toUTCString();
-      // var d = new Date();
-      // d.setTime(d.getTime() + (exdays*24*60*60*1000));
-      // var expires = "expires="+ d.toUTCString();
-      document.cookie = "city" + "=" + city + ";" + date + ";path=/";
-    });
+	        onNPAdrFields() {
+	        	const fieldNames = NPWarehouse.makefieldNamesIds(this.npadrOnFields, this.fieldsLocation);
+	        	const elementsString = fieldNames.join(',');
+			    jQuery(elementsString).prop('disabled', false).closest('.form-row').show();
+	        }
 
-    //add event listener to calculate shipping if payment method changed and delays to do if late
-    jQuery('body').on('click', '.wc_payment_method', function() { //what to do if payment city changed
-      //console.log('changed payment method');
-      setTimeout(function() {
-        calcdelivery();
-      }, 20);
-      setTimeout(function() {
-        calcdelivery();
-      }, 500);
-      setTimeout(function() {
-        calcdelivery();
-      }, 4000);
-    });
+	    }
 
-    jQuery('body').on('click', '.shipping_method', function() { // Add event listener what to do if shipping method changed
-      //console.log('changed shipping method');
-      //console.log(jQuery(this).val());
-      if (jQuery(this).val() == 'nova_poshta_shipping_method_poshtomat' || jQuery(this).val() == 'nova_poshta_shipping_method') {
-        calcdelivery();
-        setTimeout(function() {
-          calcdelivery();
-        }, 500);
-        setTimeout(function() {
-          calcdelivery();
-        }, 4000);
-      } else {
-        calculated();
-      }
+	    /**
+	     * JS Class for show fields on Checkout page
+	     */
+	    class CheckoutPage {
+	    	static config = {
+		    	wcOnFields: ['_address_1', '_address_2', '_city', '_state', '_postcode'],
+		    	npOffFields: ['_nova_poshta_region', '_nova_poshta_city', '_nova_poshta_warehouse',
+		    		'_mrkvnp_street', '_mrkvnp_house', '_mrkvnp_flat', '_mrkvnp_patronymics'],
+			}
 
-    });
+	  		constructor() {
+	  			this.shippingMethod = this.getMethod();
+	  			this.fieldsLocation = this.getLocation() ? 'shipping' : 'billing';
 
-    //selectize meta
-    var wp_lang = jQuery("html").attr("lang"); // Get current site language id ('uk' or 'ru-RU')
-    var selectizecityfield = { //selectize billing city field
+	  			this.wcOnFields = CheckoutPage.config.wcOnFields;
+	  			this.npOffFields = CheckoutPage.config.npOffFields;
+	  			this.npwh = new NPWarehouse(this.shippingMethod, this.fieldsLocation, NPWarehouse.config);
+	  		}
 
-      sorter: function(data) {
-        data.sort(function(a, b) {
-          var jQuerysearch = jQuery('.select3-search__field');
-          if (0 === jQuerysearch.length || '' === jQuerysearch.val()) {
-            return data;
-          }
-          var textA = a.text.toLowerCase(),
-            textB = b.text.toLowerCase(),
-            search = jQuerysearch.val().toLowerCase();
-          if (textA.indexOf(search) < textB.indexOf(search)) {
-            return -1;
-          }
-          if (textA.indexOf(search) > textB.indexOf(search)) {
-            return 1;
-          }
-          return 0;
-        });
-        return data;
-      },
+	  		onNPwhFields() { // Nova Poshta Warehouse
+	  			this.npwh.onNPwhFields();
+	  			this.npwh.offWCFields();
+	  			if (this.isShipToDiffAdr()) {
+	  				this.npwh.offNPwhBillingFields();
+	  				this.npwh.offWCBillingFields();
+				}
+	  			this.npwh.addSelect2();
+	  		}
 
-      minimumInputLength: 2,
+	  		onNpAdrFields() { // Nova Poshta on Address
+	  			let npadr = new NPAddress(this.shippingMethod, this.fieldsLocation, NPAddress.config);
+	  			npadr.offWCFields();
+	  			npadr.onNPAdrFields();
+	  			if (this.isShipToDiffAdr()) {
+	  				this.npwh.offNPwhBillingFields();
+	  				this.npwh.offWCBillingFields();
+				}
+	  			npadr.addSelect2();
+	  		}
 
-        language: {
-            errorLoading: function() {
-                if ('ru-RU' == wp_lang) return "Загрузка.";
-                if ('uk' == wp_lang) return "Завантаження.";
-            },
-            inputTooShort: function() {
-                if ('ru-RU' == wp_lang) return "Введите больше символов...";
-                if ('uk' == wp_lang) return "Введіть більше символів...";
-            },
-            noResults: function() {
-                if ('ru-RU' == wp_lang) return "Ничего не найдено";
-                if ('uk' == wp_lang) return "Нічого не знайдено";
-            },
-            searching: function() {
-                if ('ru-RU' == wp_lang) return "Поиск";
-                if ('uk' == wp_lang) return "Пошук…";
-            }
-        }
+	  		offNPFields() {
+		    	const fieldNames = NPWarehouse.makefieldNamesIds(this.npOffFields, this.fieldsLocation);
+	        	const elementsString = fieldNames.join(',');
+			    jQuery(elementsString).attr('disabled', 'disabled').closest('.form-row').hide();
+	        }
 
-    }
+	  		onWCFields() {
+	        	const fieldNames = NPWarehouse.makefieldNamesIds(this.wcOnFields, this.fieldsLocation);
+	        	const elementsString = fieldNames.join(',');
+			    jQuery(elementsString).prop('disabled', false).closest('.form-row').show();
+	        }
 
-    if (document.getElementById("billing_nova_poshta_region")) {
-      //console.log('region found doing select2');
-      jQuery("#billing_nova_poshta_region").select2();
-      jQuery("#shipping_nova_poshta_region").select2();
+	        offWCFields() {
+		    	const fieldNames = NPWarehouse.makefieldNamesIds(this.wcOnFields, this.fieldsLocation);
+	        	const elementsString = fieldNames.join(',');
+			    jQuery(elementsString).attr('disabled', 'disabled').closest('.form-row').hide();
+	        }
 
-      jQuery("#billing_nova_poshta_city").select2();
-      jQuery("#shipping_nova_poshta_city").select2();
+	  		getMethod() {
+	    		var value = jQuery('input[name^=shipping_method][type=radio]:checked').val();
+				if (!value) value = jQuery('input#shipping_method_0').val();
+				if (!value) value = jQuery('input[name^=shipping_method][type=hidden]').val();
+				return value;
+		    }
 
-      jQuery("#billing_nova_poshta_warehouse").select2();
-      //jQuery("#billing_nova_poshta_region").select3();
-      jQuery("#shipping_nova_poshta_warehouse").select2();
-      //jQuery("#shipping_nova_poshta_region").select3();
+		    getLocation() {
+		    	let isAdrChk = this.isShipToDiffAdr();
+		    	if (isAdrChk) return true;
+		    	return false;
+		    }
 
-      jQuery("#billing_nova_poshta_region").on("change", function() {
+		    isShipToDiffAdr() {
+		     	 return jQuery('#ship-to-different-address-checkbox').is(':checked');
+		    }
 
-        jQuery("#billing_nova_poshta_city").select2({
-          sorter: function(data) {
-              var first = [ 'Львів', 'Київ', 'Тернопіль', 'Івано-Франківськ', 'Вінниця', 'Дніпро', 'Хмельницький', 'Рівне', 'Харків', 'Чернівці', 'Луцьк', 'Одеса', 'Полтава', 'Черкаси',
-              'Запоріжжя', 'Житомир', 'Кропивницький', 'Ужгород', 'Миколаїв', 'Суми', 'Херсон', 'Чернігів', 'Донецьк', 'Луганськ', 'Сімферополь' ];
-              var firstRu = [ 'Львов', 'Киев', 'Тернополь', 'Ивано-Франковск', 'Винница', 'Днепр', 'Хмельницкий', 'Ровно', 'Харьков', 'Черновцы', 'Луцк', 'Одесса', 'Полтава', 'Черкассы',
-              'Запорожье', 'Житомир', 'Кропивницкий', 'Ужгород', 'Николаев', 'Сумы', 'Херсон', 'Чернигов', 'Донецк', 'Луганск', 'Симферополь' ];
-              data.sort(function(a, b) {
-                if ( first.includes( a.text ) ) { // Set region sity on the first place in city list - UA
-                  let indx = first.indexOf( a.text );
-                  return a.text == first[indx] ? -1 : b.text == first[indx] ? 1 : 0;
-                }
-                if ( firstRu.includes( a.text ) ) { // Set region sity on the first place in city list - RU
-                  let indxRu = firstRu.indexOf( a.text );
-                  return a.text == firstRu[indxRu] ? -1 : b.text == firstRu[indxRu] ? 1 : 0;
-                }
-              var jQuerysearch = jQuery('.select2-search__field');
-              if (0 === jQuerysearch.length || '' === jQuerysearch.val()) {
-                return data;
-              }
-              var textA = a.text.toLowerCase(),
-                textB = b.text.toLowerCase(),
-                search = jQuerysearch.val().toLowerCase();
-              if (textA.indexOf(search) < textB.indexOf(search)) {
-                return -1;
-              }
-              if (textA.indexOf(search) > textB.indexOf(search)) {
-                return 1;
-              }
-              return 0;
-            });
-            return data;
-          }
-        });
-        jQuery("#billing_nova_poshta_warehouse").select2("val", "");
-      });
+		    setFieldsNames() {
+	        	let whName, pmName, shippingMethod = this.getMethod(), wp_lang = jQuery("html").attr("lang");
+	        	if ('uk' !== wp_lang && 'uk-UA' !== wp_lang && 'ru' !== wp_lang && 'ru-RU' !== wp_lang) wp_lang = 'other';
+	        	const fieldsTranslation = {
+	        		'uk': ['Відділення', 'Поштомат'],
+	        		'uk-UA': ['Відділення', 'Поштомат'],
+	        		'ru-RU': ['Отделение', 'Почтомат'],
+	        		'ru': ['Отделение', 'Почтомат'],
+	        		'other': ['Warehouse', 'Postomat']
+	        	}
+	        	if (wp_lang) { whName = fieldsTranslation[wp_lang][0]; pmName = fieldsTranslation[wp_lang][1]; }
+		      	if ( 'nova_poshta_shipping_method' == shippingMethod ) {
+			        jQuery('#' + this.fieldsLocation + '_nova_poshta_warehouse_field label')
+			        	.html(whName+'<span>&nbsp;*</span>');
+			    }
+			    if ( 'nova_poshta_shipping_method_poshtomat' == shippingMethod ) {
+			        jQuery('#' + this.fieldsLocation + '_nova_poshta_warehouse_field label')
+			        	.html(pmName+'<span>&nbsp;*</span>');
+			    }
+	        }
 
-      jQuery("#billing_nova_poshta_city").on("change", function() {
-        jQuery("#billing_nova_poshta_warehouse").select2("val", "");
-      });
-      jQuery("#shipping_nova_poshta_region").on("change", function() {
-        jQuery("#shipping_nova_poshta_city").select2({
+	        setFieldsPlaceholders() {
+	        	let whPh, pmPh, shippingMethod = this.getMethod(), wp_lang = jQuery("html").attr("lang");
+	        	if ('uk' !== wp_lang && 'uk-UA' !== wp_lang && 'ru' !== wp_lang && 'ru-RU' !== wp_lang) wp_lang = 'other';
+	        	const fieldsTranslation = {
+	        		'uk': ['Оберіть відділення', 'Оберіть поштомат',],
+	        		'uk-UA': ['Оберіть відділення', 'Оберіть поштомат',],
+	        		'ru-RU': ['Выберите отделение', 'Выберите почтомат'],
+	        		'ru': ['Выберите отделение', 'Выберите почтомат'],
+	        		'other': ['Choose warehouse', 'Choose postomat']
+	        	}
+	        	if (wp_lang) { whPh = fieldsTranslation[wp_lang][0]; pmPh = fieldsTranslation[wp_lang][1]; }
+		      	if ( 'nova_poshta_shipping_method' == shippingMethod ) {
+			        jQuery('#select2-' + this.fieldsLocation + '_nova_poshta_warehouse-container .select2-selection__placeholder')
+			        	.text(whPh);
+			    }
+			    if ( 'nova_poshta_shipping_method_poshtomat' == shippingMethod ) {
+			        jQuery('#select2-' + this.fieldsLocation + '_nova_poshta_warehouse-container .select2-selection__placeholder')
+			        	.text(pmPh);
+			    }
+	        }
 
-          sorter: function(data) {
-            data.sort(function(a, b) {
-              var jQuerysearch = jQuery('.select2-search__field');
-              if (0 === jQuerysearch.length || '' === jQuerysearch.val()) {
-                return data;
-              }
-              var textA = a.text.toLowerCase(),
-                textB = b.text.toLowerCase(),
-                search = jQuerysearch.val().toLowerCase();
-              if (textA.indexOf(search) < textB.indexOf(search)) {
-                return -1;
-              }
-              if (textA.indexOf(search) > textB.indexOf(search)) {
-                return 1;
-              }
-              return 0;
-            });
-            return data;
-          }
-        });
-        jQuery("#shipping_nova_poshta_warehouse").select2("val", "");
-      });
-      jQuery("#shipping_nova_poshta_city").on("change", function() {
-        jQuery("#shipping_nova_poshta_warehouse").select2("val", "");
-      });
-    } else {
-      //console.log('region not found doing select3');
-      jQuery("#billing_nova_poshta_city").select3(selectizecityfield);
-      jQuery("#shipping_nova_poshta_city").select3(selectizecityfield);
+	        addHiddenFields(regionRef, regionName, location) {
+	        	let elregionref = '<input type="hidden" name="npregionref" location="'+location+'" value="' + regionRef +'"></input>';
+	            let elregionname = '<input type="hidden" name="npregionname" location="'+location+'" value="' + regionName +'"></input>';
+	        	if ( jQuery( "input[name=npregionref]" ).length == 0 ) {
+	                jQuery('form[name=checkout]').append(elregionref);
+	            } else {
+	                jQuery( "input[name=npregionref]" ).remove();
+	                jQuery('form[name=checkout]').append(elregionref);
+	            }
+	            if ( jQuery( "input[name=npregionname]" ).length == 0 ) {
+	                jQuery('form[name=checkout]').append(elregionname);
+	            } else {
+	                jQuery( "input[name=npregionname]" ).remove();
+	                jQuery('form[name=checkout]').append(elregionname);
+	            }
+	        }
 
-      jQuery("#billing_nova_poshta_warehouse").select3();
-      //jQuery("#billing_nova_poshta_region").select2();
-      jQuery("#shipping_nova_poshta_warehouse").select3();
-      //jQuery("#shipping_nova_poshta_region").select2();
+	        setAsteriskColor() {
+	        	jQuery('#' + this.fieldsLocation + '_nova_poshta_city_field label abbr').removeClass('required');
+	        	jQuery('#' + this.fieldsLocation + '_nova_poshta_region_field label > .optional').html('<span class="asterisk-color">*</span>');
+	        	jQuery('#' + this.fieldsLocation + '_mrkvnp_street_field label > .optional').html('<span class="asterisk-color">*</span>');
+            	jQuery('#' + this.fieldsLocation + '_mrkvnp_house_field label > .optional').html('<span class="asterisk-color">*</span>');
+                jQuery('#' + this.fieldsLocation + '_mrkvnp_patronymics_field label > .optional').html('<span class="asterisk-color">*</span>');
+	        }
 
-      jQuery("#billing_nova_poshta_region").on("change", function() {
-        jQuery("#billing_nova_poshta_city").select3("val", "");
-        jQuery("#billing_nova_poshta_warehouse").select3("val", "");
-      });
+	  	}
 
-      jQuery("#billing_nova_poshta_city").on("change", function() {
-        jQuery("#billing_nova_poshta_warehouse").select3("val", "");
-      });
-      jQuery("#shipping_nova_poshta_region").on("change", function() {
-        jQuery("#shipping_nova_poshta_city").select3("val", "");
-        jQuery("#shipping_nova_poshta_warehouse").select3("val", "");
-      });
-      jQuery("#shipping_nova_poshta_city").on("change", function() {
-        jQuery("#shipping_nova_poshta_warehouse").select3("val", "");
-      });
-    }
-    // Set Checkout spinner color from 'Колір спінера в Checkout' plugin setting
-    jQuery("head").append('<style> .statenp-loading:after {border: 2px solid '+ NovaPoshtaHelper.spinnerColor +';border-left-color: #fff;}</style>');
-  } // if (ischeckoutpage)
+	  	var mrkvnpCurrentMethod = ''; // For get current shipping method by radio button 'Доставка'
+	  	var mrkvnpelcountry = ''; // For 'Країна' plugin custom field
+	  	jQuery('#billing_address_1_field').removeClass('woocommerce-validated');
 
-  var NovaPoshtaOptions = (function(jQuery) { // Checkout Nova Poshta fields controls for warehouses, poshtomats, addresses shipping methods for WooComerce (WC)
-    var result = {};
-
-    var novaPoshtaBillingOptions = jQuery('#billing_nova_poshta_region, #billing_nova_poshta_city, #billing_nova_poshta_warehouse, #billing_mrk_nova_poshta_city, #billing_mrk_nova_poshta_warehouse');
-    var billingAreaSelect = jQuery('#billing_nova_poshta_region');
-    var billingCitySelect = jQuery('#billing_nova_poshta_city');
-    var billingWarehouseSelect = jQuery('#billing_nova_poshta_warehouse');
-
-    var novaPoshtaShippingOptions = jQuery('#shipping_phone, #shipping_nova_poshta_region, #shipping_nova_poshta_city, #shipping_nova_poshta_warehouse, #shipping_mrk_nova_poshta_city, #shipping_mrk_nova_poshta_warehouse');
-    var shippingAreaSelect = jQuery('#shipping_nova_poshta_region');
-    var shippingCitySelect = jQuery('#shipping_nova_poshta_city');
-    var shippingWarehouseSelect = jQuery('#shipping_nova_poshta_warehouse');
-
-    var shippingMethods = 'nova_poshta_shipping_method';
-    var shippingMethodsPoshtomat = 'nova_poshta_shipping_method_poshtomat';
-    var shippinglocalpickup = 'wcso_local_shipping';
-
-    var defaultBillingOptions = jQuery('#billing_company, #billing_address_1, #billing_address_2, #billing_city, #billing_state, #billing_postcode');
-    var defaultShippingOptions = jQuery('#shipping_company, #shipping_address_1, #shipping_address_2, #shipping_city, #shipping_state, #shipping_postcode');
-
-    var shippingMethod = jQuery("input[name^=shipping_method]");
-    var shipToDifferentAddressCheckbox = jQuery('#ship-to-different-address-checkbox');
-
-    var shipToDifferentAddress = function() {
-      return shipToDifferentAddressCheckbox.is(':checked');
-    };
-
-    var ensureNovaPoshta = function() {
-      //TODO this method should be more abstract
-      var value = jQuery('input[name^=shipping_method][type=radio]:checked').val();
-      if (!value) {
-        value = jQuery('input#shipping_method_0').val();
-      }
-      if (!value) {
-        value = jQuery('input[name^=shipping_method][type=hidden]').val();
-      }
-      if (!value) {
-        jQuery.post(NovaPoshtaHelper.ajaxUrl, {
-          action: 'my_action_for_wc_get_chosen_method_ids'
-        }, function(response) {
-          value = response;
-        });
-      }
-      if ((jQuery('#billing_country').val())) {
-        ////console.log( jQuery('#billing_country').val() );
-        if (jQuery('#billing_country').val() != 'UA') {
-          //console.log('185: return false')
-          return false;
-        }
-      } else jQuery('#billing_country').val('UA');
-      if (!value) {
-        return true;
-      }
-      if (value.includes('poshtomat')) {
-          return value === 'nova_poshta_shipping_method_poshtomat';
-      } else {
-          return value === 'nova_poshta_shipping_method';
-      }
-    };
-
-    //billing
-    var enableNovaPoshtaBillingOptions = function() {
-      //console.log('enableNovaPoshtaBillingOptionsg');
-      novaPoshtaBillingOptions.each(function() {
-        jQuery(this).removeAttr('disabled').closest('.form-row').show();
-      });
-      disableDefaultBillingOptions();
-    };
-
-    var disableNovaPoshtaBillingOptions = function() {
-      novaPoshtaBillingOptions.each(function() {
-        jQuery(this).attr('disabled', 'disabled').closest('.form-row').hide();
-      });
-
-      let currentShippingMethod = getNovaPoshta() ? getNovaPoshta() : '';
-      let shippingMethodToAddDefaultBillingOptions = ['free_shipping', 'npttn_address_shipping_method', 'flat_rate', 'local_pickup'];
-      let isAddDefaultFields = false;
-      for (const element of shippingMethodToAddDefaultBillingOptions) {
-        if (currentShippingMethod.includes(element)) {
-          isAddDefaultFields = true;
-          break;
-        }
-      }
-      if (isAddDefaultFields) {
-        enableDefaultBillingOptions();
-      }
-    };
-
-    var enableDefaultBillingOptions = function() {
-      if ( !(shippingMethods.includes(getNovaPoshta())) || !(shippingMethodsPoshtomat.includes(getNovaPoshta())) ) {
-        if ( document.body.classList.contains('checkout-field-editor-active') ) {
-          // If Checkout manager 'Checkout Field Editor for WooCommerce is active
-          jQuery('#billing_state_field').attr('value', '').css('display', 'none');
-          jQuery('#billing_postcode').attr('value', '').css('display', 'none');
-        }
-        var strladr = 'npttn_address_shipping_method';
-        var str1 = getNovaPoshta() || '1';
-
-        if ((str1.includes(strladr))) {
-          //console.log('address_trigger');
-          // jQuery('#billing_address_2_field').attr('disabled', 'disabled').css('display', 'none');
-          jQuery('#billing_state_field').attr('value', '_').css('display', 'none');
-          jQuery('#billing_postcode_field').attr('disabled', 'disabled').css('display', 'none');
-          jQuery('#billing_address_1').removeAttr('disabled').css('display', 'block').closest('.form-row').show();
-          jQuery('#billing_city').removeAttr('disabled').css('display', 'block').closest('.form-row').show();
-        } else {
-          //console.log('shipping method not nova poshta');
-          defaultBillingOptions.each(function() {
-            jQuery(this).removeAttr('disabled').closest('.form-row').show();
-          });
-        }
-      }
-    };
-
-    var disableDefaultBillingOptions = function() {
-      if ( ensureNovaPoshta() ) {
-        //console.log('disable default billiing options');
-        defaultBillingOptions.each(function() {
-          //console.log(this);
-          jQuery(this).attr('disabled', 'disabled').closest('.form-row').hide();
-          jQuery('#billing_state').attr('disabled', 'disabled').closest('.form-row').hide();
-        });
-      } else {
-        //console.log('shippingMethods notincludes');
-      }
-    };
-
-    var getNovaPoshta = function() {
-      //console.log('getNovaPoshta');
-      var value = jQuery('input[name^=shipping_method][type=radio]:checked').val();
-      if (!value) {
-        value = jQuery('input#shipping_method_0').val();
-      }
-      if (!value) {
-        value = jQuery('input[name^=shipping_method][type=hidden]').val();
-      }
-      //console.log(value);
-      return value;
-    };
-
-    //shipping
-    var enableNovaPoshtaShippingOptions = function() {
-      novaPoshtaShippingOptions.each(function() {
-        jQuery(this).removeAttr('disabled').closest('.form-row').show();
-      });
-      disableDefaultBillingOptions();
-      disableDefaultShippingOptions();
-    };
-
-    var disableNovaPoshtaShippingOptions = function() {
-      novaPoshtaShippingOptions.each(function() {
-        jQuery(this).attr('disabled', 'disabled').closest('.form-row').hide();
-      });
-      enableDefaultShippingOptions();
-    };
-
-    var enableDefaultShippingOptions = function() {
-      defaultShippingOptions.each(function() {
-        jQuery(this).removeAttr('disabled').closest('.form-row').show();
-      });
-    };
-
-    var disableDefaultShippingOptions = function() {
-      defaultShippingOptions.each(function() {
-        jQuery(this).attr('disabled', 'disabled').closest('.form-row').hide();
-      });
-      jQuery('#shipping_phone').attr('disabled', 'disabled').closest('.form-row').hide();
-    };
-
-    //common
-    var disableNovaPoshtaOptions = function() {
-      disableNovaPoshtaBillingOptions();
-      disableNovaPoshtaShippingOptions();
-    };
-
-    var handleShippingMethodChange = function() {
-      disableNovaPoshtaOptions();
-      if ( ensureNovaPoshta() ) {
-        if (shipToDifferentAddress()) {
-          enableNovaPoshtaShippingOptions();
-          setFieldsPlaceholders('shipping');
-          setFieldsNames('shipping');
-        } else {
-          enableNovaPoshtaBillingOptions();
-          setFieldsPlaceholders('billing');
-          setFieldsNames('billing');
-        }
-      }
-    };
-
-    function setFieldsPlaceholders(fieldsLocation) {
-		let whPh, pmPh, shippingMethod = getNovaPoshta(), wp_lang = jQuery("html").attr("lang");
-		const fieldsTranslation = { 'uk': ['Оберіть відділення', 'Оберіть поштомат'], 'ru-RU': ['Выберите отделение', 'Выберите почтомат'] }
-		if (wp_lang) { whPh = fieldsTranslation[wp_lang][0]; pmPh = fieldsTranslation[wp_lang][1]; }
-		if ( 'nova_poshta_shipping_method' == shippingMethod ) {
-			jQuery('#select2-' + fieldsLocation + '_nova_poshta_warehouse-container .select2-selection__placeholder')
-			.text(whPh);
+	  	// If 'Країна' field exists in Сheckout.
+		if (jQuery('#billing_country_field').length || jQuery('#shipping_country_field').length) {
+		  	var mrkvnpCountry = jQuery('#billing_country');
+		  	// Check if checkout has shipping switcher
+			if(jQuery('#ship-to-different-address-checkbox').length){
+				// Check if shipping checkbox checked
+			    if(jQuery('#ship-to-different-address-checkbox').is(':checked')){
+			        mrkvnpCountry = jQuery('#shipping_country');
+			    }
+			    else{
+			        mrkvnpCountry = jQuery('#billing_country');    
+			    }
+			}
+		
+			jQuery(mrkvnpCountry).on('change', () => {
+				mrkvnpCountry = mrkvnpCountry;
+			});
+			if ('UA' !== mrkvnpCountry.val()) { // If 'Країна' field exists
+			// and current country is not Ukraine Nova Poshta fields are removed from Checkout
+					const checkoutPage = new CheckoutPage();
+					checkoutPage.offNPFields();
+				    checkoutPage.onWCFields();
+			}
+			jQuery( mrkvnpCountry ).on( 'change', () => {
+				if ('UA' !== mrkvnpCountry.val()) {
+					const checkoutPage = new CheckoutPage();
+					checkoutPage.offNPFields();
+				    checkoutPage.onWCFields();
+				}
+			});
+		} else { // If 'Країна' field does not exist in Сheckout
+			mrkvnpelcountry = jQuery('<input type="hidden" name="mrkvnpcountry" value="UA"></input>');
+			jQuery('form[name=checkout]').append(mrkvnpelcountry);
+			mrkvnpCountry = mrkvnpelcountry;
+			const checkoutPage = new CheckoutPage();
+			checkoutPage.offNPFields();
+		    checkoutPage.onWCFields();
 		}
-		if ( 'nova_poshta_shipping_method_poshtomat' == shippingMethod ) {
-			jQuery('#select2-' + fieldsLocation + '_nova_poshta_warehouse-container .select2-selection__placeholder')
-			.text(pmPh);
+
+		// Save local storage shipping method
+		if (localStorage) {
+            localStorage.setItem('ship_method', '');
+        }
+
+		// Change shipping method with radio button 'Доставка'
+		jQuery( document.body ).on( 'updated_checkout', () => {
+
+			// Check loacl storage
+			if (localStorage) {
+				// Get shipping method
+                var ship_method = jQuery('select.woocommerce-shipping-methods option:selected').val();
+                // Check ship method
+                if(localStorage.getItem("ship_method") === null){  
+                	// Set shipping method                  
+                    localStorage.setItem('ship_method', ship_method);
+                }
+                else{
+                	// Check ship method
+                    if(localStorage.getItem("ship_method") == ship_method){
+                    	// Set shipping method     
+                        localStorage.setItem('ship_method', ship_method);
+                        return;
+                    }
+                    // Set shipping method     
+                    localStorage.setItem('ship_method', ship_method);
+                }
+
+            }
+            
+			let mrkvShippingMethods = document.querySelectorAll('#shipping_method .shipping_method');
+			const cityRef = (jQuery('#billing_nova_poshta_city').is(":visible"))
+				? jQuery('#billing_nova_poshta_city').val()
+				: jQuery('#shipping_nova_poshta_city').val();
+
+			// Make nova poshta fields empty
+			jQuery('#billing_nova_poshta_region').find('option:selected').prop("selected",false);
+			jQuery('#billing_nova_poshta_region').prop('selectedIndex',0);
+			jQuery('#billing_nova_poshta_city').prop('selectedIndex',0);
+			jQuery('#billing_nova_poshta_warehouse').prop('selectedIndex',0);
+			jQuery('#shipping_nova_poshta_region').find('option:selected').prop("selected",false);
+			jQuery('#shipping_nova_poshta_region').prop('selectedIndex',0);
+			jQuery('#shipping_nova_poshta_city').prop('selectedIndex',0);
+			jQuery('#shipping_nova_poshta_warehouse').prop('selectedIndex',0);
+
+			if(mrkvShippingMethods.length == 0){
+			    const checkoutPage = new CheckoutPage();
+			      checkoutPage.offNPFields();
+			      checkoutPage.onWCFields();
+			}
+
+		    for (const mrkvShippingMethod of mrkvShippingMethods){
+			    if (jQuery(mrkvShippingMethod).is(":checked") ||
+			    	'hidden' == jQuery(mrkvShippingMethods).attr('type')) {
+                    if (mrkvShippingMethod.value.indexOf('local_pickup') >= 0
+						|| mrkvShippingMethod.value.indexOf('flat_rate') >= 0
+						|| mrkvShippingMethod.value.indexOf('free_shipping') >= 0
+			        	&& 'UA' == mrkvnpCountry.val()) {
+						const checkoutPage = new CheckoutPage();
+			        	checkoutPage.offNPFields();
+			        	checkoutPage.onWCFields();
+					}                    
+			        if ('nova_poshta_shipping_method' == mrkvShippingMethod.value
+			        	&& 'UA' == mrkvnpCountry.val()) { // UA and to warehouse
+						mrkvnpCurrentMethod = mrkvShippingMethod.value;
+			            const checkoutPage = new CheckoutPage();
+			        	checkoutPage.onNPwhFields();
+			        	checkoutPage.setFieldsNames();
+			        	checkoutPage.setFieldsPlaceholders();
+			        	checkoutPage.offWCFields();
+			        	if (cityRef) calcNPAllDeliveries(); // show delivery costs
+			        	checkoutPage.setAsteriskColor();
+			        } else if ('nova_poshta_shipping_method_poshtomat' == mrkvShippingMethod.value
+			        	&& 'UA' == mrkvnpCountry.val()) { // UA and to postomat
+						mrkvnpCurrentMethod = mrkvShippingMethod.value;
+			        	const checkoutPage = new CheckoutPage();
+			        	checkoutPage.onNPwhFields();
+			        	checkoutPage.setFieldsNames();
+			        	checkoutPage.setFieldsPlaceholders();
+			        	checkoutPage.offWCFields();
+			        	if (cityRef) calcNPAllDeliveries(); // show delivery costs
+			        	checkoutPage.setAsteriskColor();
+			        } else if ('npttn_address_shipping_method' == mrkvShippingMethod.value
+			        	&& 'UA' == mrkvnpCountry.val()) { // UA and to address
+			        	const checkoutPage = new CheckoutPage();
+			        	checkoutPage.onNpAdrFields();
+			        	checkoutPage.offWCFields();
+			        	if (cityRef) calcNPAllDeliveries(); // show delivery costs
+			        	checkoutPage.setAsteriskColor();
+			        } else if ('UA' != mrkvnpCountry.val() // not UA and to warehouse or postomat
+			        	&& (mrkvShippingMethod.value.indexOf('nova_poshta') >= 0
+			        	|| mrkvShippingMethod.value.indexOf('npttn_address') >= 0)) {
+			        	const checkoutPage = new CheckoutPage();
+			        	checkoutPage.offNPFields();
+			        	checkoutPage.offWCFields();
+			        } else if ('UA' == mrkvnpCountry.val() // UA and to warehouse or postomat
+			        	&& ((mrkvShippingMethod.value.indexOf('nova_poshta') >= 0)
+			        	|| (mrkvShippingMethod.value.indexOf('npttn_address') >= 0))) {
+			        	const checkoutPage = new CheckoutPage();
+			        	checkoutPage.onNPwhFields();
+			        } else { // all other cases
+			        	const checkoutPage = new CheckoutPage();
+			        	checkoutPage.offNPFields();
+			        }
+		    	}
+
+		    }
+		});
+
+		var mrkvnpChecPageCtrl = new CheckoutPage();
+		var mrkvnpFL = mrkvnpChecPageCtrl.fieldsLocation;
+		var mrkvnpMethod = mrkvnpChecPageCtrl.shippingMethod;
+		var mrkvnpAreaSelect = jQuery('#'+mrkvnpFL+'_nova_poshta_region');
+		if (mrkvnpAreaSelect.length == 0) return;
+		var mrkvnpCitySelect = jQuery('#'+mrkvnpFL+'_nova_poshta_city');
+		var mrkvnpWhSelect = jQuery('#'+mrkvnpFL+'_nova_poshta_warehouse');
+
+		// Add/Remove hidden fields when 'ship-to-different-address-checkbox' is clicked (change)
+		let shipToDifferentAddressCheckbox = jQuery('#ship-to-different-address-checkbox');
+        if (!shipToDifferentAddressCheckbox.length) // If WC-setting billing_only is on
+			showFieldsSelect2(mrkvnpAreaSelect, mrkvnpCitySelect, mrkvnpWhSelect, mrkvnpFL);
+		shipToDifferentAddressCheckbox.on('change', function(event) {
+			jQuery( "input[name=npregionref]" ).remove();
+			jQuery( "input[name=npregionname]" ).remove();
+			mrkvnpFL = mrkvnpChecPageCtrl.getLocation() ? 'shipping' : 'billing';
+			let regRef = jQuery('#'+mrkvnpFL+'_nova_poshta_region').find(':selected').val();
+	        let regName = jQuery('#'+'select2-'+mrkvnpFL+'_nova_poshta_region-container').attr('title');
+			mrkvnpChecPageCtrl.addHiddenFields(regRef, regName, mrkvnpFL);
+			mrkvnpMethod = mrkvnpChecPageCtrl.shippingMethod;
+			mrkvnpAreaSelect = jQuery('#'+mrkvnpFL+'_nova_poshta_region');
+			if (mrkvnpAreaSelect.length == 0) return;
+			mrkvnpCitySelect = jQuery('#'+mrkvnpFL+'_nova_poshta_city');
+			mrkvnpWhSelect = jQuery('#'+mrkvnpFL+'_nova_poshta_warehouse');
+			showFieldsSelect2(mrkvnpAreaSelect, mrkvnpCitySelect, mrkvnpWhSelect, mrkvnpFL);
+		});
+
+	// Add hidden field 'npcityref' and autocomplete `Вулиця' field on CHekout page
+	mrkvnpCitySelect.on('change', function(event) {
+		var mrkvnpShippingMethod = jQuery('input[name^=shipping_method][type=radio]:checked').val();
+		if ( 'npttn_address_shipping_method' != mrkvnpShippingMethod) return;
+		const senderAPIkey = NovaPoshtaHelper.mrkvnpSenderAPIkey;
+		let cityRef = this.value;
+		let elcityref = '<input type="hidden" name="npcityref" location="'+mrkvnpFL+'" value="' + this.value +'"></input>';
+		if ( jQuery( "input[name=npcityref]" ).length == 0 ) {
+			jQuery('form[name=checkout]').append(elcityref);
+		} else {
+            jQuery( "input[name=npcityref]" ).remove();
+            jQuery('form[name=checkout]').append(elcityref);
+        }
+        streetFieldAutocomplete(senderAPIkey, cityRef);
+	});
+
+	function showFieldsSelect2(mrkvnpAreaSelect, mrkvnpCitySelect, mrkvnpWhSelect, mrkvnpFL) {
+		// Get Cities from DB by Region and set them in 'Місто' Select2 field options
+		mrkvnpAreaSelect.on('change', function() {
+		let regName = jQuery('#'+mrkvnpFL+'_nova_poshta_region option:selected').text();
+		let regRef = jQuery('#'+mrkvnpFL+'_nova_poshta_region').find(':selected').val();
+		mrkvnpChecPageCtrl.addHiddenFields(regRef, regName, mrkvnpFL);
+		    var areaRef = this.value;
+		    jQuery.ajax({
+				url: NovaPoshtaHelper.ajaxUrl,
+				method: "POST",
+				data: {
+					'action': NovaPoshtaHelper.getCitiesAction,
+					'parent_ref': areaRef
+				},
+				beforeSend: function() {
+					jQuery('#'+mrkvnpFL+'_nova_poshta_region_field').addClass('statenp-loading');
+				},
+				success: function(json) {
+					try {
+						let data = JSON.parse(json);
+						mrkvnpCitySelect
+							.find('option:not(:first-child)')
+							.remove();
+
+						jQuery.each(data, function(key, value) {
+							mrkvnpCitySelect
+								.append(jQuery("<option></option>")
+									.attr("value", key)
+									.text(value)
+								);
+						});
+						mrkvnpWhSelect.find('option:not(:first-child)').remove();
+						jQuery('#'+mrkvnpFL+'_nova_poshta_region_field').removeClass('statenp-loading');
+					} catch (s) {
+					    // console.log("Error. Response from server was: " + json);
+					}
+				},
+				error: function() {
+				    // console.log('Error.');
+				}
+		    }); // jQuery.ajax({
+		});
+
+		// Get Warehouses from DB by City and set them in 'Відділення' або 'Поштомати' Select2 field options
+		mrkvnpCitySelect.on('change', function(event) {
+			var cityRef = this.value;
+			if ( 'string' == typeof(mrkvnpCurrentMethod) &&
+				 mrkvnpCurrentMethod.indexOf('poshtomat') > -1 ) {
+			    dataObj = {
+			        'action': NovaPoshtaHelper.getPoshtomatsAction,
+			        'parent_ref': cityRef,
+			        'npchosenmethod': 'poshtomat'
+			    };
+			} else {
+				var dataObj = {
+				    'action': NovaPoshtaHelper.getWarehousesAction,
+				    'parent_ref': cityRef,
+				    'npchosenmethod': 'warehouse'
+				};
+			}
+			jQuery.ajax({
+				url: NovaPoshtaHelper.ajaxUrl,
+				method: "POST",
+				data: dataObj,
+				beforeSend: function() {
+					jQuery('#'+mrkvnpFL+'_nova_poshta_city_field').addClass('statenp-loading');
+				},
+				success: function(json) {
+					try {
+						var data = JSON.parse(json);
+						if (!jQuery.isEmptyObject(data)) {
+							mrkvnpWhSelect
+								.find('option:not(:first-child)')
+								.remove();
+							jQuery.each(data, function(key, value) {
+								mrkvnpWhSelect
+									.append(jQuery("<option></option>")
+										.attr("value", key)
+										.text(value)
+									);
+							});
+						} else {
+							mrkvnpWhSelect
+								.append(jQuery("<option></option>")
+									.attr("value", 'not_found')
+									.text('No results found')
+							);
+						}
+						jQuery('#'+mrkvnpFL+'_nova_poshta_city_field').removeClass('statenp-loading');
+					} catch (s) {
+					    // console.log("Error. Response from server was: " + json);
+					}
+				},
+				error: function() {
+				    // console.log('Error. Warehouses not recieved from server.');
+				}
+			});
+		});
+
+		// Set main region city on the first place in Select2 cities list
+		jQuery(mrkvnpAreaSelect).on("change", function() {
+			jQuery('#'+mrkvnpFL+'_nova_poshta_city').select2({
+				sorter: function(data) {
+					var first = [ 'Львів', 'Київ', 'Тернопіль', 'Івано-Франківськ', 'Вінниця', 'Дніпро',
+						'Хмельницький', 'Рівне', 'Харків', 'Чернівці', 'Луцьк', 'Одеса',
+						'Полтава', 'Черкаси', 'Запоріжжя', 'Житомир', 'Кропивницький', 'Ужгород',
+						'Миколаїв', 'Суми', 'Херсон', 'Чернігів', 'Донецьк', 'Луганськ', 'Сімферополь'
+					];
+					var firstRu = [ 'Львов', 'Киев', 'Тернополь', 'Ивано-Франковск', 'Винница', 'Днепр',
+						'Хмельницкий', 'Ровно', 'Харьков', 'Черновцы', 'Луцк', 'Одесса',
+						'Полтава', 'Черкассы', 'Запорожье', 'Житомир', 'Кропивницкий', 'Ужгород',
+						'Николаев', 'Сумы', 'Херсон', 'Чернигов', 'Донецк', 'Луганск', 'Симферополь'
+					];
+					data.sort(function(a, b) {
+						if ( first.includes( a.text ) ) { // Set region sity on the first place in city list - UA
+							let indx = first.indexOf( a.text );
+							return a.text == first[indx] ? -1 : b.text == first[indx] ? 1 : 0;
+						}
+						if ( firstRu.includes( a.text ) ) { // Set region sity on the first place in city list - RU
+							let indxRu = firstRu.indexOf( a.text );
+							return a.text == firstRu[indxRu] ? -1 : b.text == firstRu[indxRu] ? 1 : 0;
+						}
+						var jQuerysearch = jQuery('.select2-search__field');
+						if (0 === jQuerysearch.length || '' === jQuerysearch.val()) {
+							return data;
+						}
+						var textA = a.text.toLowerCase(),
+						textB = b.text.toLowerCase(),
+						search = jQuerysearch.val().toLowerCase();
+						if (textA.indexOf(search) < textB.indexOf(search)) {
+							return -1;
+						}
+						if (textA.indexOf(search) > textB.indexOf(search)) {
+							return 1;
+						}
+						return 0;
+					});
+					return data;
+				}
+			});
+			jQuery("#shpping_nova_poshta_warehouse").select2("val", "");
+		});
+	} // function(mrkvnpAreaSelect, mrkvnpCitySelect, mrkvnpWhSelect, mrkvnpFL) {
+
+    // Add Nova Poshta shipping methods calculation values after method name on Checkout page by city name changed
+	jQuery('#'+mrkvnpFL+'_nova_poshta_city').on('change', function(e) {
+		jQuery('.mrkvnp-hidden').remove();
+		calcNPAllDeliveries();
+	});
+
+	function calcNPAllDeliveries() {
+		jQuery('.mrkvnp-hidden').remove();
+		calcShippingDelivery('my_actionfogetnpshippngcost', jQuery('#mrkvnpwh'), 'nova_poshta_shipping_method', 'mrkvnpwh');
+		calcShippingDelivery('actionMrkvNpGetPostomatCost', jQuery('#mrkvnppm'), 'nova_poshta_shipping_method_poshtomat', 'mrkvnppm');
+		calcShippingDelivery('actionMrkvNpGetAddressCost', jQuery('#mrkvnpadr'), 'npttn_address_shipping_method', 'mrkvnpadr');
+	}
+
+	// Show delivery prices for all the plugin`s delivery methods
+	function calcShippingDelivery(action, methodCalcEl, methodId, spanId) {
+		jQuery('.mrkvnp-hidden').remove();
+		const cityRef = (jQuery('#billing_nova_poshta_city').val())
+			? jQuery('#billing_nova_poshta_city').val()
+			: jQuery('#shipping_nova_poshta_city').val();
+		var data = {
+			action: action,
+			c2: cityRef,
+			cod: jQuery('#payment_method_cod').attr('checked')
+		};
+		if (NovaPoshtaHelper.isShowDeliveryPrice) {
+			jQuery.post(NovaPoshtaHelper.ajaxUrl, data, function(response) {
+				jQuery('#shipcost').remove();
+				if (!(response.includes('apinperrors')) && (response != 0)) {
+					if (!methodCalcEl.length) {
+						jQuery('label[for=shipping_method_0_' + methodId + ']')
+							.after('<span id="'+ spanId + '" class="mrkvnp-hidden"><b style="font-weight: 800;"> '+response+' ₴'+'</b></span>');
+					}
+				} else {}
+			});
 		}
 	}
 
-	function setFieldsNames(fieldsLocation) {
-    	let whName, pmName, shippingMethod = getNovaPoshta(), wp_lang = jQuery("html").attr("lang");
-    	const fieldsTranslation = { 'uk': ['Відділення', 'Поштомат'], 'ru-RU': ['Отделение', 'Почтомат'] }
-    	if (wp_lang) { whName = fieldsTranslation[wp_lang][0]; pmName = fieldsTranslation[wp_lang][1]; }
-      	if ( 'nova_poshta_shipping_method' == shippingMethod ) {
-	        jQuery('#' + fieldsLocation + '_nova_poshta_warehouse_field label')
-	        	.html(whName+'<span style="color:#e2401c">&nbsp;*</span>');
-	    }
-	    if ( 'nova_poshta_shipping_method_poshtomat' == shippingMethod ) {
-	        jQuery('#' + fieldsLocation + '_nova_poshta_warehouse_field label')
-	        	.html(pmName+'<span style="color:#e2401c">&nbsp;*</span>');
-	    }
-    }
+	// Autocomplete 'Вулиця' field on Chackout page
+	function streetFieldAutocomplete(senderAPIkey, npcityref) {
+		var addressInputName = jQuery('#billing_mrkvnp_street');
+	    addressInputName.autocomplete({
+	        minLength: 3,
+	        source: function (request, response) {
+				jQuery.ajax({
+					type: 'POST',
+					beforeSend: function(xhr) {
+						xhr.setRequestHeader("Content-type", "application/json;charset=UTF-8");
+					},
+					url: 'https://api.novaposhta.ua/v2.0/json/',
+					data:JSON.stringify({
+						apiKey: senderAPIkey,
+						modelName: "Address",
+						calledMethod: "getStreet",
+						methodProperties: {
+							CityRef: npcityref,
+							FindByString: '%'+jQuery('#billing_mrkvnp_street').val()+'%',
+							Page: 1,
+							Limit: 100
+						}
+					}),
+					success: function (json) {
+						var data = json.data;
+						response(jQuery.map(data, function (obj, key) {
+							searchval = obj.StreetsType + "" +obj.Description;
+							return {
+								label: obj.StreetsType + " " +obj.Description,
+								value: obj.Ref
+							}
+						}));
+					}
+				})
+			},
+			focus: function (event, ui) {
+				addressInputName.val(ui.item.label);
+				return false;
+			},
+			select: function (event, ui) {
+				addressInputName.val(ui.item.label);
+				return false;
+			}
+		});
+	}
 
-    var initShippingMethodHandlers = function() {
-      //TODO check count of call of this method during initialisation and other actions
-      jQuery(document).on('change', shippingMethod, function() {
-        handleShippingMethodChange();
-      });
-      jQuery(document).on('change', shipToDifferentAddressCheckbox, function() {
-        handleShippingMethodChange();
-      });
-      // jQuery(document.body).bind('updated_checkout', function() {
-      jQuery(document.body).on('updated_checkout', function() {
-        handleShippingMethodChange();
-      });
-      handleShippingMethodChange();
-    };
 
-    var initOptionsHandlers = function() {
-      billingAreaSelect.on('change', function() { // Billing '3fields': 'Область + Місто + Відділення'
-        //console.log('billing area change');
-        var areaRef = this.value;
-        jQuery.ajax({
-          url: NovaPoshtaHelper.ajaxUrl,
-          method: "POST",
-          data: {
-            'action': NovaPoshtaHelper.getCitiesAction,
-            'parent_ref': areaRef
-          },
-          beforeSend: function() {
-             jQuery("#billing_nova_poshta_region_field").addClass('statenp-loading');
-          },
-          complete: function(){
-             jQuery("#billing_nova_poshta_region_field").removeClass('statenp-loading');
-          },
-          success: function(json) {
-            try {
-              var data = JSON.parse(json);
-              billingCitySelect
-                .find('option:not(:first-child)')
-                .remove();
-
-              jQuery.each(data, function(key, value) {
-                billingCitySelect
-                  .append(jQuery("<option></option>")
-                    .attr("value", key)
-                    .text(value)
-                  );
-              });
-              billingWarehouseSelect.find('option:not(:first-child)').remove();
-
-            } catch (s) {
-              //console.log("Error. Response from server was: " + json);
-            }
-          },
-          error: function() {
-            //console.log('Error.');
-          }
-        });
-      });
-      billingCitySelect.on('change', function() {
-          var cityRef = this.value;
-        console.log('getNovaPoshta= '+getNovaPoshta());
-        var dataObj = {
-            'action': NovaPoshtaHelper.getWarehousesAction,
-            'parent_ref': cityRef
-        }; // console.log('if Warehouse');
-        if ( getNovaPoshta().indexOf('poshtomat') > -1 ) { // console.log('if Poshtomat');
-            dataObj = {
-                'action': NovaPoshtaHelper.getPoshtomatsAction,
-                'parent_ref': cityRef
-            };
-        }
-        jQuery.ajax({
-          url: NovaPoshtaHelper.ajaxUrl,
-          method: "POST",
-          data: dataObj,
-          beforeSend: function() {
-             jQuery("#billing_nova_poshta_city_field").addClass('statenp-loading');
-          },
-          complete: function(){
-             jQuery("#billing_nova_poshta_city_field").removeClass('statenp-loading');
-          },
-          success: function(json) {
-            try {
-              var data = JSON.parse(json);
-              billingWarehouseSelect
-                .find('option:not(:first-child)')
-                .remove();
-
-              jQuery.each(data, function(key, value) {
-                billingWarehouseSelect
-                  .append(jQuery("<option></option>")
-                    .attr("value", key)
-                    .text(value)
-                  );
-              });
-
-            } catch (s) {
-              console.log("Error. Response from server was: " + json);
-            }
-          },
-          error: function() {
-            console.log('Error.');
-          }
-        });
-      });
-
-      shippingAreaSelect.on('change', function() {
-        var areaRef = this.value;
-        jQuery.ajax({
-          url: NovaPoshtaHelper.ajaxUrl,
-          method: "POST",
-          data: {
-            'action': NovaPoshtaHelper.getCitiesAction,
-            'parent_ref': areaRef
-          },
-          success: function(json) {
-            try {
-              var data = JSON.parse(json);
-              shippingCitySelect
-                .find('option:not(:first-child)')
-                .remove();
-
-              jQuery.each(data, function(key, value) {
-                shippingCitySelect
-                  .append(jQuery("<option></option>")
-                    .attr("value", key)
-                    .text(value)
-                  );
-              });
-              shippingWarehouseSelect.find('option:not(:first-child)').remove();
-
-            } catch (s) {
-              //console.log("Error. Response from server was: " + json);
-            }
-          },
-          error: function() {
-            //console.log('Error.');
-          }
-        });
-      });
-      shippingCitySelect.on('change', function() {
-        var cityRef = this.value;console.log('if Warehouse2');
-        jQuery.ajax({
-          url: NovaPoshtaHelper.ajaxUrl,
-          method: "POST",
-          data: {
-            'action': NovaPoshtaHelper.getPoshtomatsAction,
-            'parent_ref': cityRef
-          },
-          success: function(json) {
-            try {
-              var data = JSON.parse(json);
-              shippingWarehouseSelect
-                .find('option:not(:first-child)')
-                .remove();
-
-              jQuery.each(data, function(key, value) {
-                shippingWarehouseSelect
-                  .append(jQuery("<option></option>")
-                    .attr("value", key)
-                    .text(value)
-                  );
-              });
-
-            } catch (s) {
-              //console.log("Error. Response from server was: " + json);
-            }
-          },
-          error: function() {
-            //console.log('Error.');
-          }
-        });
-      });
-    };
-
-    result.init = function() {
-      initShippingMethodHandlers();
-      initOptionsHandlers();
-    };
-
-    return result;
-  }(jQuery));
-  var Calculator = (function(jQuery) {
-    var result = {};
-
-    var ensureNovaPoshta = function() {
-      var value = jQuery('input[name^=shipping_method][type=radio]:checked').val();
-      if (!value) {
-          value = jQuery('input#shipping_method_0').val();
-      }
-      if (typeof value != "undefined") {
-          if (value.includes('poshtomat')) {
-              return value === 'nova_poshta_shipping_method_poshtomat';
-          } else {
-              return value === 'nova_poshta_shipping_method';
-          }
-      }
-    };
-
-    var addNovaPoshtaHandlers = function() {
-      jQuery('#calc_shipping_country').find('option').each(function() {
-        //Ship to Ukraine only
-        if (jQuery(this).val() !== 'UA') {
-          jQuery(this).remove();
-        }
-      });
-      jQuery('#calc_shipping_state_field').hide();
-
-      // var shippingMethod = jQuery('<input type="hidden" id="calc_nova_poshta_shipping_method_poshtomat" value="nova_poshta_shipping_method_poshtomat" name="shipping_method">');
-      var shippingMethod = jQuery('<input type="hidden" id="calc_' +
-          ensureNovaPoshta() + '" value="' + ensureNovaPoshta() + '" name="shipping_method">');
-      var cityInputKey = jQuery('<input type="hidden" id="calc_nova_poshta_shipping_city" name="calc_nova_poshta_shipping_city">');
-      jQuery('#calc_shipping_city_field').append(cityInputKey).append(shippingMethod);
-      var cityInputName = jQuery('#calc_shipping_city');
-
-      cityInputName.autocomplete({
-        source: function(request, response) {
-          jQuery.ajax({
-            type: 'POST',
-            url: NovaPoshtaHelper.ajaxUrl,
-            data: {
-              action: NovaPoshtaHelper.getCitiesByNameSuggestionAction,
-              name: request.term
-            },
-            success: function(json) {
-              var data = JSON.parse(json);
-              response(jQuery.map(data, function(item, key) {
-                return {
-                  label: item,
-                  value: key
-                }
-              }));
-            }
-          })
-        },
-        focus: function(event, ui) {
-          cityInputName.val(ui.item.label);
-          return false;
-        },
-        select: function(event, ui) {
-          cityInputName.val(ui.item.label);
-          cityInputKey.val(ui.item.value);
-          return false;
-        }
-      });
-
-      jQuery('form.woocommerce-shipping-calculator').on('submit', function() {
-        if (jQuery('#calc_shipping_country').val() !== 'UA') {
-          return false;
-        }
-      });
-    };
-
-    result.init = function() {
-      jQuery(document.body).on('updated_wc_div updated_shipping_method', function() {
-        if (ensureNovaPoshta()) {
-          addNovaPoshtaHandlers();
-        }
-      });
-
-      if (ensureNovaPoshta()) {
-        addNovaPoshtaHandlers();
-      }
-    };
-
-    return result;
-  }(jQuery));
-
-  NovaPoshtaOptions.init();
-  Calculator.init();
-
-// } // if ('checkout' == window.location.pathname.replace(/\\|\//g, ''))
 }); // jQuery(document).ready(function()

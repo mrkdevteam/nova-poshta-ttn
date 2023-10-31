@@ -135,15 +135,15 @@ CITY;
 POSHTOMAT;
         $this->db->query($poshtomatQuery);
 
-        $indexQuery = <<<INDEX
-ALTER TABLE {$poshtomatTableName} ADD INDEX idx_nova_poshta_poshtomat_parent_ref_description (parent_ref)
-INDEX;
-        $this->db->query($indexQuery);
+//         $indexQuery = <<<INDEX
+// ALTER TABLE {$poshtomatTableName} ADD INDEX idx_nova_poshta_poshtomat_parent_ref_description (parent_ref)
+// INDEX;
+//         $this->db->query($indexQuery);
 
-        $indexQuery = <<<INDEX
-ALTER TABLE {$poshtomatTableName} ADD INDEX idx_nova_poshta_poshtomat_parent_ref_description_ru (parent_ref)
-INDEX;
-        $this->db->query($indexQuery);
+//         $indexQuery = <<<INDEX
+// ALTER TABLE {$poshtomatTableName} ADD INDEX idx_nova_poshta_poshtomat_parent_ref_description_ru (parent_ref)
+// INDEX;
+//         $this->db->query($indexQuery);
 
     }
 
@@ -162,6 +162,23 @@ INDEX;
     private function dropTableByName($table)
     {
         $query = "DROP TABLE IF EXISTS {$table}";
+        $this->db->query($query);
+       //  $factory = AreaRepositoryFactory::instance();
+       //  if ( $this->db->has_cap( 'collation' ) ) {
+       //      $collate = $this->db->get_charset_collate();
+       //  } else {
+       //      $collate = '';
+       //  }
+       // $poshtomatTableName = $factory->poshtomatRepo()->table();
+       // if ( $table == $poshtomatTableName ) {
+           // $query = "SET FOREIGN_KEY_CHECKS = 0;
+           //     DROP TABLE IF EXISTS {$table};
+           //     SET FOREIGN_KEY_CHECKS = 1;";
+           // $query = "ALTER TABLE {$table} DROP FOREIGN KEY IF EXISTS `fk_warehouse_parent_ref_city_ref`;
+           //         DROP TABLE IF EXISTS {$table};";
+       // } else {
+       //     $query = $query = "DROP TABLE IF EXISTS {$table}";
+       // }
         $this->db->query($query);
     }
 

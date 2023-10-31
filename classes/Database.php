@@ -44,9 +44,22 @@ class Database extends Base
      */
     public function upgrade()
     {
-
+error_log('upgrade()');
         $this->dropTables();
         $this->createTables();
+    }
+
+    /**
+     * Database upgrade entry point
+     */
+    public function create_main_table()
+    {
+        $this->createTables();
+    }
+
+    public function drop_first_table()
+    {
+        $this->dropTables();
     }
 
     /**
@@ -68,103 +81,104 @@ class Database extends Base
 
     private function createTables()
     {
+error_log('createTables()');
         $factory = AreaRepositoryFactory::instance();
+// error_log('$factory');error_log(print_r($factory,1));
         if ($this->db->has_cap('collation')) {
             $collate = $this->db->get_charset_collate();
         } else {
             $collate = '';
         }
-
+        // if ( ! empty( $this->db->charset ) ) {
+        //     $collate = "DEFAULT CHARACTER SET $this->db->charset";
+        // }
+        // if ( ! empty( $this->db->collate ) ) {
+        //     $collate .= " COLLATE $this->db->collate";
+        // }
+error_log('$collate');error_log($collate);
         /*
         * create Regions table
         */
        $regionTableName = $factory->regionRepo()->table();
-       $regionQuery = <<<AREA
-           CREATE TABLE {$regionTableName} (
-               `ref` VARCHAR(50) NOT NULL,
-               `description` VARCHAR(256) NOT NULL,
-               `description_ru` VARCHAR(256) NOT NULL,
-               `updated_at` INT(10) UNSIGNED NOT NULL,
+       $regionQuery =
+           "CREATE TABLE {$regionTableName} (
+               `ref` VARCHAR(36) NOT NULL,
+               `description` VARCHAR(255) NOT NULL,
+               `description_ru` VARCHAR(255) NOT NULL,
+               `updated_at` INT(11) UNSIGNED NOT NULL,
                PRIMARY KEY (`ref`)
-           ) $collate;
-AREA;
+           ) $collate;";
+
        $this->db->query($regionQuery);
+error_log('$this->db->query($regionQuery)');
+// echo '<span>Завантаження областей..</span><br>';
+//        $indexQuery = <<<INDEX
+// ALTER TABLE {$regionTableName} ADD INDEX idx_nova_poshta_region_description (description);
+// INDEX;
+//        $this->db->query($indexQuery);
 
-       $indexQuery = <<<INDEX
-ALTER TABLE {$regionTableName} ADD INDEX idx_nova_poshta_region_description (description);
-INDEX;
-       $this->db->query($indexQuery);
-
-       $indexQuery = <<<INDEX
-ALTER TABLE {$regionTableName} ADD INDEX idx_nova_poshta_region_description_ru (description_ru)
-INDEX;
-       $this->db->query($indexQuery);
+//        $indexQuery = <<<INDEX
+// ALTER TABLE {$regionTableName} ADD INDEX idx_nova_poshta_region_description_ru (description_ru)
+// INDEX;
+//        $this->db->query($indexQuery);
 
         /*
          * Create cities table
          */
         $cityTableName = $factory->cityRepo()->table();
-        $cityQuery = <<<CITY
-            CREATE TABLE {$cityTableName} (
-                `ref` VARCHAR(100) NOT NULL,
-                `description` VARCHAR(400) NOT NULL,
-                `description_ru` VARCHAR(400) NOT NULL,
-                `parent_ref` VARCHAR(100) NOT NULL,
-                `updated_at` INT(10) UNSIGNED NOT NULL,
-                PRIMARY KEY (`ref`)
+error_log($cityTableName);
+        $cityQuery =
+            "CREATE TABLE $cityTableName (
+                ref VARCHAR(36) NOT NULL,
+                description VARCHAR(255) NOT NULL,
+                description_ru VARCHAR(255) NOT NULL,
+                parent_ref VARCHAR(36) NOT NULL,
+                updated_at INT(11) UNSIGNED NOT NULL,
+                PRIMARY KEY (ref)
+            ) $collate;";
 
-            ) {$collate};
-CITY;
         $this->db->query($cityQuery);
-
-
-        ///
-/*
-        $indexQuery = <<<INDEX
-ALTER TABLE {$cityTableName} ADD INDEX idx_nova_poshta_city_parent_ref_description (parent_ref, description)
-INDEX;
-        $this->db->query($indexQuery);
-
-        $indexQuery = <<<INDEX
-ALTER TABLE {$cityTableName} ADD INDEX idx_nova_poshta_city_parent_ref_description_ru (parent_ref, description_ru)
-INDEX;
-        $this->db->query($indexQuery);
-*/
-        ///
-
-
+error_log('$this->db->query($cityQuery)');
 
         /*
          * create warehouses table
          */
         $warehouseTableName = $factory->warehouseRepo()->table();
-        $warehouseQuery = <<<WAREHOUSE
-            CREATE TABLE {$warehouseTableName} (
-                `ref` VARCHAR(100) NOT NULL,
-                `description` VARCHAR(400) NOT NULL,
-                `description_ru` VARCHAR(400) NOT NULL,
-                `parent_ref` VARCHAR(100) NOT NULL,
-                `updated_at` INT(11) UNSIGNED NOT NULL,
-                PRIMARY KEY (`ref`),
-                CONSTRAINT `fk_warehouse_parent_ref_city_ref` FOREIGN KEY (`parent_ref`) REFERENCES `$cityTableName`(`ref`) ON DELETE CASCADE
-            ) $collate;
-WAREHOUSE;
+error_log($warehouseTableName);
+        $warehouseQuery =
+            "CREATE TABLE $warehouseTableName (
+                ref VARCHAR(36) NOT NULL,
+                description VARCHAR(255) NOT NULL,
+                description_ru VARCHAR(255) NOT NULL,
+                parent_ref VARCHAR(255) NOT NULL,
+                warehouse_type TINYINT UNSIGNED NOT NULL DEFAULT 0,
+                updated_at INT(11) UNSIGNED NOT NULL,
+                PRIMARY KEY (ref),
+                INDEX (warehouse_type)
+            ) $collate;";
+
         $this->db->query($warehouseQuery);
 
-        $indexQuery = <<<INDEX
-ALTER TABLE {$warehouseTableName} ADD INDEX idx_nova_poshta_warehouse_parent_ref_description (parent_ref)
-INDEX;
-        $this->db->query($indexQuery);
+        /*
+         * create postomats table
+         */
+        // $postomatTableName = $factory->poshtomatRepo()->table();
+        // $postomatQuery =
+        //     "CREATE TABLE $postomatTableName (
+        //         ref VARCHAR(36) NOT NULL,
+        //         description VARCHAR(255) NOT NULL,
+        //         description_ru VARCHAR(255) NOT NULL,
+        //         parent_ref VARCHAR(255) NOT NULL,
+        //         updated_at INT(11) UNSIGNED NOT NULL,
+        //         PRIMARY KEY (ref)
+        //     ) $collate;";
 
-        $indexQuery = <<<INDEX
-ALTER TABLE {$warehouseTableName} ADD INDEX idx_nova_poshta_warehouse_parent_ref_description_ru (parent_ref)
-INDEX;
-        $this->db->query($indexQuery);
-
+        // $this->db->query($postomatQuery);
     }
 
     private function dropTables()
     {
+error_log('dropTables()');
         $factory = AreaRepositoryFactory::instance();
         $factory->cityRepo()->table();
         $this->dropTableByName($factory->warehouseRepo()->table());

@@ -5,8 +5,8 @@
  * @link        http://morkva.co.ua/
  * @since       1.0.0
  *
- * @package     morkvanp-plugin
- * @subpackage  morkvanp-plugin/includes
+ * @package     nova-poshta-ttn
+ * @subpackage  nova-poshta-ttn/includes
  */
 /**
  * Register all actions and filters for the plugin.
@@ -15,16 +15,19 @@
  * the plugin, and register them with the WordPress API. Call the
  * run function to execute the list of actions and filters.
  *
- * @package    morkvanp-plugin
- * @subpackage morkvanp-plugin/includes
+ * @package    nova-poshta-ttn
+ * @subpackage nova-poshta-ttn/includes
  * @author     MORKVA <hello@morkva.co.ua>
  */
 
+use Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController;
+use Automattic\WooCommerce\Utilities\OrderUtil;
+
 require("class-morkvanp-plugin-callbacks.php");
-$path = PLUGIN_PATH . '/public/partials/morkvanp-plugin-invoices-page.php';
-if (file_exists($path)) {
-    require("class-morkvanp-plugin-callbacks-pro.php");
-}
+// $path = PLUGIN_PATH . '/public/partials/morkvanp-plugin-invoices-page.php';
+// if (file_exists($path)) {
+//     require("class-morkvanp-plugin-callbacks-pro.php");
+// }
 
 class MNP_Plugin_Loader
 {
@@ -34,7 +37,7 @@ class MNP_Plugin_Loader
      *
      * @since 1.0.0
      * @access protected
-     * @var array $pages 	Pages for plugin menu
+     * @var array $pages    Pages for plugin menu
      */
     protected $pages;
 
@@ -43,7 +46,7 @@ class MNP_Plugin_Loader
      *
      * @since 1.0.0
      * @access protected
-     * @var array $subpages 	Subpages for plugin menu
+     * @var array $subpages     Subpages for plugin menu
      */
     protected $subpages;
 
@@ -94,9 +97,9 @@ class MNP_Plugin_Loader
     /**
      * Object of callbacks class
      *
-     * @since 	1.0.0
+     * @since   1.0.0
      * @access  protected
-     * @var 	string $callbacks 		Class of callbacks
+     * @var     string $callbacks       Class of callbacks
      */
     protected $callbacks;
 
@@ -117,10 +120,10 @@ class MNP_Plugin_Loader
         $this->fields = array();
 
         $this->callbacks = new MNP_Plugin_Callbacks();
-        $path = PLUGIN_PATH . '/public/partials/morkvanp-plugin-invoices-page.php';
-        if (file_exists($path)) {
-            $this->callbacks = new MNP_Plugin_Callbacks_Pro();
-        }
+        // $path = PLUGIN_PATH . '/public/partials/morkvanp-plugin-invoices-page.php';
+        // if (file_exists($path)) {
+        //     $this->callbacks = new MNP_Plugin_Callbacks_Pro();
+        // }
 
         $this->add_settings_fields();
         $this->register_fields_sections();
@@ -132,8 +135,16 @@ class MNP_Plugin_Loader
         add_action('admin_menu', array( $this, 'register_plugin_menu' ));
         add_action('add_meta_boxes', array( $this, 'mv_add_meta_boxes' ));
         add_action('admin_init', array( $this, 'register_plugin_settings' ));
-        add_filter('manage_edit-shop_order_columns', array( $this, 'woo_custom_column' ));
-        add_action('manage_shop_order_posts_custom_column', array( $this, 'woo_column_get_data' ));
+        
+        if(OrderUtil::custom_orders_table_usage_is_enabled()){
+            add_filter('manage_woocommerce_page_wc-orders_columns', array( $this, 'woo_custom_column' ));
+            add_action('manage_woocommerce_page_wc-orders_custom_column', array( $this, 'woo_column_get_data_hpos' ), 20, 2 );
+        }
+        else{
+            add_filter('manage_edit-shop_order_columns', array( $this, 'woo_custom_column' ));
+            add_action('manage_shop_order_posts_custom_column', array( $this, 'woo_column_get_data' ));
+        }
+
         add_action('add_meta_boxes', array( $this, 'add_invoice_meta_box' ));
 
         add_filter('wp_mail_from_name', array( $this, 'my_mail_from_name' ));
@@ -209,7 +220,7 @@ class MNP_Plugin_Loader
     /**
      * Registering plugin pages to menu
      *
-     * @since 	1.0.0
+     * @since   1.0.0
      */
     public function register_menu_pages()
     {
@@ -229,9 +240,9 @@ class MNP_Plugin_Loader
     }
 
     /**
-     *	Add Plugin Settings page
+     *  Add Plugin Settings page
      *
-     *	@since 	1.0.0
+     *  @since  1.0.0
      */
     public function add_settings_page()
     {
@@ -241,7 +252,7 @@ class MNP_Plugin_Loader
     /**
      * Registering subpages for menu of plugin
      *
-     * @since 	1.0.0
+     * @since   1.0.0
      */
     public function register_menu_subpages()
     {
@@ -250,83 +261,63 @@ class MNP_Plugin_Loader
         if (get_option('invoice_short')) {
             $this->subpages = array(
             array(
-                'parent_slug' 	=> 'morkvanp_plugin',
-                'page_title' 	=> 'Налаштування',
-                'menu_title' 	=> 'Налаштування',
-                'capability' 	=> 'manage_woocommerce',
-                'menu_slug' 	=> 'morkvanp_plugin',
-                'callback' 		=> array( $this, 'add_settings_page' )
+                'parent_slug'   => 'morkvanp_plugin',
+                'page_title'    => 'Налаштування',
+                'menu_title'    => 'Налаштування',
+                'capability'    => 'manage_woocommerce',
+                'menu_slug'     => 'morkvanp_plugin',
+                'callback'      => array( $this, 'add_settings_page' )
             ),
             array(
-                'parent_slug' 	=> 'morkvanp_plugin',
-                'page_title' 	=> 'Створити Накладну',
-                'menu_title' 	=> 'Створити Накладну',
-                'capability' 	=> 'manage_woocommerce',
-                'menu_slug' 	=> 'morkvanp_invoice',
-                'callback' 		=>  array( $this, 'add_invoice_page' )
+                'parent_slug'   => 'morkvanp_plugin',
+                'page_title'    => 'Створити Накладну',
+                'menu_title'    => 'Створити Накладну',
+                'capability'    => 'manage_woocommerce',
+                'menu_slug'     => 'morkvanp_invoice',
+                'callback'      =>  array( $this, 'add_invoice_page' )
             ),
             array(
-                'parent_slug' 	=> 'morkvanp_plugin',
-                'page_title' 	=> 'Мої накладні',
-                'menu_title'	=> 'Мої накладні',
-                'capability'	=> 'manage_woocommerce',
-                'menu_slug'		=> 'morkvanp_invoices',
-                'callback'		=> array( $this, 'invoices_page' )
-            ),
-            array(
-                'parent_slug'	=> 'morkvanp_plugin',
-                'page_title'	=> 'Про плагін',
-                'menu_title'	=> 'Про плагін',
-                'capability'	=> 'manage_woocommerce',
-                'menu_slug'		=> 'morkvanp_about',
-                'callback'		=> array( $this, 'about_page' )
-            )
-
-            ,array(
-                'parent_slug' 	=> 'morkvanp_plugin',
-                'page_title' 	=> 'Шорткоди',
-                'menu_title' 	=> 'Шорткоди',
-                'capability' 	=> 'manage_woocommerce',
-                'menu_slug' 	=> 'morkvanp_short',
-                'callback' 		=> array( $this, 'add_settings_page' )
+                'parent_slug'   => 'morkvanp_plugin',
+                'page_title'    => 'Мої накладні',
+                'menu_title'    => 'Мої накладні',
+                'capability'    => 'manage_woocommerce',
+                'menu_slug'     => 'morkvanp_invoices',
+                'callback'      => array( $this, 'invoices_page' )
+            ),array(
+                'parent_slug'   => 'morkvanp_plugin',
+                'page_title'    => 'Шорткоди',
+                'menu_title'    => 'Шорткоди',
+                'capability'    => 'manage_woocommerce',
+                'menu_slug'     => 'morkvanp_short',
+                'callback'      => array( $this, 'add_settings_page' )
             ),
         );
         } else {
             $this->subpages = array(
             array(
-                'parent_slug' 	=> 'morkvanp_plugin',
-                'page_title' 	=> 'Налаштування',
-                'menu_title' 	=> 'Налаштування',
-                'capability' 	=> 'manage_woocommerce',
-                'menu_slug' 	=> 'morkvanp_plugin',
-                'callback' 		=> array( $this, 'add_settings_page' )
+                'parent_slug'   => 'morkvanp_plugin',
+                'page_title'    => 'Налаштування',
+                'menu_title'    => 'Налаштування',
+                'capability'    => 'manage_woocommerce',
+                'menu_slug'     => 'morkvanp_plugin',
+                'callback'      => array( $this, 'add_settings_page' )
             ),
             array(
-                'parent_slug' 	=> 'morkvanp_plugin',
-                'page_title' 	=> 'Створити Накладну',
-                'menu_title' 	=> 'Створити Накладну',
-                'capability' 	=> 'manage_woocommerce',
-                'menu_slug' 	=> 'morkvanp_invoice',
-                'callback' 		=>  array( $this, 'add_invoice_page' )
+                'parent_slug'   => 'morkvanp_plugin',
+                'page_title'    => 'Створити Накладну',
+                'menu_title'    => 'Створити Накладну',
+                'capability'    => 'manage_woocommerce',
+                'menu_slug'     => 'morkvanp_invoice',
+                'callback'      =>  array( $this, 'add_invoice_page' )
             ),
             array(
-                'parent_slug' 	=> 'morkvanp_plugin',
-                'page_title' 	=> 'Мої накладні',
-                'menu_title'	=> 'Мої накладні',
-                'capability'	=> 'manage_woocommerce',
-                'menu_slug'		=> 'morkvanp_invoices',
-                'callback'		=> array( $this, 'invoices_page' )
+                'parent_slug'   => 'morkvanp_plugin',
+                'page_title'    => 'Мої накладні',
+                'menu_title'    => 'Мої накладні',
+                'capability'    => 'manage_woocommerce',
+                'menu_slug'     => 'morkvanp_invoices',
+                'callback'      => array( $this, 'invoices_page' )
             ),
-            array(
-                'parent_slug'	=> 'morkvanp_plugin',
-                'page_title'	=> 'Про плагін',
-                'menu_title'	=> 'Про плагін',
-                'capability'	=> 'manage_woocommerce',
-                'menu_slug'		=> 'morkvanp_about',
-                'callback'		=> array( $this, 'about_page' )
-            )
-
-            ,
         );
         }
 
@@ -352,6 +343,9 @@ class MNP_Plugin_Loader
     {
         $path = PLUGIN_PATH . '/public/partials/morkvanp-plugin-invoices-page.php';
         if (file_exists($path)) {
+            // Include style.css file for Invoices tab
+            $plugin_data = get_plugin_data( __FILE__ );
+            wp_enqueue_style( 'mrkvnp-tabs-style', PLUGIN_URL . 'public/css/style.css', array(), MNP_PLUGIN_VERSION, 'all' );
             require_once($path);
         } else {
             $path = PLUGIN_PATH . '/public/partials/morkvanp-plugin-invoices-page-demo.php';
@@ -360,20 +354,9 @@ class MNP_Plugin_Loader
     }
 
     /**
-     * Add about page of plugin
-     *
-     * @since 1.0.0
-     */
-    public function about_page()
-    {
-        $path = PLUGIN_PATH . '/public/partials/morkvanp-plugin-about-page.php';
-        require_once($path);
-    }
-
-    /**
      * Register plugin menu
      *
-     * @since 	1.0.0
+     * @since   1.0.0
      */
     public function register_plugin_menu()
     {
@@ -389,15 +372,138 @@ class MNP_Plugin_Loader
     /**
      * Add setting fields for plugin
      *
-     * @since 	1.0.0
+     * @since   1.0.0
      */
     public function add_settings_fields()
     {
         $args = array(
 
+            // *** Base Settings
+            array(
+                'option_group' => 'morkvanp_options_group',
+                'option_name' => 'mrkvnp_sender_api_key'
+            ),
+            array(
+                'option_group' => 'morkvanp_options_group',
+                'option_name' => 'mrkvnp_auto_detect_lang'
+            ),
+            array(
+                'option_group' => 'morkvanp_options_group',
+                'option_name' => 'mrkvnp_individual_checkout_text'
+            ),
+            array(
+                'option_group' => 'morkvanp_options_group',
+                'option_name' => 'mrkvnp_checkout_spinner_color'
+            ),
+            // *** Sender
+            array(
+                'option_group' => 'morkvanp_options_group',
+                'option_name' => 'mrkvnp_invoice_sender_ref'
+            ),
+            array(
+                'option_group' => 'morkvanp_options_group',
+                'option_name' => 'mrkvnp_invoice_sender_names'
+            ),
             array(
                 'option_group' => 'morkvanp_options_group',
                 'option_name' => 'mrkvnp_invoice_sender_region_name'
+            ),
+            array(
+                'option_group' => 'morkvanp_options_group',
+                'option_name' => 'region'
+            ),
+            array(
+                'option_group' => 'morkvanp_options_group',
+                'option_name' => 'warehouse'
+            ),
+            array(
+                'option_group' => 'morkvanp_options_group',
+                'option_name' => 'city'
+            ),
+            array(
+                'option_group' => 'morkvanp_options_group',
+                'option_name' => 'mrkvnp_invoice_sender_warehouse_name'
+            ),
+            array(
+                'option_group' => 'morkvanp_options_group',
+                'option_name' => 'woocommerce_nova_poshta_shipping_method_address'
+            ),
+            // *** Default settings
+            array(
+                'option_group' => 'morkvanp_options_group',
+                'option_name' => 'mrkvnp_invoice_cargo_type'
+            ),
+            array(
+                'option_group' => 'morkvanp_options_group',
+                'option_name' => 'mrkvnp_invoice_payer'
+            ),
+            array(
+                'option_group' => 'morkvanp_options_group',
+                'option_name' => 'mrkvnp_invoice_payment_type'
+            ),
+            array(
+                'option_group' => 'morkvanp_options_group',
+                'option_name' => 'mrkvnp_invoice_redelivery_payer'
+            ),
+            array(
+                'option_group' => 'morkvanp_options_group',
+                'option_name' => 'mrkvnp_invoice_description'
+            ),
+            array(
+                'option_group' => 'morkvanp_options_group',
+                'option_name' => 'mrkvnp_invoice_weight'
+            ),
+            array(
+                'option_group' => 'morkvanp_options_group',
+                'option_name' => 'mrkvnp_invoice_length'
+            ),
+            array(
+                'option_group' => 'morkvanp_options_group',
+                'option_name' => 'mrkvnp_invoice_width'
+            ),
+            array(
+                'option_group' => 'morkvanp_options_group',
+                'option_name' => 'mrkvnp_invoice_height'
+            ),
+            array(
+                'option_group' => 'morkvanp_options_group',
+                'option_name' => 'mrkvnp_invoice_volume'
+            ),
+            array(
+                'option_group' => 'morkvanp_options_group',
+                'option_name' => 'mrkvnp_calc_shipcost_from_orderparms'
+            ),
+            // *** Automation
+            array(
+                'option_group' => 'morkvanp_options_group',
+                'option_name' => 'mrkvnp_is_payment_control_on'
+            ),
+            array(
+                'option_group' => 'morkvanp_options_group',
+                'option_name' => 'mrkvnp_is_auto_invoice_creating'
+            ),
+            array(
+                'option_group' => 'morkvanp_options_group',
+                'option_name' => 'mrkvnp_is_order_auto_status_changing'
+            ),
+
+            
+
+
+
+
+            // *** Інше (старі налаштування, зараз не виводяться на екран)
+            array(
+                'option_group' => 'morkvanp_options_group',
+                'option_name' => 'morkvanp_checkout_count'
+            ),
+            // array(
+            //     'option_group' => 'morkvanp_options_group',
+            //     'option_name' => 'mrkvnp_invoice_sender_names'
+            // ),
+            array(
+                'option_group' => 'morkvanp_options_group',
+                'option_name' => 'mrkvnp_sender_phone'
             ),
 
             array(
@@ -417,81 +523,47 @@ class MNP_Plugin_Loader
 
             array(
                 'option_group' => 'morkvanp_options_group',
-                'option_name' => 'mrkvnp_invoice_sender_warehouse_name'
+                'option_name' => 'mrkvnp_invoice_sender_warehouse_ref'
             ),
 
             array(
                 'option_group' => 'morkvanp_options_group',
-                'option_name' => 'woocommerce_nova_poshta_shipping_method_warehouse'
+                'option_name' => 'mrkvnp_invoice_sender_building_number'
             ),
 
             array(
                 'option_group' => 'morkvanp_options_group',
-                'option_name' => 'woocommerce_nova_poshta_sender_building'
+                'option_name' => 'mrkvnp_invoice_sender_warehouse_type'
             ),
 
             array(
                 'option_group' => 'morkvanp_options_group',
-                'option_name' => 'woocommerce_nova_poshta_sender_address_type'
+                'option_name' => 'mrkvnp_invoice_sender_flat_number'
             ),
 
             array(
                 'option_group' => 'morkvanp_options_group',
-                'option_name' => 'woocommerce_nova_poshta_sender_flat'
+                'option_name' => 'mrkvnp_invoice_sender_address_name'
             ),
 
             array(
                 'option_group' => 'morkvanp_options_group',
-                'option_name' => 'woocommerce_nova_poshta_shipping_method_address_name'
+                'option_name' => 'mrkvnp_is_show_delivery_price'
             ),
 
             array(
                 'option_group' => 'morkvanp_options_group',
-                'option_name' => 'woocommerce_nova_poshta_shipping_method_address'
+                'option_name' => 'mrkvnp_is_add_delivery_price'
             ),
 
             array(
                 'option_group' => 'morkvanp_options_group',
-                'option_name' => 'invoice_load'
-            ),
-            array(
-                'option_group' => 'morkvanp_options_group',
-                'option_name' => 'mrkvnp_sender_api_key'
-            ),
-
-            /*array(
-                'option_group' => 'morkvanp_options_group',
-                'option_name' => 'zone_example'
-            ),*/
-
-            /*array(
-                'option_group' => 'morkvanp_options_group',
-                'option_name' => 'np_address_shpping_notuse'
-            ),*/
-
-            array(
-                'option_group' => 'morkvanp_options_group',
-                'option_name' => 'show_calc'
+                'option_name' => 'mrkvnp_is_auto_update_db'
             ),
 
             array(
                 'option_group' => 'morkvanp_options_group',
-                'option_name' => 'plus_calc'
-            ),
-
-            array(
-                'option_group' => 'morkvanp_options_group',
-                'option_name' => 'update_bases'
-            ),
-
-            array(
-                'option_group' => 'morkvanp_options_group',
-                'option_name' => 'spinnercolor'
-            ),
-
-            array(
-                'option_group' => 'morkvanp_options_group',
-                'option_name' => 'type_example'
+                'option_name' => 'mrkvnp_spinner_color'
             ),
 
             array(
@@ -501,32 +573,21 @@ class MNP_Plugin_Loader
 
             array(
                 'option_group' => 'morkvanp_options_group',
-                'option_name' => 'mrkvnp_invoice_sender_city_name'
-            ),
-            array(
-                'option_group' => 'morkvanp_options_group',
-                'option_name' => 'mrkvnp_invoice_sender_names'
-            ),
-            array(
-                'option_group' => 'morkvanp_options_group',
-                'option_name' => 'mrkvnp_invoice_sender_region_name'
+                'option_name' => 'city'
             ),
 
             array(
                 'option_group' => 'morkvanp_options_group',
-                'option_name' => 'mrkvnp_sender_phone'
+                'option_name' => 'region'
             ),
+
             array(
                 'option_group' => 'morkvanp_options_group',
                 'option_name' => 'flat'
             ),
             array(
                 'option_group' => 'morkvanp_options_group',
-                'option_name' => 'mrkvnp_invoice_sender_warehouse_name'
-            ),
-            array(
-                'option_group' => 'morkvanp_options_group',
-                'option_name' => 'mrkvnp_invoice_description'
+                'option_name' => 'warehouse'
             ),
 
             array(
@@ -541,16 +602,11 @@ class MNP_Plugin_Loader
 
             array(
                 'option_group' => 'morkvanp_options_group',
-                'option_name' => 'morkvanp_email_template'
+                'option_name' => 'mrkvnp_email_template'
             ),
             array(
                 'option_group' => 'morkvanp_options_group',
-                'option_name' => 'morkvanp_email_subject'
-            ),
-
-            array(
-                'option_group' => 'morkvanp_options_group',
-                'option_name' => 'morkvanp_checkout_count'
+                'option_name' => 'mrkvnp_email_subject'
             ),
 
             array(
@@ -565,21 +621,65 @@ class MNP_Plugin_Loader
     }
 
     /**
-     *	Register all sections for settings fields
+     *  Register all sections for settings fields
      *
-     *	@since 	 1.0.0
+     *  @since   1.0.0
      */
     public function register_fields_sections()
     {
         $args = array(
-            array(
-                'id' => 'morkvanp_admin_index',
-                'title' => 'Налаштування',
+            array( // Base settings
+                'id' => 'mrkvnp_base_settings',
+                'title' => '',
                 'callback' => function () {
-                    echo "";
+                    // <img src="' . NOVA_POSHTA_TTN_SHIPPING_PLUGIN_URL . 'includes/img/settings_icons/Setting.png' . '"> - Це працює!
+                    echo '<div class="h2 mrkvnp-settings">
+                        <span class="dashicons dashicons-admin-generic"></span> ' .
+                        esc_html__( 'Базові налаштування', 'nova-poshta-ttn' ) .
+                    '</div>';
                 },
                 'page' => 'morkvanp_plugin'
-            )
+            ),
+            array( // Sender
+                'id' => 'mrkvnp_sender',
+                'title' => '',
+                'callback' => function () {
+                    echo '<div class="h2 mrkvnp-settings"><span class="dashicons dashicons-admin-users"></span> ' .
+                        esc_html__( 'Відправник', 'nova-poshta-ttn' ) .
+                    '</div>';
+                },
+                'page' => 'morkvanp_plugin'
+            ),
+            array( // Default settings
+                'id' => 'mrkvnp_default_settings',
+                'title' => '',
+                'callback' => function () {
+                    echo '<div class="h2 mrkvnp-settings"><span class="dashicons dashicons-screenoptions"></span> ' .
+                        esc_html__( 'Значення за замовчуванням', 'nova-poshta-ttn' ) .
+                    '</div>';
+                },
+                'page' => 'morkvanp_plugin'
+            ),
+            array( // Automation
+                'id' => 'mrkvnp_automation',
+                'title' => '',
+                'callback' => function () {
+                    echo '<div class="h2 mrkvnp-settings"><span class="dashicons dashicons-star-half"></span> ' .
+                        esc_html__( 'Автоматизація', 'nova-poshta-ttn' ) .
+                    '</div>';
+                },
+                'page' => 'morkvanp_plugin'
+            ),
+            // array( // *** Інше
+            //     'id' => 'morkvanp_admin_index',
+            //     'title' => '',
+            //     'callback' => function () {
+            //         echo '<div class="h2 mrkvnp-settings"><span class="dashicons dashicons-screenoptions"></span> ' .
+            //             esc_html__( 'Інше', 'nova-poshta-ttn' ) .
+            //         '</div>';
+            //     },
+            //     'page' => 'morkvanp_plugin'
+            // )
         );
 
         $this->sections = $args;
@@ -590,58 +690,375 @@ class MNP_Plugin_Loader
     /**
      * Register settings callbacks fields
      *
-     * @since 	1.0.0
+     * @since   1.0.0
      */
     public function register_settings_fields()
     {
 
             $args = array(
 
-            // Базові налаштування
-            // array(
-            //     'id' => 'title_base_settings',
-            //     'title' => '<h3 style="margin:0;">Базові налаштування</h3>',
-            //     'callback' => function () {},
-            //     'page' => 'morkvanp_plugin',
-            //     'section' => 'morkvanp_admin_index',
-            // ),
+            // *** Base Settings
             array(
                 'id' => 'mrkvnp_sender_api_key',
-                'title' => 'API ключ',
-                'callback' => array( $this->callbacks, 'morkvanpTextExample' ),
+                'title' => __('API ключ','nova-poshta-ttn'),
+                'callback' => array( $this->callbacks, 'setSenderAPIkey' ),
                 'page' => 'morkvanp_plugin',
-                'section' => 'morkvanp_admin_index',
+                'section' => 'mrkvnp_base_settings',
                 'args' => array(
                     'label_for' => 'mrkvnp_sender_api_key',
-                    'class' => 'basesettings allsettings show'
                 )
             ),
-            /*array(
-                'id' => 'zone_example',
-                'title' => 'Працювати із зонами доставки',
-                'callback' => array( $this->callbacks, 'morkvanpzone' ),
+            array(
+                'id' => 'morkvanp_checkout_count', // Поля при оформленні замовлення (deprecated)
+                'title' => '',
+                'callback' => function() {
+                    update_option( 'morkvanp_checkout_count', '3fields', true );
+                },
                 'page' => 'morkvanp_plugin',
-                'section' => 'morkvanp_admin_index',
+                'section' => 'mrkvnp_base_settings',
                 'args' => array(
-                    'label_for' => 'zone_example',
-                    'class' => 'basesettings allsettings show'
+                    'label_for' => 'morkvanp_checkout_count',
+                    'class' => 'mrkvnp-tr-h0'
                 )
-            ),*/
-            /*array(
-                'id' => 'np_address_shpping_notuse',
-                'title' => 'Вимкнути адресну доставку',
-                'callback' => array( $this->callbacks, 'morkvanp_address_shpping_notuse' ),
+            ),
+            array(
+                'id' => 'mrkvnp_auto_detect_lang',
+                'title' => __('Визначати мову автоматично<br>
+                    <small style="font-weight:normal;color: #9b9b9b;">Очікується згодом</small>','nova-poshta-ttn'),
+                'callback' => array( $this->callbacks, 'setAutoDetectLang' ),
                 'page' => 'morkvanp_plugin',
-                'section' => 'morkvanp_admin_index',
+                'section' => 'mrkvnp_base_settings',
                 'args' => array(
-                    'label_for' => 'np_address_shpping_notuse',
-                    'class' => 'basesettings allsettings show'
+                    'label_for' => 'mrkvnp_auto_detect_lang',
+                    'class' => 'mrkvnp-pt0 mrkvnp-chkbx mrkvnp-th-colorgray'
                 )
-            ),*/
+            ),
+            array(
+                'id' => 'mrkvnp_individual_checkout_text',
+                'title' => __('Індивідуальне налаштування тексту для сторінки чекаут<br>
+                    <small style="font-weight:normal;color: #9b9b9b;">Очікується згодом</small>','nova-poshta-ttn'),
+                'callback' => array( $this->callbacks, 'setIndividualCheckoutText' ),
+                'page' => 'morkvanp_plugin',
+                'section' => 'mrkvnp_base_settings',
+                'args' => array(
+                    'label_for' => 'mrkvnp_individual_checkout_text',
+                    'class' => 'mrkvnp-pt0 mrkvnp-chkbx mrkvnp-th-colorgray'
+                )
+            ),
+            array(
+                'id' => 'mrkvnp_checkout_spinner_color',
+                'title' => __('Колір спінера на сторінці Checkout','nova-poshta-ttn'),
+                'callback' => array( $this->callbacks, 'setCheckoutSpinnerColor' ),
+                'page' => 'morkvanp_plugin',
+                'section' => 'mrkvnp_base_settings',
+                'args' => array(
+                    'label_for' => 'mrkvnp_checkout_spinner_color',
+                    'class' => 'mrkvnp-pt0 mrkvnp-chkbx'
+                )
+            ),
+            array(
+                'id' => 'mrkvnp_is_auto_update_db',
+                'title' => __('Оновлювати бази відділень/поштоматів автоматично<br>
+                    <small style="font-weight:bold;color:#dc3232;">Лише у Про-версії</small>','nova-poshta-ttn'),
+                'callback' => array( $this->callbacks, 'mrkvnpIsAutoUpdateDB' ),
+                'page' => 'morkvanp_plugin',
+                'section' => 'mrkvnp_base_settings',
+                'args' => array(
+                    'label_for' => 'mrkvnp_is_auto_update_db',
+                    'class' => 'mrkvnp-pt0 mrkvnp-chkbx mrkvnp-th-colorgray'
+                )
+            ),
+            array(
+                'id' => 'mrkvnp_is_byhand_update_db',
+                'title' => __('Оновлювати бази відділень/поштоматів вручну<br>
+                    <small style="font-weight:normal;">Це може зайняти до 30 сек.</small>','nova-poshta-ttn'),
+                'callback' => array( $this->callbacks, 'mrkvnpIsByHandUpdateDB' ),
+                'page' => 'morkvanp_plugin',
+                'section' => 'mrkvnp_base_settings',
+                'args' => array(
+                    'label_for' => 'mrkvnp_is_byhand_update_db',
+                    'class' => 'mrkvnp-pt0 mrkvnp-chkbx'
+                )
+            ),
+
+            // *** Sender
+            array( // Choose sender
+                'id' => 'mrkvnp_invoice_sender_ref',
+                'title' => '',
+                'callback' => array( $this->callbacks, 'mrkvnpGetSendersByAPIKey' ),
+                'page' => 'morkvanp_plugin',
+                'section' => 'mrkvnp_sender',
+                'args' => array(
+                    'label_for' => 'mrkvnp_invoice_sender_ref',
+                    'class' => 'mrkvnp-pt0-dflex mrkvnp-mb0-pb0'
+                )
+            ),
+            array( // Get sender names - hidden input
+                'id' => 'mrkvnp_invoice_sender_names',
+                'title' => '',
+                'callback' => array( $this->callbacks, 'morkvanpGetSenderNames' ),
+                'page' => 'morkvanp_plugin',
+                'section' => 'mrkvnp_sender',
+                'args' => array(
+                    'label_for' => 'mrkvnp_invoice_sender_names',
+                    'class' => 'mrkvnp-th-p0 mrkvnp-td-pt0mb0'
+                )
+            ),
+            array( // Sender region input
+                'id' => 'region',
+                'title' => '',
+                'callback' => array( $this->callbacks, 'mrkvnpSenderRegion' ),
+                'page' => 'morkvanp_plugin',
+                'section' => 'mrkvnp_sender',
+                'args' => array(
+                    'label_for' => 'region',
+                    'class' => 'mrkvnp-pt0 mrkvnp-displnone'
+                )
+            ),
+            array(
+                'id' => 'city',
+                'title' => '',
+                'callback' => array( $this->callbacks, 'morkvanpSenderCity' ),
+                'page' => 'morkvanp_plugin',
+                'section' => 'mrkvnp_sender',
+                'args' => array(
+                    'label_for' => 'city',
+                    'class' => 'mrkvnp-pt0 mrkvnp-displnone'
+                )
+            ),
+            array( // Відправка з відділення
+                'id' => 'mrkvnp_sender_from_warehouse',
+                'title' => __('Відправка з Відділення:','nova-poshta-ttn'),
+                'callback' => function () {},
+                'page' => 'morkvanp_plugin',
+                'section' => 'mrkvnp_sender',
+                'args' => array(
+                    'label_for' => 'mrkvnp_sender_from_warehouse',
+                    'class' => 'mrkvnp-pt0 mrkvnp_sender_from_warehouse_line'
+                )
+            ),
+            array(
+                'id' => 'mrkvnp_invoice_sender_warehouse_name',
+                'title' => '',
+                'callback' => array( $this->callbacks, 'morkvanpWarehouseAddress'),
+                'page' => 'morkvanp_plugin',
+                'section' => 'mrkvnp_sender',
+                'args' => array(
+                    'label_for' => 'mrkvnp_invoice_sender_warehouse_name',
+                    'class' => 'mrkvnp-pt0 mrkvnp-displnone mrkvnp-senderwh'
+                )
+            ),
+            array( // Відправка з адреси
+                'id' => 'woocommerce_nova_poshta_shipping_method_address',
+                'title' => __('Відправка з адреси:','nova-poshta-ttn'),
+                'callback' => array( $this->callbacks, 'morkvanpWarehouseAddress2'),
+                'page' => 'morkvanp_plugin',
+                'section' => 'mrkvnp_sender',
+                'args' => array(
+                    'label_for' => 'woocommerce_nova_poshta_shipping_method_address',
+                    'class' => 'mrkvnp-pt0-dflex mrkvnp-mb0-pb0 mrkvnp_sender_from_warehouse_line mrkvnp_sender_from_warehouse_line-second'
+                )
+            ),
+
+            // *** Default settings
+            array(
+                'id' => 'mrkvnp_invoice_cargo_type',
+                'title' => __('Тип відправлення:','nova-poshta-ttn'),
+                'callback' => array( $this->callbacks, 'mrkvnpInvoiceCargoType' ),
+                'page' => 'morkvanp_plugin',
+                'section' => 'mrkvnp_default_settings',
+                'args' => array(
+                    'label_for' => 'mrkvnp_invoice_cargo_type',
+                    'class' => 'mrkvnp-mt7 mrkvnp-mb0 mrkvnp-tr-flex-row mrkvnp-default-settings mrkvnp-flexbasiscontent'
+                )
+            ),
+            array(
+                'id' => 'mrkvnp_invoice_payer',
+                'title' => __('Платник доставки:','nova-poshta-ttn'),
+                'callback' => array( $this->callbacks, 'mrkvnpInvoicePayer' ),
+                'page' => 'morkvanp_plugin',
+                'section' => 'mrkvnp_default_settings',
+                'args' => array(
+                    'label_for' => 'mrkvnp_invoice_payer',
+                    'class' => 'mrkvnp-pt0 mrkvnp-flex-row mrkvnp-flexbasiscontent'
+                )
+            ),
+            array(
+                'id' => 'mrkvnp_invoice_payment_type',
+                'title' => __('Тип оплати Відправника:','nova-poshta-ttn'),
+                'callback' => array( $this->callbacks, 'mrkvnpInvoicePaymentType' ),
+                'page' => 'morkvanp_plugin',
+                'section' => 'mrkvnp_default_settings',
+                'args' => array(
+                    'label_for' => 'mrkvnp_invoice_payment_type',
+                    'class' => 'mrkvnp-pt0 mrkvnp-w-100 mrkvnp-flex-row mrkvnp-flexbasiscontent'
+                )
+            ),
+            array(
+                'id' => 'mrkvnp_invoice_redelivery_payer',
+                'title' => __('Платник за функцію післяплати: <br>
+                    <small style="font-weight:bold;color:#dc3232;">Лише у Про-версії</small>','nova-poshta-ttn'),
+                'callback' => array( $this->callbacks, 'mrkvnpInvoiceRedeliveryPayer' ),
+                'page' => 'morkvanp_plugin',
+                'section' => 'mrkvnp_default_settings',
+                'desc_tip' => true,
+                'description' => __( 'Якщо товар має декілька категорій на сайті' ),
+                'args' => array(
+                    'label_for' => 'mrkvnp_invoice_redelivery_payer mrkvnp-th-colorgray',
+                    'class' => 'mrkvnp-pt0 mrkvnp-flex-row mrkvnp-flexbasiscontent'
+                )
+            ),
+            array(
+                'id' => 'mrkvnp_invoice_description',
+                'title' => __('Опис відправлення: <br>
+                    <small style="font-weight:bold;color:#dc3232;">Лише у Про-версії</small>','nova-poshta-ttn'),
+                'callback' => array( $this->callbacks, 'mrkvnpInvoiceDescription' ),
+                'page' => 'morkvanp_plugin',
+                'section' => 'mrkvnp_default_settings',
+                'args' => array(
+                    'label_for' => 'mrkvnp_invoice_description',
+                    'class' => 'mrkvnp-pt0-pb0 mrkvnp-pl0 mrkvnp-th-colorgray'
+                )
+            ),
+            array(
+                'id' => 'mrkvnp_invoice_weight',
+                'title' => __('Вага відправлення, кг:','nova-poshta-ttn'),
+                'callback' => array( $this->callbacks, 'mrkvnpInvoiceDefaultWeight' ),
+                'page' => 'morkvanp_plugin',
+                'section' => 'mrkvnp_default_settings',
+                'args' => array(
+                    'label_for' => 'mrkvnp_invoice_weight',
+                    'class' => 'mrkvnp-mb0 mrkvnp-tr-flex-row mrkvnp-flexbasiscontent'
+                )
+            ),
+            array(
+                'id' => 'mrkvnp_invoice_length',
+                'title' => __('Розміри відправлення, см:','nova-poshta-ttn'),
+                'callback' => array( $this->callbacks, 'mrkvnpInvoiceDefaultLength' ),
+                'page' => 'morkvanp_plugin',
+                'section' => 'mrkvnp_default_settings',
+                'args' => array(
+                    'label_for' => 'mrkvnp_invoice_length',
+                    'class' => 'mrkvnp-pt0 mrkvnp-flexbasiscontent mrkvnp_invoice_length_block'
+                )
+            ),
+            array(
+                'id' => 'mrkvnp_invoice_width',
+                'title' => '',
+                'callback' => array( $this->callbacks, 'mrkvnpInvoiceDefaultWidth' ),
+                'page' => 'morkvanp_plugin',
+                'section' => 'mrkvnp_default_settings',
+                'args' => array(
+                    'label_for' => 'mrkvnp_invoice_width',
+                    'class' => 'mrkvnp-pt0 mrkvnp-vis-hid mrkvnp_invoice_width_block'
+                )
+            ),
+            array(
+                'id' => 'mrkvnp_invoice_height',
+                'title' => '',
+                'callback' => array( $this->callbacks, 'mrkvnpInvoiceDefaultHeight' ),
+                'page' => 'morkvanp_plugin',
+                'section' => 'mrkvnp_default_settings',
+                'args' => array(
+                    'label_for' => 'mrkvnp_invoice_height',
+                    'class' => 'mrkvnp-pt0 mrkvnp-vis-hid mrkvnp-pos-rel-80 mrkvnp_invoice_height_block'
+                )
+            ),
+            array(
+                'id' => 'mrkvnp_caption_lwh',
+                'title' => '',
+                'callback' => function () {
+                    /*_e( 'Довжина х Ширина х Висота', 'nova-poshta-ttn');*/
+                },
+                'page' => 'morkvanp_plugin',
+                'section' => 'mrkvnp_default_settings',
+                'args' => array(
+                    'class' => 'mrkvnp-tr-flex-row mrkvnp-tr-pr-85t'
+                )
+            ),
+            array(
+                'id' => 'mrkvnp_invoice_volume',
+                'title' => __('Об\'ємна вага відправлення:','nova-poshta-ttn'),
+                'callback' => array( $this->callbacks, 'mrkvnpInvoiceDefaultVolume' ),
+                'page' => 'morkvanp_plugin',
+                'section' => 'mrkvnp_default_settings',
+                'args' => array(
+                    'label_for' => 'mrkvnp_invoice_volume',
+                    'class' => 'mrkvnp-tr-flex-row mrkvnp-tr-pr-95t'
+                )
+            ),
+            array(
+                'id' => 'mrkvnp_calc_shipcost_from_orderparms',
+                'title' => __('Розраховувати вартість доставки з параметрів товарів у замовленні<br>
+                    <small style="font-weight:bold;color:#dc3232;">Лише у Про-версії</small>', 'nova-poshta-ttn'),
+                'callback' => array( $this->callbacks, 'mrkvnpIsCalcShipCostOderParms' ),
+                'page' => 'morkvanp_plugin',
+                'section' => 'mrkvnp_default_settings',
+                'args' => array(
+                    'label_for' => 'mrkvnp_calc_shipcost_from_orderparms',
+                    'class' => 'mrkvnp-pt0 mrkvnp-chkbx mrkvnp-tr-pr-110t mrkvnp-th-colorgray'
+                )
+            ),
+            array(
+                'id' => 'mrkvnp_caption_calc_shipcost',
+                'title' => '<span style="font-weight:normal;font-size: smaller;"> Вмикайте це налаштування,
+                    якщо ВСІ товари на сайті мають вагу і розміри.</span>',
+                'callback' => function () {},
+                'page' => 'morkvanp_plugin',
+                'section' => 'mrkvnp_default_settings',
+                'args' => array(
+                    'class' => 'mrkvnp-pt0 mrkvnp-pb20 mrkvnp-tr-pr-125t'
+                )
+            ),
+
+            // *** Automation
+            array(
+                'id' => 'mrkvnp_is_payment_control_on',
+                'title' => __('Контроль оплати<br>
+                    <small style="font-weight:bold;color:#dc3232;">Лише у Про-версії</small>','nova-poshta-ttn'),
+                'callback' => array( $this->callbacks, 'mrkvnpInvoiceIsPaymentControlOn' ),
+                'page' => 'morkvanp_plugin',
+                'section' => 'mrkvnp_automation',
+                'args' => array(
+                    'label_for' => 'mrkvnp_is_payment_control_on',
+                    'class' => 'mrkvnp-tr-flex-row mrkvnp-mt7 mrkvnp-th-colorgray'
+                )
+            ),
+            array(
+                'id' => 'mrkvnp_is_auto_invoice_creating',
+                'title' => 'Автоматично створювати накладні<br>
+                    <small style="font-weight:bold;color:#dc3232;">Лише у Про-версії</small>',
+                'callback' => array( $this->callbacks, 'mrkvnpInvoiceIsAutoCreating' ),
+                'page' => 'morkvanp_plugin',
+                'section' => 'mrkvnp_automation',
+                'args' => array(
+                    'label_for' => 'mrkvnp_is_auto_invoice_creating',
+                    'class' => 'mrkvnp-pt0 mrkvnp-chkbx mrkvnp-th-colorgray'
+                )
+            ),
+            array(
+                'id' => 'mrkvnp_is_order_auto_status_changing',
+                'title' => 'Автоматично змінювати статус замовлення<br>
+                    <small style="font-weight:bold;color:#dc3232;">Лише у Про-версії</small>',
+                'callback' => array( $this->callbacks, 'mrkvnpInvoiceIsAutoStatusOrderChanging' ),
+                'page' => 'morkvanp_plugin',
+                'section' => 'mrkvnp_automation',
+                'args' => array(
+                    'label_for' => 'mrkvnp_is_order_auto_status_changing',
+                    'class' => 'mrkvnp-tr-flex-row mrkvnp-th-colorgray'
+                )
+            ),
+
+
+
+
+
+
+            // *** Інше (старі налаштування, зараз на екран не виводяться) - deprecated
             array(
                 'id' => 'morkvanp_checkout_count',
                 'title' => 'Поля при оформленні замовлення',
-                'callback' => array( $this->callbacks, 'morkvanpCheckoutExample' ),
+                'callback' => array( $this->callbacks, 'mrkvnpCheckoutFieldsCount' ),
                 'page' => 'morkvanp_plugin',
                 'section' => 'morkvanp_admin_index',
                 'args' => array(
@@ -649,17 +1066,17 @@ class MNP_Plugin_Loader
                     'class' => 'additional allsettings show'
                 )
             ),
-            array(
-                'id' => 'mrkvnp_invoice_sender_names',
-                'title' => 'Назва Відправника (П.І.Б. повністю)',
-                'callback' => array( $this->callbacks, 'morkvanpNames' ),
-                'page' => 'morkvanp_plugin',
-                'section' => 'morkvanp_admin_index',
-                'args' => array(
-                    'label_for' => 'mrkvnp_invoice_sender_names',
-                    'class' => 'basesettings allsettings show'
-                )
-            ),
+            // array(
+            //     'id' => 'mrkvnp_invoice_sender_names',
+            //     'title' => 'Назва Відправника (П.І.Б. повністю)',
+            //     'callback' => array( $this->callbacks, 'morkvanpNames' ),
+            //     'page' => 'morkvanp_plugin',
+            //     'section' => 'morkvanp_admin_index',
+            //     'args' => array(
+            //         'label_for' => 'mrkvnp_invoice_sender_names',
+            //         'class' => 'basesettings allsettings show'
+            //     )
+            // ),
             array(
                 'id' => 'mrkvnp_sender_phone',
                 'title' => 'Номер телефону Відправника',
@@ -671,94 +1088,26 @@ class MNP_Plugin_Loader
                     'class' => 'basesettings allsettings show'
                 )
             ),
-                // Відправка з Відділення:
             array(
-                'id' => 'regiond',
-                'title' => 'Відправка з Відділення:',
-                'callback' => array( $this->callbacks, 'emptyfunccalbask' ),
-                'page' => 'morkvanp_plugin',
-                'section' => 'morkvanp_admin_index',
-                'args' => array(
-                    'label_for' => 'regiond',
-                    'class' => 'h3as basesettings allsettings show'
-                )
-            ),
-            array(
-                'id' => 'mrkvnp_invoice_sender_region_name',
-                'title' => '<span style="font-weight:normal;margin-left:10px;">Область</span>',
-                'callback' => array( $this->callbacks, 'morkvanpSelectRegion' ),
-                'page' => 'morkvanp_plugin',
-                'section' => 'morkvanp_admin_index',
-                'args' => array(
-                    'label_for' => 'mrkvnp_invoice_sender_region_name',
-                    'class' => 'basesettings allsettings show'
-                )
-            ),
-            array(
-                'id' => 'mrkvnp_invoice_sender_city_name',
-                'title' => '<span style="font-weight:normal;margin-left:10px;">Місто</span>',
-                'callback' => array( $this->callbacks, 'morkvanpSelectCity' ),
-                'page' => 'morkvanp_plugin',
-                'section' => 'morkvanp_admin_index',
-                'args' => array(
-                    'label_for' => 'mrkvnp_invoice_sender_city_name',
-                    'class' => 'basesettings allsettings show'
-                )
-            ),
-            array(
-                'id' => 'mrkvnp_invoice_sender_warehouse_name',
-                'title' => '<span style="font-weight:normal;margin-left:10px;">Віділення</span>',
-                'callback' => array( $this->callbacks, 'morkvanpWarehouseAddress'),
-                'page' => 'morkvanp_plugin',
-                'section' => 'morkvanp_admin_index',
-                'args' => array(
-                    'label_for' => 'mrkvnp_invoice_sender_warehouse_name',
-                    'class' => 'basesettings allsettings show'
-                )
-            ),
-                // Відправка з адреси:
-            array(
-                'id' => 'woocommerce_nova_poshta_shipping_method_address',
-                'title' => 'Відправка з адреси:',
-                'callback' => array( $this->callbacks, 'morkvanpWarehouseAddress2'),
-                'page' => 'morkvanp_plugin',
-                'section' => 'morkvanp_admin_index',
-                'args' => array(
-                    'label_for' => 'woocommerce_nova_poshta_shipping_method_addresss',
-                    'class' => 'basesettings allsettings show'
-                )
-            ),
-            array(
-                'id' => 'invoice_load',
-                'title' => 'Не вантажити файли плагіну на всіх сторінках сайту',
-                'callback' => array( $this->callbacks, 'morkvanpload' ),
-                'page' => 'morkvanp_plugin',
-                'section' => 'morkvanp_admin_index',
-                'args' => array(
-                    'label_for' => 'invoice_load',
-                    'class' => 'basesettings allsettings show'
-                )
-            ),
-            array(
-                'id' => 'show_calc',
+                'id' => 'mrkvnp_is_show_delivery_price',
                 'title' => 'Показати розрахунок вартості доставки при оформленні замовлення',
                 'callback' => array( $this->callbacks, 'morkvanpcalc' ),
                 'page' => 'morkvanp_plugin',
                 'section' => 'morkvanp_admin_index',
                 'args' => array(
-                    'label_for' => 'show_calc',
+                    'label_for' => 'mrkvnp_is_show_delivery_price',
                     'class' => 'allsettings additional show'
                 )
             ),
             array(
-                'id' => 'plus_calc',
-                'title' => 'Додати розрахунок вартості доставки до замовлення ',
+                'id' => 'mrkvnp_is_add_delivery_price',
+                'title' => 'Додати розрахунок вартості доставки до замовлення',
                 'callback' => array( $this->callbacks, 'morkvanpcalcplus' ),
                 'page' => 'morkvanp_plugin',
                 'section' => 'morkvanp_admin_index',
                 'args' => array(
-                    'label_for' => 'plus_calc',
-                    'class' => 'allsettings additional show'
+                    'label_for' => 'mrkvnp_is_add_delivery_price',
+                    'class' => 'allsettings additional show disabled-option'
                 )
             ),
             array(
@@ -772,29 +1121,6 @@ class MNP_Plugin_Loader
                     'class' => 'additional allsettings  show'
                 )
             ),
-            array(
-                'id' => 'update_bases',
-                'title' => 'Оновлювати бази автоматично',
-                'callback' => array( $this->callbacks, 'morkvanpInvoiceupdatebases' ),
-                'page' => 'morkvanp_plugin',
-                'section' => 'morkvanp_admin_index',
-                'args' => array(
-                    'label_for' => 'update_bases',
-                    'class' => 'autosettings allsettings show'
-                )
-            ),
-            array(
-                'id' => 'spinnercolor',
-                'title' => 'Колір спінера в Checkout',
-                'callback' => array( $this->callbacks, 'spinnercolorcb' ),
-                'page' => 'morkvanp_plugin',
-                'section' => 'morkvanp_admin_index',
-                'args' => array(
-                    'label_for' => 'spinnercolor',
-                    'class' => 'autosettings show'
-                )
-            ),
-
             // Відправка e-mail з ТТН
             array(
                 'id' => 'title_email_with_ttn',
@@ -804,14 +1130,14 @@ class MNP_Plugin_Loader
                 'section' => 'morkvanp_admin_index',
             ),
             array(
-                'id' => 'morkvanp_email_subject',
+                'id' => 'mrkvnp_email_subject',
                 'title' => 'Шаблон заголовку email повідомлення',
                 'callback' => array( $this->callbacks, 'morkvanpEmailSubject' ),
                 'page' => 'morkvanp_plugin',
                 'section' => 'morkvanp_admin_index',
                 'args' => array(
-                    'label_for' => 'morkvanp_email_subject',
-                    'class' => 'allsettings additional morkvanp_email_subject show'
+                    'label_for' => 'mrkvnp_email_subject',
+                    'class' => 'allsettings additional mrkvnp_email_subject show'
                 )
             ),
             array(
@@ -825,7 +1151,6 @@ class MNP_Plugin_Loader
                     'class' => 'allsettings additional show'
                 )
             ),
-
             // Створення накладних
             array(
                 'id' => 'title_create_invoices',
@@ -833,28 +1158,6 @@ class MNP_Plugin_Loader
                 'callback' => function () {},
                 'page' => 'morkvanp_plugin',
                 'section' => 'morkvanp_admin_index',
-            ),
-            array(
-                'id' => 'mrkvnp_invoice_description',
-                'title' => 'Опис відправлення (за замовчуванням)',
-                'callback' => array( $this->callbacks, 'morkvanpInvoiceDescription' ),
-                'page' => 'morkvanp_plugin',
-                'section' => 'morkvanp_admin_index',
-                'args' => array(
-                    'label_for' => 'mrkvnp_invoice_description',
-                    'class' => 'allsettings additional show'
-                )
-            ),
-            array(
-                'id' => 'type_example',
-                'title' => 'Тип відправлення за замовчуванням',
-                'callback' => array( $this->callbacks, 'morkvanpTypeExample' ),
-                'page' => 'morkvanp_plugin',
-                'section' => 'morkvanp_admin_index',
-                'args' => array(
-                    'label_for' => 'type_example',
-                    'class' => 'additional allsettings  show'
-                )
             ),
 
             array(
@@ -877,9 +1180,9 @@ class MNP_Plugin_Loader
     }
 
     /**
-     *	Registering all settings fields for plugin
+     *  Registering all settings fields for plugin
      *
-     *	@since 	 1.0.0
+     *  @since   1.0.0
      */
     public function register_plugin_settings()
     {
@@ -908,8 +1211,15 @@ class MNP_Plugin_Loader
         }
         $methodid = "";
 
-        if (isset($_GET["post"])) {
-            $order_id = $_GET["post"];
+        if (isset($_GET["post"])  || isset($_GET["id"])) {
+            
+            $order_id = '';
+            if(isset($_GET["post"])){
+                $order_id = $_GET["post"];    
+            }
+            else{
+                $order_id = $_GET["id"];
+            }
 
             $order_data0 = wc_get_order($order_id);
             $order_data = $order_data0->get_data();
@@ -926,7 +1236,7 @@ class MNP_Plugin_Loader
                 if ((strpos($methodid, 'npttn_address_shipping_method')!==false)) {
                     echo '<style>#npttn_newttn{display:block;}</style>';
                 } else {
-                    if (!get_option('ttn2_example')) {
+                    if ( ! \get_option( 'mrkvnp_invoice_payer' ) ) {
                         echo '<style>#npttn_newttn{display:none;}</style>';
                     }
                 }
@@ -941,13 +1251,13 @@ class MNP_Plugin_Loader
                 // $_SESSION['order_id'] = $order_id;
             }
             echo '<img src="'.NOVA_POSHTA_TTN_SHIPPING_PLUGIN_URL.'/includes/nova_poshta_25px.png"
-		 style="height: 25px;width: 25px; margin-right: 20px; margin-top: 2px;">';
+         style="height: 25px;width: 25px; margin-right: 20px; margin-top: 2px;">';
             // echo "<a class='button button-primary send' href='admin.php?page=morkvanp_invoice'>Створити накладну</a>";
             echo "<a class='button button-primary send' href='admin.php?page=morkvanp_invoice&post=$order_id'>Створити накладну</a>";
-        //	echo "<script src='". PLUGIN_URL . "public/js/script.js'></script>";
-            //	echo "<link href='". PLUGIN_URL . "public/css/style.css' />";
+        //  echo "<script src='". PLUGIN_URL . "public/js/script.js'></script>";
+            //  echo "<link href='". PLUGIN_URL . "public/css/style.css' />";
         } else {
-            if (!get_option('ttn2_example')) {
+            if ( ! \get_option( 'mrkvnp_invoice_payer' ) ) {
                 echo '<style>#npttn_newttn{display:none;}</style>';
             }
         }
@@ -960,7 +1270,11 @@ class MNP_Plugin_Loader
      */
     public function mv_add_meta_boxes()
     {
-        add_meta_box('npttn_newttn', __('Відправлення Нова Пошта', 'woocommerce'), array( $this, 'add_plugin_meta_box' ), 'shop_order', 'side', 'core');
+        $screen = wc_get_container()->get( CustomOrdersTableController::class )->custom_orders_table_usage_is_enabled()
+        ? wc_get_page_screen_id( 'shop-order' )
+        : 'shop_order';
+
+        add_meta_box('npttn_newttn', __('Відправлення Нова Пошта', 'woocommerce'), array( $this, 'add_plugin_meta_box' ), $screen, 'side', 'core');
     }
 
     /**
@@ -982,23 +1296,12 @@ class MNP_Plugin_Loader
      */
     public function woo_column_get_data($column)
     {
-        global $post;
-        $data = get_post_meta($post->ID);
-
-        $order_id = $post->ID;
-        $selected_order = wc_get_order($post->ID);
-        $order = $selected_order->get_data();
-        $meta_ttn = get_post_meta($order_id, 'novaposhta_ttn', true);
+        global $the_order;
 
         if ($column == 'created_invoice') { //will be deprecated
-            global $wpdb;
+            $meta_ttn = $the_order->get_meta('novaposhta_ttn');
 
-            $order_id = $post->ID;
-            $results = $wpdb->get_row("SELECT * FROM {$wpdb->prefix}novaposhta_ttn_invoices WHERE order_id = '$order_id'", ARRAY_A);
-
-
-
-            if (!empty($results) || !empty($meta_ttn)) {
+            if (!empty($meta_ttn)) {
                 $img = "/nova_poshta_25px.png";
                 echo '<img src="' . site_url() . '/wp-content/plugins/' . plugin_basename(__DIR__) . $img . '" />';
             } else {
@@ -1008,21 +1311,45 @@ class MNP_Plugin_Loader
         }
 
         if ($column == 'invoice_number') {
-            global $wpdb;
+            $meta_ttn = $the_order->get_meta('novaposhta_ttn');
 
-            $order_id = $post->ID;
-            $number_result = $wpdb->get_row("SELECT * FROM {$wpdb->prefix}novaposhta_ttn_invoices WHERE order_id = '$order_id'", ARRAY_A);
-
-            if ( ! empty( $number_result ) ) {
+            if ( ! empty( $meta_ttn ) ) {
                 echo '<a taget="_blank" href="https://novaposhta.ua/tracking/?cargo_number=' .
-                	$number_result["order_invoice"] . '">' . $number_result["order_invoice"] . '</a>';
+                    $meta_ttn . '">' . $meta_ttn . '</a>';
             } else {
-                if ( isset( $meta_ttn ) ) {
-                    echo '<a taget="_blank" href="https://novaposhta.ua/tracking/?cargo_number=' .
-                    	$meta_ttn . '">' . $meta_ttn . '</a>';
-                } else {
-                    echo "";
-                }
+                echo "";
+            }
+        }
+    }
+
+    /**
+     * Getting data of order column at order page
+     *
+     * @since 1.1.0
+     */
+    public function woo_column_get_data_hpos($column, $the_order)
+    {
+
+        if ($column == 'created_invoice') { //will be deprecated
+            $meta_ttn = $the_order->get_meta('novaposhta_ttn');
+
+            if (!empty($meta_ttn)) {
+                $img = "/nova_poshta_25px.png";
+                echo '<img src="' . site_url() . '/wp-content/plugins/' . plugin_basename(__DIR__) . $img . '" />';
+            } else {
+                $img = '/nova_poshta_grey_25px.png';
+                echo '<img src="' . site_url() . '/wp-content/plugins/' . plugin_basename(__DIR__) . $img . '" />';
+            }
+        }
+
+        if ($column == 'invoice_number') {
+            $meta_ttn = $the_order->get_meta('novaposhta_ttn');
+
+            if ( ! empty( $meta_ttn ) ) {
+                echo '<a taget="_blank" href="https://novaposhta.ua/tracking/?cargo_number=' .
+                    $meta_ttn . '">' . $meta_ttn . '</a>';
+            } else {
+                echo "";
             }
         }
     }
@@ -1034,8 +1361,12 @@ class MNP_Plugin_Loader
      */
     public function add_invoice_meta_box()
     {
-        if (isset($_GET["post"])) {
-            add_meta_box('invoice_other_fields', __('Накладна', 'woocommerce'), array( $this, 'invoice_meta_box_info' ), 'shop_order', 'side');
+        if (isset($_GET["post"]) || isset($_GET["id"])) {
+            $screen = wc_get_container()->get( CustomOrdersTableController::class )->custom_orders_table_usage_is_enabled()
+            ? wc_get_page_screen_id( 'shop-order' )
+            : 'shop_order';
+            
+            add_meta_box('invoice_other_fields', __('Накладна', 'woocommerce'), array( $this, 'invoice_meta_box_info' ), $screen, 'side');
         }
     }
 
@@ -1046,8 +1377,15 @@ class MNP_Plugin_Loader
      */
     public function invoice_meta_box_info()
     {
-        if (isset($_GET["post"])) {
+        if (isset($_GET["post"]))
+        {
             $order_id = $_GET["post"];
+        }
+        elseif(isset($_GET["id"])){
+            $order_id = $_GET["id"];
+        }
+        else{
+            return;
         }
 
         global $wpdb;
@@ -1118,44 +1456,44 @@ class MNP_Plugin_Loader
             }
 
             // var_dump( $obj['Number'] ); ?>
-			<a href="#" id="email_sent" class="button" style="margin: 5px;background: url(<?php echo  plugins_url('img/002-envelope.png', __FILE__); ?>) no-repeat scroll 7px 4px; padding-left: 30px;"> Відправити на e-mail</a>
-			<input type="text" name="invoice_email" id="invoice_email" value="<?php echo $invoice_email; ?>" style="display: none;" />
-			<input type="text" name="invoice_number" id="invoice_number" value="<?php echo $invoice_number; ?>" style="display: none;" />
-			<input type="text" name="order_id" id="order_id" value="<?php echo $order_id; ?>" style="display: none;" />
-			<input type="text" id="date_created" value="<?php // echo $obj['DateCreated']; ?>" style="display: none;" />
+            <a href="#" id="email_sent" class="button" style="margin: 5px;background: url(<?php echo  plugins_url('img/002-envelope.png', __FILE__); ?>) no-repeat scroll 7px 4px; padding-left: 30px;"> Відправити на e-mail</a>
+            <input type="text" name="invoice_email" id="invoice_email" value="<?php echo $invoice_email; ?>" style="display: none;" />
+            <input type="text" name="invoice_number" id="invoice_number" value="<?php echo $invoice_number; ?>" style="display: none;" />
+            <input type="text" name="order_id" id="order_id" value="<?php echo $order_id; ?>" style="display: none;" />
+            <input type="text" id="date_created" value="<?php // echo $obj['DateCreated']; ?>" style="display: none;" />
 
-    		<script type="text/javascript">
-    			jQuery(document).ready( function($) {
+            <script type="text/javascript">
+                jQuery(document).ready( function($) {
 
-    				// jQuery( '#email_sent' ).click( function() {
+                    // jQuery( '#email_sent' ).click( function() {
                     jQuery( '#email_sent' ).on('click', function(e) {
-    					var invoice_email = jQuery('#invoice_email').val();
-    					var invoice_number = jQuery('#invoice_number').val();
-    					var order_id = jQuery('#order_id').val();
-    					var DateCreated = jQuery('#date_created').val();
+                        var invoice_email = jQuery('#invoice_email').val();
+                        var invoice_number = jQuery('#invoice_number').val();
+                        var order_id = jQuery('#order_id').val();
+                        var DateCreated = jQuery('#date_created').val();
 
-    					$.ajax({
-    						url: '/wp-admin/admin.php?page=morkvanp_invoices',
-    						type: 'POST',
-    						data: {
-    							email: invoice_email,
-    							number: invoice_number,
-    							order: order_id,
-    							date: DateCreated,
-    						},
-    						beforeSend: function( xhr ) {
-    							jQuery('#email_sent').text('Відправлення...');
-    						},
-    						success: function( data ) {
-    							jQuery('#email_sent').text('Відправити на e-mail');
-    							console.log('Request created for mail sent');
-    						}
-    					});
-    				});
+                        $.ajax({
+                            url: '/wp-admin/admin.php?page=morkvanp_invoices',
+                            type: 'POST',
+                            data: {
+                                email: invoice_email,
+                                number: invoice_number,
+                                order: order_id,
+                                date: DateCreated,
+                            },
+                            beforeSend: function( xhr ) {
+                                jQuery('#email_sent').text('Відправлення...');
+                            },
+                            success: function( data ) {
+                                jQuery('#email_sent').text('Відправити на e-mail');
+                                console.log('Request created for mail sent');
+                            }
+                        });
+                    });
 
-    			});
-    		</script>
-			<?php
+                });
+            </script>
+            <?php
         } else {
             echo 'Номер накладної: -';
         }

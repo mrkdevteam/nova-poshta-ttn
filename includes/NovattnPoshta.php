@@ -5,7 +5,6 @@ use plugins\NovaPoshta\classes\base\ArrayHelper;
 use plugins\NovaPoshta\classes\Calculator;
 use plugins\NovaPoshta\classes\Checkout;
 use plugins\NovaPoshta\classes\CheckoutPoshtomat;
-use plugins\NovaPoshta\classes\DatabaseScheduler;
 use plugins\NovaPoshta\classes\Log;
 use plugins\NovaPoshta\classes\base\Base;
 use plugins\NovaPoshta\classes\base\Options;
@@ -31,9 +30,9 @@ class NovattnPoshta extends Base
         if ($this->isWoocommerce()) {
             // General plugin actions
             add_action('init', array(AjaxRoute::getClass(), 'init'));
-            add_action('admin_init', array(new DatabaseScheduler(), 'ensureSchedule'));
             add_action('plugins_loaded', array($this, 'checkDatabaseVersion'));
             add_action('plugins_loaded', array($this, 'loadPluginDomain'));
+            add_action('wp_head', array($this, 'mrkvnpCheckoutSpinnerColor'));
             add_action('wp_enqueue_scripts', array($this, 'scripts'));
             add_action('wp_enqueue_scripts', array($this, 'styles'));
             add_action('admin_enqueue_scripts', array($this, 'adminScripts'));
@@ -46,6 +45,7 @@ class NovattnPoshta extends Base
             add_filter('plugin_action_links_' . plugin_basename(__FILE__), array($this, 'pluginActionLinks'));
 
             Checkout::instance()->init();
+            CheckoutPoshtomat::instance()->init();
             Calculator::instance()->init();
         }
     }
@@ -67,14 +67,6 @@ class NovattnPoshta extends Base
     }
 
     /**
-     * @return bool
-     */
-    public function isCheckoutPoshtomat()
-    {
-        return CheckoutPoshtomat::instance()->isCheckoutPoshtomat;
-    }
-
-    /**
      * This method can be used safely only after woocommerce_after_calculate_totals hook
      * when $_SERVER['REQUEST_METHOD'] == 'GET'
      *
@@ -83,7 +75,7 @@ class NovattnPoshta extends Base
     public function isNPttn()
     {
         /** @noinspection PhpUndefinedFieldInspection */
-        $sessionMethods = WC()->session->chosen_shipping_methods;
+        $sessionMethods = WC()->shipping->get_shipping_methods();
 
         $chosenMethods = array();
         if ($this->isPost() && ($postMethods = (array)ArrayHelper::getValue($_POST, 'shipping_method', array()))) {
@@ -124,19 +116,25 @@ class NovattnPoshta extends Base
         return !$this->isPost();
     }
 
+    public function mrkvnpCheckoutSpinnerColor()
+    {
+        $spinner_color = get_option( 'mrkvnp_checkout_spinner_color' );
+        if ( true === is_checkout() ) {
+            echo '<style>.statenp-loading:after{border: 2px solid' .  $spinner_color . ';}';
+            echo '.statenp-loading:after{border-left-color: #fff;}</style>';
+        }
+    }
+
     /**
      * Enqueue all required scripts
      */
     public function scripts()
     {
         $load = false;
+
         if (is_checkout()) {
             $load = true;
         }
-        if (!get_option('invoice_load')) {
-            $load = true;
-        }
-
 
         if ($load) {
             // $suffix = '.min.js';
@@ -149,14 +147,13 @@ class NovattnPoshta extends Base
                 filemtime(NOVA_POSHTA_TTN_SHIPPING_PLUGIN_DIR . $fileName)
             );
 
-            wp_enqueue_style( 'wp-color-picker' ); // WP Color Picker dependency styles
-
             wp_enqueue_style('select2css', NOVA_POSHTA_TTN_SHIPPING_PLUGIN_URL.'assets/select2.min.css', array(), MNP_PLUGIN_VERSION);
             wp_register_script('select2js', NOVA_POSHTA_TTN_SHIPPING_PLUGIN_URL.'assets/select2.min.js', array(), MNP_PLUGIN_VERSION);
             wp_register_script('select2i18nuk', NOVA_POSHTA_TTN_SHIPPING_PLUGIN_URL.'assets/i18n/uk.js', array(), MNP_PLUGIN_VERSION);
             wp_register_script('select2i18nru', NOVA_POSHTA_TTN_SHIPPING_PLUGIN_URL.'assets/i18n/ru.js', array(), MNP_PLUGIN_VERSION);
-            
+
             wp_enqueue_script('nova-poshta-poshtomat-js', array('jquery', 'select2js'));
+
             $this->localizeHelper('nova-poshta-poshtomat-js');
         }
     }
@@ -171,17 +168,14 @@ class NovattnPoshta extends Base
         if (is_checkout()) {
             $load = true;
         }
-        if (!get_option('invoice_load')) {
-            $load = true;
-        }
 
         if ($load) {
             global $wp_scripts;
             $jquery_version = isset($wp_scripts->registered['jquery-ui-core']->ver) ? $wp_scripts->registered['jquery-ui-core']->ver : '1.9.2';
-            wp_register_style('jquery-ui-style', NOVA_POSHTA_TTN_SHIPPING_PLUGIN_URL.'/assets/jqueryui.css', array(), $jquery_version);
+            wp_register_style('jquery-ui-style', NOVA_POSHTA_TTN_SHIPPING_PLUGIN_URL.'assets/jqueryui.css', array(), $jquery_version);
             wp_enqueue_style('jquery-ui-style');
 
-            wp_register_style('np-frontend-style', NOVA_POSHTA_TTN_SHIPPING_PLUGIN_URL.'/assets/css/frontend.css', array(), $jquery_version);
+            wp_register_style('np-frontend-style', NOVA_POSHTA_TTN_SHIPPING_PLUGIN_URL.'assets/css/frontend.css', array(), $jquery_version);
             wp_enqueue_style('np-frontend-style');
         }
     }
@@ -199,6 +193,7 @@ class NovattnPoshta extends Base
             ['jquery-ui-style'],
             filemtime(NOVA_POSHTA_TTN_SHIPPING_PLUGIN_DIR . $fileName)
         );
+        wp_enqueue_style( 'wp-color-picker' );
         wp_enqueue_style('nova-poshta-style');
     }
 
@@ -215,6 +210,7 @@ class NovattnPoshta extends Base
             ['jquery-ui-autocomplete'],
             filemtime(NOVA_POSHTA_TTN_SHIPPING_PLUGIN_DIR . $fileName)
         );
+        wp_enqueue_script( 'wp-color-picker' );
 
         $this->localizeHelper('nova-poshta-admin-js');
 
@@ -222,6 +218,20 @@ class NovattnPoshta extends Base
         if ((get_option('np_add_city_warehouse_to_handі_order') == '' && ($post_type == 'shop_order'))) {
             return;
         }
+
+        global $pagenow;
+        $screen = get_current_screen();
+        if ( ( 'toplevel_page_morkvanp_plugin' === $screen->id || 'nova-poshta_page_morkvanp_invoice' === $screen->id ) ) {
+
+            wp_enqueue_style( 'select2-css', 'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css', array(), '4.1.0-rc.0');
+            wp_enqueue_script( 'select2-js', 'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js', 'jquery', '4.1.0-rc.0');
+
+        }
+        // wp_enqueue_style('select2css', NOVA_POSHTA_TTN_SHIPPING_PLUGIN_URL.'assets/select2.min.css', array(), MNP_PLUGIN_VERSION);
+        // wp_enqueue_script('select2js', NOVA_POSHTA_TTN_SHIPPING_PLUGIN_URL.'assets/select2.min.js', array(), MNP_PLUGIN_VERSION);
+        // wp_enqueue_style('select2css');
+        // wp_enqueue_script('select2js');
+
 
         wp_enqueue_script('nova-poshta-admin-js');
     }
@@ -245,7 +255,8 @@ class NovattnPoshta extends Base
             'getWarehousesAction' => AjaxRoute::GET_WAREHOUSES_ROUTE,
             'getPoshtomatsAction' => AjaxRoute::GET_POSHTOMATS_ROUTE,
             'markPluginsAsRated' => AjaxRoute::MARK_PLUGIN_AS_RATED,
-            'spinnerColor' =>get_option( 'spinnercolor' ), // 'Колір спінера в Checkout' setting value for front-end
+            'isShowDeliveryPrice' => \get_option('mrkvnp_is_show_delivery_price' ),
+            'mrkvnpSenderAPIkey' => \get_option( 'mrkvnp_sender_api_key' ),
         ]);
     }
 
@@ -301,8 +312,7 @@ class NovattnPoshta extends Base
      */
     public function activatePlugin()
     {
-        update_option( 'type_example', 'Parcel' );
-        // update_option( 'zone_example', true );
+        \update_option( 'mrkvnp_invoice_cargo_type', 'Parcel' );
     }
 
     /**

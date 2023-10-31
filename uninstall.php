@@ -6,7 +6,7 @@
  * @link       http://morkva.co.ua/
  * @since      1.0.0
  *
- * @package    morkvanp-plugin
+ * @package    nova-poshta-ttn
  */
 // If uninstall not called from WordPress, then exit.
 if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {

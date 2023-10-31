@@ -1,6 +1,19 @@
-
     jQuery(function(){
-
+      jQuery(document).on('click','.settingsgrid .mrkvnpsavebutton',function(){
+    var has_empty = false;
+    jQuery('#mrkvnpformsettings input[required]:not([type="radio"])').each(function (i, el) {
+          var data = jQuery(el).val();
+          // console.log(i + ': ' + data);
+          var len = data.length;
+          if (len<1) {
+            has_empty = true;
+          }
+        });
+        jQuery('div.mrkvnp-settings-tab-content div#tab-1 form p.submit #submit').trigger('click');
+        if(!has_empty){
+            jQuery('.settingsgrid .mrkvnpsavebutton').addClass('sent-request'); 
+        }
+  });
       var sp00 = document.getElementsByClassName("checkb");
 
       if(sp00){
@@ -15,7 +28,7 @@
           }
           });
 
-          jQuery('#bulklistnew').val( newarr.join(",") );
+          jQuery('input[name="bulklistnew"]').val( newarr.join(",") );
 
 
         jQuery("input.checkb").on( "change", function(){
@@ -29,8 +42,8 @@
           favoritedelete.push(jQuery(this).attr('valued'));
           });
           tir = favorite.join(",");
-          jQuery('#bulklist').val( tir );
-          jQuery('#bulklistdelete').val( favoritedelete.join(",") );
+          jQuery('input[name="bulklist"]').val( tir );
+          jQuery('input[name="bulklistdelete"]').val( favoritedelete.join(",") );
 
 
        });
@@ -45,8 +58,8 @@
            favoritedelete.push(jQuery(this).attr('valued'));
            });
            tir = favorite.join(",");
-           jQuery('#bulklist').val( tir );
-           jQuery('#bulklistdelete').val( favoritedelete.join(",") );
+           jQuery('input[name="bulklist"]').val( tir );
+           jQuery('input[name="bulklistdelete"]').val( favoritedelete.join(",") );
 
          }, 20);
        });
@@ -58,7 +71,7 @@
     if(sp1){
       sp1.addEventListener("click", function(){
         textareavalue = jQuery('#td45').val();
-        var  va  = 'p';
+        var  va  = 'mnporderid';
         jQuery('#td45').val(textareavalue + ' [' + va + ']')
       });
 
@@ -88,11 +101,11 @@
 
     });
 
-    jQuery('.formsubmit').on('click', function(e){
-      alert('Дію виконано');
-      // jQuery(this).parent().submit();
-      jQuery(this).parent().trigger('submit');
-      });
+    jQuery('.formsubmit').on('click', function(e){ // When 'Видалити ЕН' button-link was clicked
+        setTimeout(() => { console.log('Затримка 2 сек.') }, 2000); //  For 'Мої накладні' tab has time to be updated
+        jQuery(this).parent().trigger('submit');
+    });
+
       jQuery('.handlediv').on('click', function(e){//when content of metabox couldnt be open
         //jQuery(this).parent().toggleClass('closed');
         aria = jQuery(this).attr('aria-expanded');
@@ -104,39 +117,39 @@
         }
       });
 
-		function ukr(obj) {
-		    obj = obj.replace(/[^а-яА-ЯіІїЇєЄёыэЭ' ]/ig,'');
-			return obj
-		}
+    function ukr(obj) {
+        obj = obj.replace(/[^а-яА-ЯіІїЇєЄёыэЭ\-' ]/ig,'');
+      return obj
+    }
 
 
        jQuery('.checkforminputs').on('click', function(e){
 
-	       	val1 = jQuery('#sender_name').val();
+          val1 = jQuery('#sender_name').val();
 
-	       	val2 = jQuery('#recipient_name').val();
+          val2 = jQuery('#recipient_name').val();
 
-	        if  (val1 != ukr(val1) )  {
-	          	e.preventDefault();
-	          	alert('П. І. Б відправника  повинно бути написане кирилицею. виправіть це та повторіть спробу'); // pop alert message
-	          	//jQuery('#sender_name').val( ukr(val1) );
-	          	//return false;
-	        }
-	        else if (val2 != ukr(val2) ) {
-	          	e.preventDefault();
-	          	alert('П. І. Б отримувача повинно бути написане кирилицею. виправіть це та повторіть спробу'); // pop alert message
-	          	//jQuery('#recipient_name').val( ukr(val2) );
-	          	//return false;
-	        }
-	        else{
+          if  (val1 != ukr(val1) )  {
+              e.preventDefault();
+              alert('П. І. Б відправника  повинно бути написане кирилицею. виправіть це та повторіть спробу'); // pop alert message
+              //jQuery('#sender_name').val( ukr(val1) );
+              //return false;
+          }
+          else if (val2 != ukr(val2) ) {
+              e.preventDefault();
+              alert('П. І. Б одержувача повинно бути написане кирилицею. виправіть це та повторіть спробу'); // pop alert message
+              //jQuery('#recipient_name').val( ukr(val2) );
+              //return false;
+          }
+          else{
 
-	        	//return true;
+            //return true;
 
-	        }
+          }
 
-
-        //jQuery('#recipient_name');
-        //jQuery('#sender_name');
+          if ( jQuery("#mrkvnp_invoice_description").val().length > 100) {
+            alert('Поле "Опис відправлення" не може бути більше 100 символів');
+          }
 
       });
 
@@ -180,12 +193,26 @@
         jQuery('#morkvanp_email_editor_id').show();
         //jQuery('#wp-morkvanp_email_editor_id-editor-tools').hide();
       }
-    });
+    }); // jQuery(function(){
+
+
+
+   // var MyDiv1 = document.getElementById("errnonp");
+   //  if(MyDiv1){
+   //      var h = document.getElementById('errnonp').childNodes[0].clientHeight;
+   //      h-=20; console.log(h);
+   //      var MyDiv2 = document.getElementById('messageboxnp');
+   //      MyDiv2.innerHTML = MyDiv1.innerHTML;
+   //      MyDiv2.style.height = h + 'px';
+   //      MyDiv1.childNodes[0].style.height = 0 + 'px';
+   //      MyDiv1.childNodes[0].style.padding = 0 ;
+   //      MyDiv2.classList.add('error');
+   //  }
 
     var MyDiv3 = document.getElementById("nnnid");
     if(MyDiv3){
         MyDiv3 = document.getElementById("nnnid");
-        var h = 100 + 'px';
+        var h = 140 + 'px';
         console.log(h);
         var MyDiv4 = document.getElementById('messageboxnp');
         MyDiv4.innerHTML = MyDiv3.innerHTML;

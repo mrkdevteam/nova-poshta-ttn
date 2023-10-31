@@ -5,7 +5,6 @@ use plugins\NovaPoshta\classes\base\ArrayHelper;
 use plugins\NovaPoshta\classes\Calculator;
 use plugins\NovaPoshta\classes\Checkout;
 use plugins\NovaPoshta\classes\CheckoutPoshtomat;
-use plugins\NovaPoshta\classes\DatabaseScheduler;
 use plugins\NovaPoshta\classes\Log;
 use plugins\NovaPoshta\classes\base\Base;
 use plugins\NovaPoshta\classes\base\Options;
@@ -18,16 +17,12 @@ use plugins\NovaPoshta\classes\NovaPoshtaApi;
  */
 class NovattnPoshtaPoshtomat extends NovattnPoshta
 {
-    const LOCALE_RU = 'ru_RU';
-
     /**
-     * Register main plugin hooks
+     * @return bool
      */
-    public function init()
+    public function isCheckoutPoshtomat()
     {
-        if ($this->isWoocommerce()) {
-            CheckoutPoshtomat::instance()->init();
-        }
+        return CheckoutPoshtomat::instance()->isCheckoutPoshtomat;
     }
 
     /**
@@ -39,7 +34,7 @@ class NovattnPoshtaPoshtomat extends NovattnPoshta
     public function isNPttnPM()
     {
         /** @noinspection PhpUndefinedFieldInspection */
-        $sessionMethods = WC()->session->chosen_shipping_methods;
+        $sessionMethods = WC()->shipping->get_shipping_methods();
 
         $chosenMethods = array();
         if ($this->isPost() && ($postMethods = (array)ArrayHelper::getValue($_POST, 'shipping_method', array()))) {

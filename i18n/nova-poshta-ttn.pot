@@ -4,13 +4,13 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Woo Shipping for Nova Poshta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: Fri May 20 2016 22:39:49 GMT+0300 (Финляндия (лето))\n"
+"POT-Creation-Date: 2020-02-21 10:13+0000\n"
 "POT-Revision-Date: Sun Oct 09 2016 20:01:10 GMT+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: \n"
-"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -22,7 +22,7 @@ msgstr ""
 "_x:1,2c;_ex:1,2c;_nx:1,2,4c;_nx_noop:1,2,3c;_n_js:1,2;_nx_js:1,2,3c;"
 "esc_attr__:1;esc_html__:1;esc_attr_e:1;esc_html_e:1;esc_attr_x:1,2c;"
 "esc_html_x:1,2c;comments_number_link:2,3;t:1;st:1;trans:1;transChoice:1,2\n"
-"X-Generator: Loco - https://localise.biz/"
+"X-Generator: Loco https://localise.biz/"
 
 #: ../classes/base/Options.php:47
 msgid "Thank you :)"
@@ -32,7 +32,7 @@ msgstr ""
 msgid "Choose an option"
 msgstr ""
 
-#: ../classes/Checkout.php
+#: ../classes/Checkout.php:251
 msgid "Region"
 msgstr ""
 
@@ -44,10 +44,18 @@ msgstr ""
 msgid "Nova Poshta Warehouse (#)"
 msgstr ""
 
+#: ../classes/CheckoutPoshtomat.php
+msgid "Nova Poshta Poshtomat (#)"
+msgstr ""
+
 #: ../classes/WC_NovaPoshta_Shipping_Method.php:19 ..
-#: /classes/WC_NovaPoshta_Shipping_Method.php:59 ..
-#: /classes/WC_NovaPoshta_Shipping_Method.php:62
+#: classes/WC_NovaPoshta_Shipping_Method.php:59 ..
+#: classes/WC_NovaPoshta_Shipping_Method.php:62
 msgid "Nova Poshta"
+msgstr ""
+
+#: ../classes/WC_NovaPoshta_Shipping_Method_Poshtomat.php
+msgid "Nova Poshta Poshtomat"
 msgstr ""
 
 #: ../classes/WC_NovaPoshta_Shipping_Method.php:52
@@ -63,7 +71,7 @@ msgid "This controls the title which the user sees during checkout."
 msgstr ""
 
 #: ../classes/WC_NovaPoshta_Shipping_Method.php:65 ..
-#: /classes/WC_NovaPoshta_Shipping_Method.php:66
+#: classes/WC_NovaPoshta_Shipping_Method.php:66
 msgid "Enable Debug Mode"
 msgstr ""
 
@@ -86,15 +94,18 @@ msgid "Area"
 msgstr ""
 
 #: ../classes/WC_NovaPoshta_Shipping_Method.php:80
-msgid "Specify the area, from where you are sending goods. (After save API key)"
+msgid ""
+"Specify the area, from where you are sending goods. (After save API key)"
 msgstr ""
 
 #: ../classes/WC_NovaPoshta_Shipping_Method.php:91
-msgid "Specify the city, from where you are sending goods. (After save API key)"
+msgid ""
+"Specify the city, from where you are sending goods. (After save API key)"
 msgstr ""
 
 #: ../classes/WC_NovaPoshta_Shipping_Method.php:102
-msgid "Specify the warehouse, from where you are sending goods. (After save API key)"
+msgid ""
+"Specify the warehouse, from where you are sending goods. (After save API key)"
 msgstr ""
 
 #: ../classes/WC_NovaPoshta_Shipping_Method.php:110
@@ -131,7 +142,8 @@ msgid "Woo Shipping for Nova Poshta"
 msgstr ""
 
 #. URI of the plugin
-msgid "http://altair-solutions.com.ua/portfolio/nova-poshta-shipping-for-woocommerce"
+msgid ""
+"http://altair-solutions.com.ua/portfolio/nova-poshta-shipping-for-woocommerce"
 msgstr ""
 
 #. Description of the plugin
@@ -156,6 +168,9 @@ msgstr ""
 msgid "Settings"
 msgstr ""
 
+msgid "Delivery calculation"
+msgstr ""
+
 #: ../classes/base/OptionsHelper.php
 msgid "Choose region"
 msgstr ""
@@ -168,6 +183,6 @@ msgstr ""
 msgid "Choose warehouse"
 msgstr ""
 
-#: ../classes/WC_NovaPoshta_Shipping_Method_Poshtomat.php
-msgid "Nova Poshta Poshtomat"
+#: ../classes/CheckoutPoshtomat.php
+msgid "Choose poshtomat"
 msgstr ""

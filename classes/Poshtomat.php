@@ -17,7 +17,7 @@ class Poshtomat extends Area
      */
     protected static function _key()
     {
-        return 'nova_poshta_poshtomat';
+        return 'nova_poshta_warehouse';
     }
 
     /**

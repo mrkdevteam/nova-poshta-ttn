@@ -36,16 +36,17 @@ class DatabaseSync extends BaseDatabaseSync
      */
     public function synchroniseLocations()
     {
+error_log('synchroniseLocations()');
         ob_start();
         $this->db->query('START TRANSACTION');
         try {
             $this->updateRegions();
+echo 'updateRegions()';
+            // $this->updateCities();
 
-            $this->updateCities();
+            // $this->updateWarehouses();
 
-            $this->updateWarehouses();
-
-            $this->updatePoshtomats();
+            // $this->updatePoshtomats();
 
             $this->setLocationsLastUpdateDate($this->updatedAt);
             if (!$this->db->last_error) {
@@ -62,6 +63,34 @@ class DatabaseSync extends BaseDatabaseSync
          ob_end_clean() ;
 
         //$this->log->info("", Log::LOCATIONS_UPDATE);
+    }
+
+    public function synchroniseRegions()
+    {
+        ob_start();
+        $this->updateRegions();
+        ob_end_clean();
+    }
+
+    public function synchroniseCities()
+    {
+        ob_start();
+        $this->updateCities();
+        ob_end_clean();
+    }
+
+    public function synchroniseWarehouses()
+    {
+        ob_start();
+        $this->updateWarehouses();
+        ob_end_clean();
+    }
+
+    public function synchronisePostomats()
+    {
+        ob_start();
+        $this->updatePoshtomats();
+        ob_end_clean();
     }
 
     /**
@@ -158,7 +187,8 @@ class DatabaseSync extends BaseDatabaseSync
         $updatedAt = $this->updatedAt;
         $rowsAffected = 0;
         $page = 1;
-        $limit = 300;
+        // $limit = 300;
+        $limit = 500;
         while (count( (array) $warehouses = NPttn()->api->getWarehouses(null, $page++, $limit)) > 0) {
             $rowsAffected += $this->updateWarehousesPage($warehouses);
         }
@@ -179,25 +209,41 @@ class DatabaseSync extends BaseDatabaseSync
         $updatedAt = $this->updatedAt;
         $insert = array();
         foreach ($warehouses as $warehouse) {
+            $warehouse['warehouse_type'] = $this->getWarehouseType($warehouse);
             $insert[] = $this->db->prepare(
-                "('%s', '%s', '%s', '%s', %d)",
+                "('%s', '%s', '%s', '%s',%d, %d)",
                 $warehouse['Ref'],
                 $warehouse['Description'],
                 $warehouse['DescriptionRu'],
                 $warehouse['CityRef'],
+                $warehouse['warehouse_type'],
                 $updatedAt
             );
         }
-        $queryInsert = "INSERT INTO $table (`ref`, `description`, `description_ru`, `parent_ref`, `updated_at`) VALUES ";
+        $queryInsert = "INSERT INTO $table (`ref`, `description`, `description_ru`, `parent_ref`, `warehouse_type`, `updated_at`) VALUES ";
         $queryInsert .= implode(",", $insert);
         $queryInsert .= ' ON DUPLICATE KEY UPDATE
             `ref` = VALUES(`ref`),
             `description` = VALUES(`description`),
             `description_ru`=VALUES(`description_ru`),
             `parent_ref`=VALUES(`parent_ref`),
+            `warehouse_type`=VALUES(`warehouse_type`),
             `updated_at` = VALUES(`updated_at`)';
         return $this->db->query($queryInsert);
 
+    }
+
+    private function getWarehouseType(array $warehouse): int
+    {
+        if ($warehouse['TypeOfWarehouse'] === '9a68df70-0267-42a8-bb5c-37f427e36ee4') {
+            return 3; // Вантажне відділення
+        }
+
+        if ( strpos($warehouse['Description'], 'Поштомат') !== false) {
+            return 2; // Поштомат
+        }
+
+        return 1; // Поштове відділення або Parcel Shop (Пункт Видачі)
     }
 
     /**
@@ -209,8 +255,8 @@ class DatabaseSync extends BaseDatabaseSync
         $updatedAt = $this->updatedAt;
         $rowsAffected = 0;
         $page = 1;
-        $limit = 300;
-        while (count( (array) $poshtomats = NPttn()->api->getPoshtomats(null, $page++, $limit)) > 0) {
+        $limit = 500;
+        while (count( (array) $poshtomats = NPttnPM()->api->getPoshtomats(null, $page++, $limit)) > 0) {
             $rowsAffected += $this->updatePoshtomatsPage($poshtomats);
         }
 

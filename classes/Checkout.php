@@ -18,6 +18,7 @@ use plugins\NovaPoshta\classes\Poshtomat;
  */
 class Checkout extends Base
 {
+
     /**
      * @var Checkout
      */
@@ -39,18 +40,14 @@ class Checkout extends Base
      */
     public function init()
     {
-        add_filter('woocommerce_checkout_fields', array($this, 'maybeDisableDefaultShippingMethods'));
+        add_filter( 'woocommerce_checkout_fields', array( $this, 'maybeDisableDefaultShippingMethods' ) );
 
-        $wc_ship_to_destination = \get_option( 'woocommerce_ship_to_destination' );
-        if ( 'billing' == $wc_ship_to_destination || 'billing_only' == $wc_ship_to_destination )
-            add_filter('woocommerce_billing_fields', array($this, 'addNovaPoshtaBillingFields'), 99999, 1);
-        if ( 'shipping' == $wc_ship_to_destination )
-            add_filter('woocommerce_shipping_fields', array($this, 'addNovaPoshtaShippingFields'), 99999, 1);
+        add_filter('woocommerce_billing_fields', array($this, 'addNovaPoshtaBillingFields'), 99999, 1);
+        add_filter('woocommerce_shipping_fields', array($this, 'addNovaPoshtaShippingFields'), 99999, 1);
 
         add_action('woocommerce_checkout_process', array($this, 'saveNovaPoshtaOptions'), 10, 2);
         add_action('woocommerce_checkout_update_order_meta', array($this, 'updateOrderMeta'));
 
-        add_action('woocommerce_admin_order_data_after_shipping_address', array($this, 'displayShippingPhoneInOrderMeta'), 10, 1);
         add_action('woocommerce_thankyou', array($this, 'displayShippingPhoneOnThankyou'), 20);
 
         add_filter('woocommerce_cart_shipping_packages', array($this, 'updatePackages'));
@@ -61,15 +58,23 @@ class Checkout extends Base
         add_filter('default_checkout_billing_nova_poshta_region', array($this, 'getDefaultRegion'));
         add_filter('default_checkout_billing_nova_poshta_city', array($this, 'getDefaultCity'));
         add_filter('default_checkout_billing_nova_poshta_warehouse', array($this, 'getDefaultWarehouse'));
+        add_filter('default_checkout_billing_nova_poshta_street', array($this, 'getDefaultStreet'));
         add_filter('default_checkout_shipping_nova_poshta_region', array($this, 'getDefaultRegion'));
         add_filter('default_checkout_shipping_nova_poshta_city', array($this, 'getDefaultCity'));
         add_filter('default_checkout_shipping_nova_poshta_warehouse', array($this, 'getDefaultWarehouse'));
 
-        add_action( 'wp_footer', array($this, 'np_ajax_fetch' ));
-
         add_action( 'woocommerce_admin_order_data_after_billing_address', array( $this, 'addDefaultRegionCustomField') );
         add_action( 'woocommerce_admin_order_data_after_billing_address', array( $this, 'addDefaultCityCustomField') );
         add_action( 'woocommerce_admin_order_data_after_billing_address', array( $this, 'addDefaultWarehouseCustomField') );
+        add_action( 'woocommerce_admin_order_data_after_billing_address', array( $this, 'addDefaultStreetCustomField') );
+    }
+
+    public function addDefaultStreetCustomField( $order )
+    {
+        // Add 'np_street_name' custom field on 'Edit order' admin page
+        $order_id = method_exists( $order, 'get_id' ) ? $order->get_id() : $order->id;
+        $streetName = get_post_meta( $order_id, 'nova_poshta_region', true );
+        if ( $streetName )add_post_meta( $order_id, 'np_street_name', $regionRef, true );
     }
 
     public function addDefaultRegionCustomField( $order ) {
@@ -93,22 +98,15 @@ class Checkout extends Base
         if ( $cityRef )add_post_meta( $order_id, 'np_warehouse_ref', $cityRef, true );
     }
 
-    public function displayShippingPhoneInOrderMeta($order) {
-        echo '<p><strong>' . __('Phone', 'woocommerce') .':</strong><br> ' . get_post_meta( $order->get_id(), 'shipping_phone', true ) . '</p>';
-    }
-
-    public function displayShippingPhoneOnThankyou($orderId) {
-        $order = wc_get_order( $orderId );
+    public function displayShippingPhoneOnThankyou($order_id) {
+        $order = wc_get_order( $order_id );
         $order_item_shipping = $order->get_data()['shipping_lines'];
-        foreach ($order_item_shipping as $key => $value) {
+        foreach ( $order_item_shipping as $key => $value ) {
             $is_nova_poshta_shipping_method = ( 'nova_poshta_shipping_method' == $value->get_data()['method_id'] ) ? true: false;
         }
-        $is_shipping_phone = ( ! empty( get_post_meta( $orderId, 'shipping_phone', true ) )
-            ? sanitize_text_field( get_post_meta( $orderId, 'shipping_phone', true ) )
+        $is_shipping_phone = ( ! empty( get_post_meta( $order_id, 'shipping_phone', true ) )
+            ? sanitize_text_field( get_post_meta( $order_id, 'shipping_phone', true ) )
             : false );
-        if ( $is_nova_poshta_shipping_method && $order->get_shipping_address_1() && $is_shipping_phone ) {
-            echo '<address>Телефон для доставки на іншу адресу: ' . $is_shipping_phone . '</address>';
-        }
     }
 
     /**
@@ -117,10 +115,10 @@ class Checkout extends Base
      */
     public function saveNovaPoshtaOptions()
     {
-        if ( NPttn()->isPost() && NPttn()->isNPttn() && NPttn()->isCheckout() || NPttnPM()->isPost() && NPttnPM()->isNPttnPM() && NPttnPM()->isCheckoutPoshtomat() ) {
+        if ( NPttn()->isPost() && NPttn()->isNPttn() && NPttn()->isCheckout() ||
+            NPttnPM()->isPost() && NPttnPM()->isNPttnPM() && NPttnPM()->isCheckoutPoshtomat() ) {
             // Nova Poshta on warehouse or Nova Poshta on poshtomat
             $location = $this->getLocation();
-
             $region = ArrayHelper::getValue($_POST, Region::key($location));
             $city = ArrayHelper::getValue($_POST, City::key($location));
             $warehouse = ArrayHelper::getValue($_POST, Warehouse::key($location));
@@ -139,14 +137,19 @@ class Checkout extends Base
     public function maybeDisableDefaultShippingMethods($fields)
     {
         if ( NPttn()->isPost() && NPttn()->isNPttn() && NPttn()->isCheckout() ||
-            NPttnPM()->isPost() && NPttnPM()->isNPttnPM() && NPttnPM()->isCheckoutPoshtomat() ) {
+                NPttnPM()->isPost() && NPttnPM()->isNPttnPM() && NPttnPM()->isCheckoutPoshtomat() ) {
+            // Nova Poshta on warehouse or Nova Poshta on poshtomat
             $fields = apply_filters('nova_poshta_disable_default_fields', $fields);
             $fields = apply_filters('nova_poshta_disable_nova_poshta_fields', $fields);
         } else {
             $location = $this->getLocation();
-            $fields[$location][$location . '_state']['required'] = false;
-            $fields[$location][$location . '_state']['required'] = false;
             $fields[$location][$location . '_postcode']['required'] = false;
+            $fields[$location][$location . '_state']['required'] = false;
+            $fields[$location][$location . '_address_1']['required'] = false;
+            $fields[$location][$location . '_mrkvnp_street']['required'] = false;
+            $fields[$location][$location . '_mrkvnp_house']['required'] = false;
+            $fields['shipping']['shipping_mrkvnp_street']['required'] = false;
+            $fields['shipping']['shipping_mrkvnp_house']['required'] = false;
         }
         return $fields;
     }
@@ -168,7 +171,7 @@ class Checkout extends Base
      */
     public function addNovaPoshtaShippingFields($fields)
     {
-        return $this->addNovaPoshtaFields($fields, Area::SHIPPING);
+        return $this->addNovaPoshtaFields( $fields, Area::SHIPPING );
     }
 
     /**
@@ -179,33 +182,28 @@ class Checkout extends Base
     {
         //address shipping method address_trigger
         $billing_city = "";
-        if (isset($_POST['billing_city'])) {
+        if ( isset( $_POST['billing_city'] ) ) {
             $billing_city = $_POST['billing_city'];
         }
-
         $billing_address = "";
-        if (isset($_POST['billing_address_1'])) {
+        if ( isset( $_POST['billing_address_1'] ) ) {
             $billing_address = $_POST['billing_address_1'];
         }
-
-        if (!get_post_meta($orderId, '_billing_city')) {
+        if ( ! get_post_meta($orderId, '_billing_city' ) ) {
             update_post_meta($orderId, '_billing_city', $billing_city);
             update_post_meta($orderId, '_billing_address_1', $billing_address);
         }
-
         if ( ! get_post_meta($orderId, '_shipping_city'  ) ) {
             update_post_meta($orderId, '_shipping_city', $billing_city);
             update_post_meta($orderId, '_shipping_address_1', $billing_address);
         }
 
-        // If not address shipping method
         if ( NPttn()->isNPttn() && NPttn()->isCheckout() ||
                 NPttnPM()->isNPttnPM() && NPttnPM()->isCheckoutPoshtomat() ) {
             // Nova Poshta on warehouse or Nova Poshta on poshtomat
             $fieldGroup = $this->getLocation();
 
             $regionKey = Region::key($fieldGroup);
-            // $regionRef = isset( $_POST[$regionKey] ) ? sanitize_text_field($_POST[$regionKey]) : '';
             $regionRef = isset( $_POST['npregionref'] ) ? sanitize_text_field($_POST['npregionref']) : '';
             $area = new Region($regionRef);
             update_post_meta($orderId, '_' . $fieldGroup . '_state', $area->description);
@@ -218,6 +216,7 @@ class Checkout extends Base
 
             $warehouseKey = Warehouse::key($fieldGroup);
             $warehouseRef = isset($_POST['npwhref']) ? sanitize_text_field($_POST['npwhref']) : sanitize_text_field($_POST[$warehouseKey]);
+
             if ( NPttn()->isNPttn() && NPttn()->isCheckout() ) $warehouse = new Warehouse($warehouseRef);
             if ( NPttnPM()->isNPttnPM() && NPttnPM()->isCheckoutPoshtomat() ) $warehouse = new Poshtomat($warehouseRef);
             update_post_meta($orderId, '_' . $fieldGroup . '_address_1', $warehouse->description);
@@ -228,7 +227,9 @@ class Checkout extends Base
                 update_post_meta($orderId, '_' . Region::key($shippingFieldGroup), $area->ref);
                 update_post_meta($orderId, '_' . City::key($shippingFieldGroup), $city->ref);
                 update_post_meta($orderId, '_' . Warehouse::key($shippingFieldGroup), $warehouse->ref);
+                update_post_meta($orderId, '_' . $fieldGroup . '_state', $area->description);
             } else {
+                update_post_meta($orderId, '_' . $fieldGroup . '_state', $area->description);
                 update_post_meta($orderId, '_' . $shippingFieldGroup . '_state', $area->description);
                 update_post_meta($orderId, '_' . $shippingFieldGroup . '_city', $city->description);
                 update_post_meta($orderId, '_' . $shippingFieldGroup . '_address_1', $warehouse->description);
@@ -240,6 +241,7 @@ class Checkout extends Base
             $shipping_phone = isset( $_POST['shipping_phone'] ) ? sanitize_text_field( $_POST['shipping_phone'] ) : '';
             update_post_meta( $orderId, 'shipping_phone', $shipping_phone );
         }
+
     }
 
     /**
@@ -277,9 +279,9 @@ class Checkout extends Base
                 }
             }
             foreach ($packages as &$package) {
-                $package['destination']['address_1'] = $desc2;//$warehouse;
-                $package['destination']['city'] = $desc1;//$city;
-                //$package['destination']['state'] = '888';//$region;
+                $package['destination']['address_1'] = $desc2; //$warehouse;
+                $package['destination']['city'] = $desc1; //$city;
+                $package['destination']['state'] = $region; //$region;
             }
         }
         return $packages;
@@ -299,10 +301,13 @@ class Checkout extends Base
         $fields[$location][$location . '_postcode']['required'] = false;
         $fields[$location][$location.'_address_1']['required'] = false;
         $fields[$location][$location.'_city']['required'] = false;
+        $fields[$location][$location.'_mrkvnp_street']['required'] = false;
+        $fields[$location][$location.'_mrkvnp_house']['required'] = false;
+        $fields[$location][$location.'_mrkvnp_patronymics']['required'] = false;
 
+        $fields[$location][Region::key($location)]['required'] = false;
         $fields[$location][City::key($location)]['required'] = false;
         $fields[$location][Warehouse::key($location)]['required'] = false;
-        $fields[$location][Region::key($location)]['required'] = false;
 
         return $fields;
     }
@@ -326,6 +331,12 @@ class Checkout extends Base
         if (array_key_exists($location . '_postcode', $fields[$location])) {
             $fields[$location][$location . '_postcode']['required'] = false;
         }
+        if (array_key_exists($location . '_mrkvnp_street', $fields[$location])) {
+            $fields[$location][$location . '_mrkvnp_street']['required'] = false;
+        }
+        if (array_key_exists($location . '_mrkvnp_patronymics', $fields[$location])) {
+            $fields[$location][$location . '_mrkvnp_patronymics']['required'] = false;
+        }
         return $fields;
     }
 
@@ -345,7 +356,7 @@ class Checkout extends Base
     {
         $shipToDifferentAddress = isset($_POST['ship_to_different_address']);
 
-        if (isset($_POST['shiptobilling'])) {
+        if ( isset( $_POST['shiptobilling'] ) ) {
             _deprecated_argument('WC_Checkout::process_checkout()', '2.1', 'The "shiptobilling" field is deprecated. The template files are out of date');
             $shipToDifferentAddress = !$_POST['shiptobilling'];
         }
@@ -375,7 +386,8 @@ class Checkout extends Base
      */
     public function getDefaultRegion()
     {
-        return $this->customer->getMetadata('nova_poshta_region', Area::SHIPPING);
+        $location = $this->getLocation();
+        return $this->customer->getMetadata('nova_poshta_region', $location);
     }
 
     /**
@@ -392,6 +404,11 @@ class Checkout extends Base
     public function getDefaultWarehouse()
     {
         return $this->customer->getMetadata('nova_poshta_warehouse', Area::SHIPPING);
+    }
+
+    public function getDefaultStreet()
+    {
+        return $this->customer->getMetadata('nova_poshta_street', Area::BILLING);
     }
 
     /**
@@ -434,44 +451,44 @@ class Checkout extends Base
      */
     private function addNovaPoshtaFields($fields, $location)
     {
-        if ( 'UA' !== WC()->customer->get_shipping_country() ) return $fields;
-        $factory = AreaRepositoryFactory::instance();
+        // if ( 'uk' !== get_locale() ) return $fields;
+    	if(isset($_COOKIE['shipping_country'])) {
+    	    $shipping_country = $_COOKIE['shipping_country'];
+    	}
+
         $area = $this->customer->getMetadata('nova_poshta_region', $location);
         $city = $this->customer->getMetadata('nova_poshta_city', $location);
-        $required = NPttn()->isGet() ?: (NPttn()->isNPttn() && NPttn()->isCheckout());
-        $current_shipping_method = WC()->session->get( 'chosen_shipping_methods' );
+        $street = $this->customer->getMetadata('nova_poshta_street', $location);
+        $required = NPttn()->isGet() ?: (NPttn()->isNPttn() || NPttnPM()->isNPttnPM() && NPttn()->isCheckout());
+        error_log('$required');error_log($required);
 
-        $value_for_checkout_selects = esc_attr(get_option('morkvanp_checkout_count'));
+        $value_for_checkout_selects = esc_attr(get_option('morkvanp_checkout_count', '3fields'));
 
         $warehouse_label = __( 'Відділення', NOVA_POSHTA_TTN_DOMAIN );
         if ( NPttnPM()->isNPttnPM() && NPttnPM()->isCheckoutPoshtomat() || NPttnPM()->isPost() ) {
             $warehouse_label = __( 'Поштомат', NOVA_POSHTA_TTN_DOMAIN );
         }
 
-        $fields['shipping_phone'] = array(
-            'label'        => __('Phone', 'woocommerce'),
-            'type'         => 'text',
-            'required'     => false,
-            'class'        => array('form-row-wide'),
-            'priority'     => 25,
-            'clear'        => true
-        );
+        if ('shipping' == $location) {
+            $fields['shipping_phone'] = array(
+                'label'        => __('Phone', 'woocommerce'),
+                'type'         => 'text',
+                'required'     => true,
+                'class'        => array('form-row-wide'),
+                'priority'     => 25,
+                'clear'        => true
+            );
+        }
 
         if ( $value_for_checkout_selects == '3fields' ) {
             $factory = AreaRepositoryFactory::instance();
-            $warehouse_options = OptionsHelper::getList( $factory->warehouseRepo()->findByParentRefAndNameSuggestion($city) );
-            $warehouse_placeholder = 'Choose warehouse';
-            if ( 'nova_poshta_shipping_method_poshtomat' == $current_shipping_method[0] ) {
-                $warehouse_options = OptionsHelper::getList( $factory->poshtomatRepo()->findByParentRefAndNameSuggestion($city) );
-                $warehouse_placeholder = 'Оберіть поштомат';
-            }
             $fields[Region::key($location)] = [
                 'label' => __('Region', NOVA_POSHTA_TTN_DOMAIN),
                 'type' => 'select',
-                'required' => $required,
                 'default' => '',
-                'options' => OptionsHelper::getList($factory->regionRepo()->findAll()),
+                'options' => OptionsHelper::getList($factory->regionRepo()->findAll(), true),
                 'class' => array(),
+                'priority'     => 120,
                 'custom_attributes' => array(),
             ];
 
@@ -479,21 +496,24 @@ class Checkout extends Base
                 'label' => __('City', NOVA_POSHTA_TTN_DOMAIN),
                 'type' => 'select',
                 'required' => $required,
-                'options' => OptionsHelper::getList($factory->cityRepo()->findByParentRefAndNameSuggestion($area)),
+                'options' => OptionsHelper::getList($factory->cityRepo()->findByParentRefAndNameSuggestion($area, true)),
                 'class' => array(),
+                'priority'     => 122,
                 'value' => '',
                 'custom_attributes' => array(),
                 'placeholder' => __('Choose city', NOVA_POSHTA_TTN_DOMAIN),
             ];
+            $warehouse_options = OptionsHelper::getList( $factory->warehouseRepo()->findByParentRefAndNameSuggestion($city) );
             $fields[Warehouse::key($location)] = [
                 'label' => $warehouse_label,
                 'type' => 'select',
                 'required' => $required,
                 'options' => $warehouse_options,
                 'class' => array(),
+                'priority'     => 124,
                 'value' => '',
                 'custom_attributes' => array(),
-                'placeholder' => __($warehouse_placeholder, NOVA_POSHTA_TTN_DOMAIN),
+                'placeholder' => __( 'Choose an option', NOVA_POSHTA_TTN_DOMAIN ),
             ];
         } elseif ( $value_for_checkout_selects == '2fields' ) {
               $fields[City::key($location)] = [
@@ -543,110 +563,6 @@ class Checkout extends Base
 
         return $fields;
     }
-
-    public function np_ajax_fetch() {
-		?>
-		<script>
-        // Set $cityRef as value in 'Місто' input element.
-        var formcheckoutcity = document.querySelector("form[name=checkout");
-        if(formcheckoutcity){
-            formcheckoutcity.addEventListener('submit', setCityValRef);
-        }
-        // Set $warehouseRef as value in 'Склад(№)' input element.
-        var formcheckoutwh = document.querySelector("form[name=checkout");
-        if(formcheckoutwh){
-            formcheckoutwh.addEventListener('submit', setWarehouseValRef);
-        }
-        function setCityValRef(event) {
-            var datacityref = document.getElementById("billing_mrk_nova_poshta_city")
-            if(datacityref){
-                datacityref.getAttribute("data-ref");
-                document.getElementById("billing_mrk_nova_poshta_city").style.color = "transparent";
-                document.getElementById("billing_mrk_nova_poshta_city").value = datacityref;
-            }
-        }
-        function setWarehouseValRef(event) {
-            var datawhref = document.getElementById("billing_mrk_nova_poshta_warehouse")
-            if(datawhref){
-                datawhref.getAttribute("data-ref");
-                document.getElementById("billing_mrk_nova_poshta_warehouse").style.color = "transparent";
-                document.getElementById("billing_mrk_nova_poshta_warehouse").value = datawhref;
-            }
-        }
-        // Put chosen City name to City field on Checkout page and close search dropdown.
-        function selectCity(val,ref) {
-            var billingMrkNpCity = jQuery("#billing_mrk_nova_poshta_city");
-            var elcityref = '<input type="hidden" name="npcityref" value="' + ref +'"></input>';
-            if ( jQuery( "input[name=npcityref]" ).length == 0 ) {
-                jQuery('form').append(elcityref);
-            }
-            billingMrkNpCity.addClass('border-radius-zero');
-            billingMrkNpCity.val(val);
-            billingMrkNpCity.attr('data-ref',ref);
-            jQuery("#npdatafetch").css('display','none');
-        }
-        // Put chosen Warehouse name to Warehouse field on Checkout page and close search dropdown.
-        function selectWarehouse(val,ref) {
-            var billingMrkNpWarehouse = jQuery("#billing_mrk_nova_poshta_warehouse");
-            var elwhref = '<input type="hidden" name="npwhref" value="' + ref +'"></input>';
-            if ( jQuery( "input[name=npwhref]" ).length == 0 ) {
-                jQuery('form').append(elwhref);
-            }
-            jQuery("#billing_mrk_nova_poshta_warehouse_field").removeClass("woocommerce-invalid woocommerce-invalid-required-field");
-            jQuery("#billing_mrk_nova_poshta_warehouse_field").addClass("woocommerce-validated");
-            billingMrkNpWarehouse.addClass('border-radius-zero');
-            billingMrkNpWarehouse.val(val);
-            billingMrkNpWarehouse.attr('data-ref',ref);
-            jQuery("#npdatafetchwh").css('display','none');
-        }
-        // АJAX get City names from "$wpdb->prefix . 'nova_poshta_city'" table of site Database.
-		function fetchCities(){
-		    jQuery.ajax({
-		        url: '<?php echo admin_url('admin-ajax.php'); ?>',
-		        type: 'post',
-		        data: { action: 'npdata_fetch', npcityname: jQuery('#billing_mrk_nova_poshta_city').val(), npcityref: jQuery('#billing_mrk_nova_poshta_city').data('ref') },
-		        success: function(data) {
-		        	if ( data.length > 2 ) {
-                        jQuery('#npdatafetch').show();
-			            jQuery('#npdatafetch').html( data );
-			    	  }
-		        }
-		    });
-		}
-        jQuery('input[name^=shipping_method]').on("change", function() {
-          //console.log('update');
-          jQuery('body').trigger('update_checkout'); // TODO
-          // disableNovaPoshtaOptions();
-          // enableNovaPoshtaShippingOptions();
-        });
-        // jQuery(document.body).on('updated_checkout', function() {
-        //   disableNovaPoshtaOptions();
-        //   enableNovaPoshtaShippingOptions();
-        // });
-        // console.log('Shipping Method = '+ JSON.stringify(jQuery(".shipping_method:checked").val()));
-		// console.dir('Shipping Method = '+ jQuery(".shipping_method:checked").val());
-        var curShipMethod = jQuery(".shipping_method:checked").val();
-        // АJAX get Warehouses names of chosen City from "$wpdb->prefix . 'nova_poshta_warehouse'" table of site Database.
-        function fetchWarehouses(){
-            jQuery.ajax({
-                url: '<?php echo admin_url('admin-ajax.php'); ?>',
-                type: 'post',
-                data: { action: 'npdata_fetchwh',
-                        npwhref: jQuery('#billing_mrk_nova_poshta_warehouse').val(),
-                        npcityref: jQuery('#billing_mrk_nova_poshta_city').data('ref'),
-                        shipping_method: curShipMethod },
-                success: function(data) {
-                  if ( data.length > 2 ) {
-                      jQuery('#npdatafetchwh').show();
-                      jQuery('#npdatafetchwh').html( data );
-                  }
-                }
-            });
-        }
-		</script>
-
-		<?php
-	}
 
     /**
      * NovaPoshta constructor.

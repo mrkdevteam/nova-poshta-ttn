@@ -49,7 +49,7 @@ class Customer extends Base
             return '';
         } else {
             //for backward compatibility with woocommerce 2.x.x
-            return $this->wooCustomer->$key;
+            return '';
         }
     }
 

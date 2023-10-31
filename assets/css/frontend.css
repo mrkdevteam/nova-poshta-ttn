@@ -1,6 +1,22 @@
 .еwoocommerce-shipping-destination{
   display: none;
 }
+
+/* Custom fields asterisk color on Checkout  */
+.asterisk-color {
+    color: #e2401c;
+}
+
+/* Show shipping method costs on Checkout */
+.mrkvnp-hidden{
+  opacity: 0;
+  animation: ani 0.1s forwards;
+}
+@keyframes ani {
+  0% {opacity: 0;}
+  100% {opacity: 1;}
+}
+
 .woocommerce-input-wrapper .select2-container{
   width: 100% !important;
 }
@@ -90,7 +106,7 @@
     display: inline-block;
     width: 21px;
     height: 21px;
-    border: 2px solid #808080; /* Колір кільця */
+    border: 2px solid red; /* Колір кільця */
     border-left-color: #fff; /* Колір розриву кільця */
     border-radius: 21px;
     -webkit-animation: checkoutnp-loader-animation 0.3s linear infinite;
@@ -112,4 +128,15 @@
     to {
         transform: rotate(360deg);
     }
+}
+/* Autocmoplete scroll on Checkout */
+.ui-autocomplete-loading {
+    background: grey url('ui-anim.basic.16x16.gif') right center no-repeat;
+}
+.ui-autocomplete {
+    max-height: 180px;
+    overflow-y: auto;
+}
+.ui-menu-item {
+    font-size: smaller;
 }

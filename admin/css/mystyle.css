@@ -194,3 +194,27 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', end
 .t2 a{
 	color: #fff;
 }
+
+/* PRO-НП 2.0: Налаштування > Автоматизація > За статусами замовлення */
+.select2-selection.select2-selection--multiple {
+	background: #f9f9f9;
+    border-radius: 18px;
+/*     min-height: 28px; */
+}
+.select2-search.select2-search--inline {
+	vertical-align: top;
+}
+.select2-container--default .select2-selection--multiple .select2-selection__choice {
+	background-color: #ffffff;
+	border-radius:  18px;
+	margin-bottom: 0;
+}
+.nova-poshta_page_morkvanp_invoice .select2-container--open .select2-dropdown--above {
+	border-top-left-radius: 18px;
+    border-top-right-radius: 18px;
+    overflow-y: hidden;
+}
+.nova-poshta_page_morkvanp_invoice .select2-container--open .select2-dropdown--below {
+	border-bottom-left-radius: 18px;
+    border-bottom-right-radius: 18px;
+}

@@ -2,7 +2,6 @@
 
 namespace plugins\NovaPoshta\classes\repository;
 
-// use plugins\NovaPoshta\classes\Warehouse;
 use plugins\NovaPoshta\classes\Poshtomat;
 
 /**
@@ -17,7 +16,7 @@ class PoshtomatRepository extends AbstractAreaRepository
      */
     public function table()
     {
-        return NPttnPM()->db->prefix . 'nova_poshta_poshtomat';
+        return NPttnPM()->db->prefix . 'nova_poshta_warehouse';
     }
 
     /**

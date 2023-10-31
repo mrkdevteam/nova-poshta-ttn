@@ -110,6 +110,8 @@ class MNP_Plugin_Invoice extends MNP_Plugin_Invoice_Controller {
 
 	public $invoice_z;
 
+	public $volume_general;
+
 	public $invoice_places;
 
 	public $invoice_volume;
@@ -124,7 +126,7 @@ class MNP_Plugin_Invoice extends MNP_Plugin_Invoice_Controller {
 
 	public function register()
 	{
-		$this->api_key = get_option('mrkvnp_sender_api_key');
+		$this->api_key = get_option('text_example');
 
 		$invoiceController = new MNP_Plugin_Invoice_Controller();
 
@@ -183,52 +185,74 @@ class MNP_Plugin_Invoice extends MNP_Plugin_Invoice_Controller {
 	public function getCitySender()
 	{
 			$this_sender_city = get_option('woocommerce_nova_poshta_shipping_method_city');
-			$invoiceController = new MNP_Plugin_Invoice_Controller();
-			$url = "https://api.novaposhta.ua/v2.0/json/";
-			// Get settings of WooShipping plugin
-			$shipping_settings = process_shipping_settings(get_option('woocommerce_nova_poshta_shipping_method_settings'));
-			$this->sender_city = $shipping_settings["city_name"];
-			$methodProperties = array(
-				"FindByString" => $this->sender_city
-			);
-			$senderCity = array(
-				"modelName" => "Address",
-				"calledMethod" => "getCities",
-				"methodProperties" => $methodProperties,
-				"apiKey" => get_option('mrkvnp_sender_api_key')
-			);
-			$curl = curl_init();
-			MNP_Plugin_Invoice_Controller::createRequest( $url, $senderCity, $curl );
-			$response = curl_exec( $curl );
-			$err = curl_error( $curl );
 
-			if ( $err ) {
-					logiftestpage("getCitySender not working", $err);
-				exit('Вибачаємось, але сталась помилка');
-			} else {
-				$obj = json_decode($response, true);
-				logiftestpage("getCitySender working", $obj);
-				$ref = $obj["data"][0]["Ref"];
-				if( !empty($this_sender_city) && ($this_sender_city != $ref)  ){
-					$this->sender_city = $this_sender_city;
-				}
-				else{
-					$this->sender_city = $obj["data"][0]["Ref"];
-				}
-			}
+					$invoiceController = new MNP_Plugin_Invoice_Controller();
+
+					$url = "https://api.novaposhta.ua/v2.0/json/";
+
+					/**
+					 * Getting settings of WooShipping plugin
+					 */
+
+					$shipping_settings = process_shipping_settings(get_option('woocommerce_nova_poshta_shipping_method_settings'));
+					$this->sender_city = $shipping_settings["city_name"];
+
+
+
+					$methodProperties = array(
+						"FindByString" => $this->sender_city
+					);
+
+					$senderCity = array(
+						"modelName" => "Address",
+						"calledMethod" => "getCities",
+						"methodProperties" => $methodProperties,
+						"apiKey" => get_option('text_example')
+					);
+
+					$curl = curl_init();
+
+					MNP_Plugin_Invoice_Controller::createRequest( $url, $senderCity, $curl );
+
+					$response = curl_exec( $curl );
+					$err = curl_error( $curl );
+
+					if ( $err ) {
+							logiftestpage("getCitySender not working", $err);
+						exit('Вибачаємось, але сталась помилка');
+					} else {
+						$obj = json_decode($response, true);
+						logiftestpage("getCitySender working", $obj);
+						$ref = $obj["data"][0]["Ref"];
+						if( !empty($this_sender_city) && ($this_sender_city != $ref)  ){
+							$this->sender_city = $this_sender_city;
+						}
+						else{
+							$this->sender_city = $obj["data"][0]["Ref"];
+						}
+
+					}
+
 	}
 
 	public function getSender()
 	{
+
 		$invoiceController = new MNP_Plugin_Invoice_Controller();
+
 		$url = "https://api.novaposhta.ua/v2.0/json/";
+
 		$names = $this->sender_names;
 		$names = explode(" ", $names);
 
 		$this->sender_middle_name = $names[0];
 		$this->sender_last_name = $names[2];
 		$this->sender_first_name = $names[1];
-		// Getting settings of WooShipping plugin
+
+		/**
+		 * Getting settings of WooShipping plugin
+		 */
+
 		$shipping_settings = process_shipping_settings(get_option('woocommerce_nova_poshta_shipping_method_settings'));
 		$sender_city = $shipping_settings["city_name"];
 
@@ -250,7 +274,9 @@ class MNP_Plugin_Invoice extends MNP_Plugin_Invoice_Controller {
 		);
 
 		$curl = curl_init();
+
 		MNP_Plugin_Invoice_Controller::createRequest( $url, $senderCounterparty, $curl );
+
 		$response = curl_exec( $curl );
 		$err = curl_error( $curl );
 
@@ -258,16 +284,21 @@ class MNP_Plugin_Invoice extends MNP_Plugin_Invoice_Controller {
 			logiftestpage("getSender not working", $err);
 			exit('Вибачаємось, але сталась помилка.');
 		} else {
+
 			$obj = json_decode( $response, true );
 			logiftestpage("getSender working", $obj);
 			$this->sender_ref = $obj["data"][0]["Ref"];
 		}
+
 		return $this;
+
 	}
 
 	public function createSenderContact()
 	{
+
 		$invoiceController = new MNP_Plugin_Invoice_Controller();
+
 		$methodProperties = array(
 			"Ref" => $this->sender_ref
 		);
@@ -280,7 +311,9 @@ class MNP_Plugin_Invoice extends MNP_Plugin_Invoice_Controller {
 		);
 
 		$url = "https://api.novaposhta.ua/v2.0/json/";
+
 		$curl = curl_init();
+
 		MNP_Plugin_Invoice_Controller::createRequest( $url, $senderAddress, $curl );
 
 		$response = curl_exec( $curl );
@@ -295,12 +328,15 @@ class MNP_Plugin_Invoice extends MNP_Plugin_Invoice_Controller {
 			logiftestpage("createSendercontact  working", $obj);
 			$this->sender_contact = $obj["data"][0]["Ref"];
 		}
+
 		return $this;
+
 	}
 
 	public function senderFindArea()
 	{
 		$invoiceController = new MNP_Plugin_Invoice_Controller();
+
 		$methodProperties = array(
 			"Ref" => $this->sender_city
 		);
@@ -313,7 +349,9 @@ class MNP_Plugin_Invoice extends MNP_Plugin_Invoice_Controller {
 		);
 
 		$url = "https://api.novaposhta.ua/v2.0/json/";
+
 		$curl = curl_init();
+
 		MNP_Plugin_Invoice_Controller::createRequest( $url , $senderArea, $curl);
 
 		$response = curl_exec( $curl );
@@ -323,25 +361,33 @@ class MNP_Plugin_Invoice extends MNP_Plugin_Invoice_Controller {
 			logiftestpage("senderFindArea not working", $err);
 			exit('Вибачаємось, але сталсь помилка');
 		} else {
+
 			$obj = json_decode( $response, true );
 			logiftestpage("senderFindArea working", $obj);
 			$this->sender_area = $obj["data"][0]["Area"];
 		}
+
 		return $this;
 	}
 
 	public function senderFindStreet()
 	{
+
 		$shipping_settings = process_shipping_settings(get_option('woocommerce_nova_poshta_shipping_method_settings'));
 		$warehouse = $shipping_settings["warehouse_name"];
+
+
 		$warehouse_full = explode(" ", $warehouse);
 
 		$warehouse_number = $warehouse_full[1];
+
 		$warehouse_number = str_replace("№", "", $warehouse_number);
 
 		$new_arr = implode(" ", $warehouse_full);
+		// var_dump($new_arr);
 
 		$sup_arr = explode(":", $new_arr);
+		// var_dump($sup_arr);
 
 		$street_name = $sup_arr[1];
 		$street_name = trim($street_name);
@@ -382,9 +428,14 @@ class MNP_Plugin_Invoice extends MNP_Plugin_Invoice_Controller {
 		);
 
 		$curl = curl_init();
+
 		$url = "https://api.novaposhta.ua/v2.0/json/";
+
 		MNP_Plugin_Invoice_Controller::createRequest( $url, $senderStreet, $curl);
+
 		$response = curl_exec( $curl );
+
+
 		$err = curl_error( $curl );
 		curl_close( $curl );
 
@@ -416,9 +467,19 @@ class MNP_Plugin_Invoice extends MNP_Plugin_Invoice_Controller {
 					$this->sender_building = "1";
 					$sender_building  = get_option('woocommerce_nova_poshta_sender_flat');
 					$this->sender_address_flat =  get_option('woocommerce_nova_poshta_sender_flat') ?: get_option('woocommerce_nova_poshta_sender_flat') ;
+
 			}
+
+
+
+			///echo '$street_name '.$obj["data"][0]["Ref"].'<hr>';
+			// echo "<pre><b>Sender street: </b>";
+			// var_dump($response);
+			// echo "</pre>";
 		}
+
 		return $this;
+
 	}
 
 	public function createSenderAddress()
@@ -427,12 +488,15 @@ class MNP_Plugin_Invoice extends MNP_Plugin_Invoice_Controller {
 
 		}
 		$invoiceController = new MNP_Plugin_Invoice_Controller();
+
 		$methodProperties = array(
 			"CounterpartyRef" => $this->sender_ref,
 			"StreetRef" => $this->sender_street,
 			"BuildingNumber" => intval($this->sender_building),
 			"Flat" => $this->sender_flat
 		);
+		//print_r($methodProperties);
+
 		$senderAddress = array(
 			"modelName" => "Address",
 			"calledMethod" => "save",
@@ -441,7 +505,9 @@ class MNP_Plugin_Invoice extends MNP_Plugin_Invoice_Controller {
 		);
 
 		$curl = curl_init();
+
 		$url = "https://api.novaposhta.ua/v2.0/json/";
+
 		MNP_Plugin_Invoice_Controller::createRequest( $url, $senderAddress, $curl );
 
 		$response = curl_exec( $curl );
@@ -452,32 +518,52 @@ class MNP_Plugin_Invoice extends MNP_Plugin_Invoice_Controller {
 
 		if ( $err ) {
 			logiftestpage("createSenderAddress not working", $err);
+			//$this->sender_address = "d492290b-55f2-11e5-ad08-005056801333";
+			//exit('Вибачаємось, але сталась помилка');
 		}
 		else {
 			$obj = json_decode( $response, true );
 			logiftestpage("createSenderAddress working ", $obj);
 			if(isset($obj["data"][0])){
 				$this->sender_address = $obj["data"][0]["Ref"];
+				// echo '<pre>';
+				// print_r($obj);
+				// echo '<pre>';
+				//$this->sender_address = "16922806-e1c2-11e3-8c4a-0050568002cf";
+
+				// echo "<pre><b>response : </b>";
+				// var_dump($response);
+				// echo "</pre>";
 			}
 		}
+
 		return $this;
+
 	}
 
 	public function findRecipientArea()
 	{
+
 		$invoiceController = new MNP_Plugin_Invoice_Controller();
+
 		global $wpdb;
+
 		$sql = "SELECT ref FROM {$wpdb->prefix}nova_poshta_city WHERE description = '$this->recipient_city' OR description_ru = '$this->recipient_city'";
+
 		$my_row = $wpdb->get_row($sql);
 
-		/* Get city data from curl */
+		/* Getting city data from curl */
+
 		$arrayMyRow = (array) $my_row;
+
 		logiftestpage('sql', $arrayMyRow);
-		if(sizeof( $arrayMyRow ) == 0) {
-			// City not found
+
+		if(sizeof( $arrayMyRow ) == 0){
+			//city not found
 		}
-		else {
+		else{
 			logiftestpage('getinfofrom', $arrayMyRow);
+
 			$this->recipient_city_ref = $arrayMyRow["ref"];
 			$curl_city = curl_init();
 			$url = "https://api.novaposhta.ua/v2.0/json/";
@@ -488,11 +574,12 @@ class MNP_Plugin_Invoice extends MNP_Plugin_Invoice_Controller {
 				"modelName" => "Address",
 				"calledMethod" => "getCities",
 				"methodProperties" => $cityMethodProperties,
-				"apiKey" => get_option('mrkvnp_sender_api_key')
+				"apiKey" => get_option('text_example')
 			);
 
 			logiftestpage('$recipientCity', $recipientCity);
 			MNP_Plugin_Invoice_Controller::createRequest($url, $recipientCity, $curl_city);
+
 			$city_response = curl_exec($curl_city);
 			$city_err = curl_error($curl_city);
 			curl_close($curl_city);
@@ -502,10 +589,12 @@ class MNP_Plugin_Invoice extends MNP_Plugin_Invoice_Controller {
 			$this->recipient_city = $obj_city["data"][0]["Description"];
 			$this->recipient_area_ref = $obj_city["data"][0]["Area"];
 
-			/* Get Recipient Area */
+			/* Getting Recipient Area */
+
 			$methodProperties = array(
 				"Ref" => $this->recipient_city
 			);
+
 			$recipientArea = array(
 				"modelName" => "AddressGeneral",
 				"calledMethod" => "getSettlements",
@@ -514,7 +603,9 @@ class MNP_Plugin_Invoice extends MNP_Plugin_Invoice_Controller {
 			);
 
 			$curl = curl_init();
+
 			$url = "https://api.novaposhta.ua/v2.0/json/";
+
 			MNP_Plugin_Invoice_Controller::createRequest( $url, $recipientArea, $curl );
 
 			$response = curl_exec( $curl );
@@ -538,14 +629,20 @@ class MNP_Plugin_Invoice extends MNP_Plugin_Invoice_Controller {
 
 	public function newFindRecipientArea()
 	{
+
 		$invoiceController = new MNP_Plugin_Invoice_Controller();
+
 		global $wpdb;
+
 		$results = $wpdb->get_results( "SELECT * FROM {$wpdb->prefix}nova_poshta_city WHERE description like '$this->recipient_city%' OR description_ru like '$this->recipient_city%'", ARRAY_A);
+
 		logiftestpage(" results", sizeof($results));
 
-		if (sizeof($results) == 0) {
+		if (sizeof($results) == 0){
 			logiftestpage("abazivka", 0);
-		} else {
+		}
+
+		else{
 			$this->recipient_city_ref = $results[0]["ref"];
 			$curl_city = curl_init();
 			$url = "https://api.novaposhta.ua/v2.0/json/";
@@ -588,9 +685,11 @@ class MNP_Plugin_Invoice extends MNP_Plugin_Invoice_Controller {
 		$last_name = $recipient_names[0];
 
 		$invoiceController = new MNP_Plugin_Invoice_Controller();
+
 		if(!isset($middle_name)){
 			$middle_name = '';
 		}
+
 		$methodProperties = array(
 			"FirstName" => $first_name,
 			"MiddleName" => $middle_name,
@@ -600,6 +699,7 @@ class MNP_Plugin_Invoice extends MNP_Plugin_Invoice_Controller {
 			"CounterpartyType" => "PrivatePerson",
 			"CounterpartyProperty" => "Recipient"
 		);
+
 		$counterpartyRecipient = array(
 			"apiKey" => $this->api_key,
 			"modelName" => "Counterparty",
@@ -608,11 +708,17 @@ class MNP_Plugin_Invoice extends MNP_Plugin_Invoice_Controller {
 		);
 
 		$curl = curl_init();
+
 		$url = "https://api.novaposhta.ua/v2.0/json/";
+
 		MNP_Plugin_Invoice_Controller::createRequest( $url, $counterpartyRecipient, $curl );
+
 		$response = curl_exec( $curl );
+
 		logiftestpage("createRecipient request:", $counterpartyRecipient);
+
 		$err = curl_error( $curl );
+
 
 		if ( $err ) {
 			logiftestpage("error createRecipient not working:", $err);
@@ -626,7 +732,9 @@ class MNP_Plugin_Invoice extends MNP_Plugin_Invoice_Controller {
 
 	public function howCosts()
 	{
+
 		$invoiceController = new MNP_Plugin_Invoice_Controller();
+
 		$methodProperties = array(
 			"CitySender" => $this->sender_city,
 			"CityRecipient" => $this->recipient_city_ref,
@@ -635,6 +743,7 @@ class MNP_Plugin_Invoice extends MNP_Plugin_Invoice_Controller {
 			"Cost" => "100",
 			"SeatsAmount" => "1"
 		);
+
 		$costs = array(
 			"modelName" => "InternetDocument",
 			"calledMethod" => "getDocumentPrice",
@@ -643,8 +752,11 @@ class MNP_Plugin_Invoice extends MNP_Plugin_Invoice_Controller {
 		);
 
 		$curl = curl_init();
+
 		$url = "https://api.novaposhta.ua/v2.0/json/";
+
 		MNP_Plugin_Invoice_Controller::createRequest( $url, $costs, $curl );
+
 		$response = curl_exec( $curl );
 		$err = curl_error( $curl );
 		curl_close( $curl );
@@ -658,15 +770,43 @@ class MNP_Plugin_Invoice extends MNP_Plugin_Invoice_Controller {
 			if (isset($obj["data"][0]["Cost"])){
 				$this->cost = $obj["data"][0]["Cost"];
 			}
+
 		}
 		return $this;
 	}
 
+	public function createVolumeGeneral()
+	{
+
+		$this->invoice_x = intval( $this->invoice_x );
+		$this->invoice_y = intval( $this->invoice_y );
+		$this->invoice_z = intval( $this->invoice_z );
+
+		echo '<pre>';
+		var_dump( $this->invoice_x );
+		var_dump( $this->invoice_y );
+		var_dump( $this->invoice_z );
+		echo '</pre>';
+
+		$result_code = ( $this->invoice_x * $this->invoice_z * $this->invoice_y ) / 4000;
+
+		$this->volume_general = $result_code;
+
+		echo '<pre>';
+		var_dump( $result_code );
+		echo '</pre>';
+
+
+		return $this->volume_general;
+	}
+
 	public function createInvoice($order_data, $recipient, $recipient_address_ref, $invoice_addweight, $alternate_weight, $invoice_allvolume, $alternate_vol)
 	{
+$start_time = microtime(true); error_log('$start_time');error_log($start_time);
 		require_once("functions.php");
 
-		if ( isset( $_POST['invoice_sender_ref'] ) ) {
+		if(isset( $_POST['invoice_sender_ref'])){
+
 			$this->sender_contact = $_POST['invoice_sender_ref'];
 		}
 
@@ -677,26 +817,34 @@ class MNP_Plugin_Invoice extends MNP_Plugin_Invoice_Controller {
 		}
 
 		$invoiceController = new MNP_Plugin_Invoice_Controller();
+
 		$wooshipping_settings = process_shipping_settings(get_option('woocommerce_nova_poshta_shipping_method_settings'));
 
-		if ( ! get_option( 'woocommerce_nova_poshta_sender_address_type' ) ) {
-			$this->sender_address = $wooshipping_settings["warehouse"];
+		if(!get_option('woocommerce_nova_poshta_sender_address_type')){
+
+		$this->sender_address = $wooshipping_settings["warehouse"];
+
 		}
+
 		// З замовлення або з поля для вводу 'Відділення/Поштомат'
 		$typeOfWarehouse = $order_data["billing"]["address_1"] ?? $_POST['invoice_recipient_warehouse'];
 
-		$alternate_all = alternate_all( $order_data );
-		$alternate_vol = $alternate_all['alternate_vol'];
-		$weight = floatval( $alternate_all['weight'] );
-		$this->invoice_volume = ( $alternate_vol > 0 ) ? $alternate_vol : 0.001;
-		$this->cargo_weight = ( $weight > 0 ) ? $weight : 0.5;
+		if ( empty( $this->invoice_volume ) ) {
+			$this->invoice_volume = 0.002;
+		}
+
+		if ( empty( $this->cargo_weight ) ) {
+				$this->cargo_weight = 0.5;
+		}
 
 		$zpayer = $this->zpayer;
+
 		if(!isset($zpayer)){
 			$zpayer = 'Recipient';
 		}
 
 		//standart method properties
+
 		$this->servicetype = "WarehouseWarehouse WarehouseDoors";
 		if( get_option('woocommerce_nova_poshta_sender_address_type') ){
 			$this->servicetype = "DoorsWarehouse DoorsDoors";
@@ -707,16 +855,17 @@ class MNP_Plugin_Invoice extends MNP_Plugin_Invoice_Controller {
 
 		$st = explode(" ", $this->servicetype);
 
+		//print_r($st);
 		if(wc_get_order($this->order_id)){
 			$order_data0 = wc_get_order( $this->order_id );
 			$order_data = $order_data0->get_data();
 		}
 		$methodid = "";
 		if(isset($order_data0)){
-			foreach( $order_data0->get_items( 'shipping' ) as $item_id => $shipping_item_obj ){
-				$shipping_item_data = $shipping_item_obj->get_data();
-				$methodid = $shipping_item_data['method_id'];
-			}
+		foreach( $order_data0->get_items( 'shipping' ) as $item_id => $shipping_item_obj ){
+			$shipping_item_data = $shipping_item_obj->get_data();
+			$methodid = $shipping_item_data['method_id'];
+		}
 		}
 
 		if((strpos($methodid, 'npttn_address_shipping_method')!==false)){
@@ -725,6 +874,7 @@ class MNP_Plugin_Invoice extends MNP_Plugin_Invoice_Controller {
 		else{
 			$this->servicetype = $st[0];
 			//here is fix service not allowed money because failed with sender address
+
 			$an = explode(":", $this->recipient_address_name);
 			$an2 = explode("№",$an[0]);
 			$an3 = explode("(",$an[0]);
@@ -732,44 +882,23 @@ class MNP_Plugin_Invoice extends MNP_Plugin_Invoice_Controller {
 		}
 		$warehouse_billing = process_warehouse_billing($order_data);
 		$this->recipient_address_name = $warehouse_billing[2];
+
 		// З замовлення або з поля для вводу 'Відділення/Поштомат'
 		$typeOfWarehouse = $order_data["billing"]["address_1"] ?? $_POST['invoice_recipient_warehouse'];
 		if ( ( strpos( $typeOfWarehouse, 'Почтомат' ) !== false) ||
 				( strpos( $typeOfWarehouse, 'Почтмат' ) !== false) ||
 				(strpos($typeOfWarehouse, 'Поштомат') !== false)) { // Накладна для поштомату
 		    $typeOfWarehouseRef = "f9316480-5f2d-425d-bc2c-ac7cd29decf0"; // Поштомат
-		    $dimentions = $alternate_all['dimentions'];	// Розрахунок об'єму
-			$length_array = array();
-			$width_array = array();
-			if ( $alternate_all['prod_quantity2'] < 2 ) {
-				if ( ! empty( $dimentions ) && isset( $dimentions[0] ) ) {
-			    	$max_length_prod = $dimentions[0]['length'];
-			    	$max_width_prod = $dimentions[0]['width'];
-			    	$max_height_prod = $dimentions[0]['height'];
-				} else {
-			    	$max_length_prod = 10;
-			    	$max_width_prod = 10;
-			    	$max_height_prod = 10;
-				}
-			} else {
-				if ( ! empty( $dimentions ) ) {
-					foreach($dimentions as $key => $value) {
-					    $length_array[] = $value['length'];
-					    $width_array[] = $value['width'];
-					}
-					$max_length_prod = max( 10, max( $length_array ) );
-					$max_width_prod = max( 10, max( $width_array ) );
-				} else {
-					$max_length_prod = 10;
-					$max_width_prod = 10;
-					$max_height_prod = 10;
-				}
-				if ( isset( $_POST['invoice_volume'] ) ) {
-					$max_height_prod = $_POST['invoice_volume'] / $max_length_prod / $max_width_prod * 100;
-				} else {
-					$max_height_prod = 23;
-				}
+			if ( empty( $this->cargo_weight ) ) {	// Розрахунок ваги
+					$this->cargo_weight = 0.5;
 			}
+			$fake_weight = (empty($this->cargo_weight)) ? true : false;
+		    $weight = ( $this->cargo_weight > 0 ) ? $this->cargo_weight : 0.5;
+		    $dimentions = mrkvnp_calc_order_dimensions($order_data);
+		    $max_length_prod = $dimentions[0];
+		    $max_width_prod = $dimentions[1];
+		    $max_height_prod = $dimentions[2];
+
 			$methodProperties = array(
 				// General params
 				"PayerType" => $this->payer, // By default - Recipient
@@ -778,15 +907,14 @@ class MNP_Plugin_Invoice extends MNP_Plugin_Invoice_Controller {
 				"ServiceType" => 'WarehouseWarehouse',	// Задав явно
 				// Cargo
 				"CargoType" => $this->cargo_type,
-				"Weight" => $this->cargo_weight,
 				"TypeOfWarehouseRef" => $typeOfWarehouseRef,
 				"OptionsSeat" => array(
 					array (
-						"volumetricVolume" => $this->invoice_volume,
+						"volumetricVolume" => (int) $max_length_prod * (int) $max_width_prod * (int) $max_height_prod / 4000,
 						"volumetricLength" => $max_length_prod,
 						"volumetricWidth" => $max_width_prod,
 						"volumetricHeight" => $max_height_prod,
-						"weight" => $this->cargo_weight,
+						"weight" => $weight,
 					)
 				),
 				"SeatsAmount" => "1",
@@ -819,7 +947,6 @@ class MNP_Plugin_Invoice extends MNP_Plugin_Invoice_Controller {
 				"PaymentMethod" => "Cash",
 				"CargoType" => $this->cargo_type,
 				"Weight" => $this->cargo_weight,
-				"VolumeGeneral" => $this->invoice_volume,
 				"ServiceType" => $this->servicetype,
 				"SeatsAmount" => $this->places,
 				"Description" => $this->invoice_description,
@@ -873,6 +1000,9 @@ class MNP_Plugin_Invoice extends MNP_Plugin_Invoice_Controller {
 			}
 
 		}
+		else if ( empty( $this->invoice_volume ) &&  empty($this->redelivery) ) {
+		 //text2
+		}
 		else if ( isset( $this->invoice_volume ) ) {
 			$methodProperties["VolumeGeneral"] = $this->invoice_volume;
 		}
@@ -908,13 +1038,12 @@ class MNP_Plugin_Invoice extends MNP_Plugin_Invoice_Controller {
 		curl_close( $curl );
 
 		if ( $err ) {
+			//print_r($err);
 			logiftestpage("create invoice not working:", $err);
 			exit('Вибачаємось, але сталась помилка');
 		} else {
 
 			$obj = json_decode( $response, true );
-\error_log('$invoice: ');error_log(print_r($invoice,1));
-\error_log('$obj: ');error_log(print_r($obj,1));
 			logiftestpage("create invoice working", $obj);
 			if(isset($obj["data"][0])){
 				$document_number = $obj["data"][0]["Ref"];
@@ -968,7 +1097,8 @@ class MNP_Plugin_Invoice extends MNP_Plugin_Invoice_Controller {
 			$errors0 = $obj;
 
 			if ( isset($obj["errorCodes"][0]) ) {
-
+$end_time = microtime(true); error_log('$end_time');error_log($end_time);
+$execution_time = ($end_time - $start_time); error_log('$execution_time');error_log($execution_time);
 				$error = $obj["errorCodes"][0];
 
 				echo "<div id='errnonp' class='container'>";
@@ -993,28 +1123,35 @@ class MNP_Plugin_Invoice extends MNP_Plugin_Invoice_Controller {
 				exit;
 			}
 
+			// if(isset( $_SESSION['invoice_id'] )){
 			if(isset( $document_id )){
         	     $usp = "
 					<div id='nnnid' class='container'>
 						<div class='sucsess-naklandna'>
 							<h3>Накладна успішно створена!</h3>
 							<p>
-								Номер накладної: " . $document_id . "
+								Номер накладної: " . $document_id /*$_SESSION['invoice_id']*/ . "
 							</p>
 						</div>
 					</div>
 					";
         	     echo $usp;
+$end_time = microtime(true); error_log('$end_time');error_log($end_time);
+$execution_time = ($end_time - $start_time); error_log('$execution_time');error_log($execution_time);
+echo " Execution time of script = ".$execution_time." sec";
              }
 
+			// if(!isset($_SESSION['invoice_id']) ){
 			if(!isset($document_id) ){
 				$fail = "
 				<div id='nnnid' class='container'>
             		<h3>Помилка</h3>
-            		<p>". $errormessage ."</p>
+            		<p>"./*$_SESSION["errormessage"]*/$errormessage ."</p>
             		<div class=clr></div>
             	</div>";
+
             	echo $fail;
+                // unset($_SESSION['errormessage']);
 			}
 
 			global $wpdb;
@@ -1038,8 +1175,14 @@ class MNP_Plugin_Invoice extends MNP_Plugin_Invoice_Controller {
 			);
             $this->invoice_id = $invoice_number;
             $this->invoice_ref = $invoice_ref;
+
+			// $_SESSION['invoice_id_for_order'] = $_SESSION['invoice_id'];
+			// unset( $_SESSION['invoice_id'] );
+
 		}
+
 		return $this;
+
 	}
 
 }

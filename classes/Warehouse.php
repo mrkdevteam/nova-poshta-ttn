@@ -17,7 +17,6 @@ class Warehouse extends Area
      */
     protected static function _key()
     {
-        //return '_warehouse';
         return 'nova_poshta_warehouse';
     }
 
