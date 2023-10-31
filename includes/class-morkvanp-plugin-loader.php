@@ -1456,43 +1456,11 @@ class MNP_Plugin_Loader
             }
 
             // var_dump( $obj['Number'] ); ?>
-            <a href="#" id="email_sent" class="button" style="margin: 5px;background: url(<?php echo  plugins_url('img/002-envelope.png', __FILE__); ?>) no-repeat scroll 7px 4px; padding-left: 30px;"> Відправити на e-mail</a>
+            
             <input type="text" name="invoice_email" id="invoice_email" value="<?php echo $invoice_email; ?>" style="display: none;" />
             <input type="text" name="invoice_number" id="invoice_number" value="<?php echo $invoice_number; ?>" style="display: none;" />
             <input type="text" name="order_id" id="order_id" value="<?php echo $order_id; ?>" style="display: none;" />
             <input type="text" id="date_created" value="<?php // echo $obj['DateCreated']; ?>" style="display: none;" />
-
-            <script type="text/javascript">
-                jQuery(document).ready( function($) {
-
-                    // jQuery( '#email_sent' ).click( function() {
-                    jQuery( '#email_sent' ).on('click', function(e) {
-                        var invoice_email = jQuery('#invoice_email').val();
-                        var invoice_number = jQuery('#invoice_number').val();
-                        var order_id = jQuery('#order_id').val();
-                        var DateCreated = jQuery('#date_created').val();
-
-                        $.ajax({
-                            url: '/wp-admin/admin.php?page=morkvanp_invoices',
-                            type: 'POST',
-                            data: {
-                                email: invoice_email,
-                                number: invoice_number,
-                                order: order_id,
-                                date: DateCreated,
-                            },
-                            beforeSend: function( xhr ) {
-                                jQuery('#email_sent').text('Відправлення...');
-                            },
-                            success: function( data ) {
-                                jQuery('#email_sent').text('Відправити на e-mail');
-                                console.log('Request created for mail sent');
-                            }
-                        });
-                    });
-
-                });
-            </script>
             <?php
         } else {
             echo 'Номер накладної: -';
