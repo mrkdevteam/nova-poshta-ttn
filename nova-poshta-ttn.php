@@ -4,7 +4,7 @@
  * Plugin Name: Shipping for Nova Poshta
  * Plugin URI: https://morkva.co.ua/shop/nova-poshta-ttn-pro-lifetime
  * Description: Плагін 2-в-1: спосіб доставки Нова Пошта та генерація накладних Нова Пошта.
- * Version: 1.18.0
+ * Version: 1.18.1
  * Author: MORKVA
  * Text Domain: nova-poshta-ttn
  * Domain Path: /i18n/
@@ -784,9 +784,16 @@ function activate_morkvanp_plugin()
     require_once plugin_dir_path(__FILE__) . 'includes/class-morkvanp-plugin-activator.php';
     MNP_Plugin_Activator::activate();
 
-    set_transient( 'mrkv-admin-novaposhta-settings', true, 5 );
-    Database::instance()->drop_first_table();
-    Database::instance()->create_main_table();
+    if( get_option('mrkv_nova_poshta_free_version') ) {
+        update_option('mrkv_nova_poshta_free_version', MNP_PLUGIN_VERSION);
+    }
+    else{
+        add_option('mrkv_nova_poshta_free_version', MNP_PLUGIN_VERSION);
+
+        set_transient( 'mrkv-admin-novaposhta-settings', true, 5 );
+        Database::instance()->drop_first_table();
+        Database::instance()->create_main_table();
+    }
 }
 /**
  * The code that runs during plugin deactivation.
@@ -824,12 +831,30 @@ add_action( 'before_woocommerce_init', function() {
 } );
 
 add_action( 'admin_notices', 'mrkv_admin_notice_example_notice' );
-add_action( 'upgrader_process_complete', 'mrkv_upgrade_completed' );
+add_action( 'upgrader_process_complete', 'mrkv_upgrade_completed', 100, 2);
 
-function mrkv_upgrade_completed(){
-    set_transient( 'mrkv-admin-novaposhta-settings', true, 5 );
-    Database::instance()->drop_first_table();
-    Database::instance()->create_main_table();
+function mrkv_upgrade_completed($upgrader_object, $options){
+    // The path to our plugin's main file
+    $our_plugin = plugin_basename( __FILE__ );
+
+    // If an update has taken place and the updated type is plugins and the plugins element exists
+    if( $options['action'] == 'update' && $options['type'] == 'plugin' && isset( $options['plugins'] ) ) {
+        // Iterate through the plugins being updated and check if ours is there
+        foreach( $options['plugins'] as $plugin ) {
+            if( $plugin == $our_plugin ) {
+                if( get_option('mrkv_nova_poshta_free_version') ) {
+                    update_option('mrkv_nova_poshta_free_version', MNP_PLUGIN_VERSION);
+                }
+                else{
+                    add_option('mrkv_nova_poshta_free_version', MNP_PLUGIN_VERSION);
+
+                    set_transient( 'mrkv-admin-novaposhta-settings', true, 5 );
+                    Database::instance()->drop_first_table();
+                    Database::instance()->create_main_table();
+                }
+            }
+        }
+    }
 }
 
 function mrkv_admin_notice_example_notice(){

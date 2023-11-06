@@ -136,7 +136,7 @@ class MNP_Plugin_Loader
         add_action('add_meta_boxes', array( $this, 'mv_add_meta_boxes' ));
         add_action('admin_init', array( $this, 'register_plugin_settings' ));
         
-        if(OrderUtil::custom_orders_table_usage_is_enabled()){
+        if(class_exists( \Automattic\WooCommerce\Utilities\OrderUtil::class ) && OrderUtil::custom_orders_table_usage_is_enabled()){
             add_filter('manage_woocommerce_page_wc-orders_columns', array( $this, 'woo_custom_column' ));
             add_action('manage_woocommerce_page_wc-orders_custom_column', array( $this, 'woo_column_get_data_hpos' ), 20, 2 );
         }
@@ -1270,9 +1270,15 @@ class MNP_Plugin_Loader
      */
     public function mv_add_meta_boxes()
     {
-        $screen = wc_get_container()->get( CustomOrdersTableController::class )->custom_orders_table_usage_is_enabled()
-        ? wc_get_page_screen_id( 'shop-order' )
-        : 'shop_order';
+        # Check hpos
+        if(class_exists( CustomOrdersTableController::class )){
+            $screen = wc_get_container()->get( CustomOrdersTableController::class )->custom_orders_table_usage_is_enabled()
+            ? wc_get_page_screen_id( 'shop-order' )
+            : 'shop_order';
+        }
+        else{
+            $screen = 'shop_order';
+        }
 
         add_meta_box('npttn_newttn', __('Відправлення Нова Пошта', 'woocommerce'), array( $this, 'add_plugin_meta_box' ), $screen, 'side', 'core');
     }
@@ -1362,9 +1368,15 @@ class MNP_Plugin_Loader
     public function add_invoice_meta_box()
     {
         if (isset($_GET["post"]) || isset($_GET["id"])) {
-            $screen = wc_get_container()->get( CustomOrdersTableController::class )->custom_orders_table_usage_is_enabled()
-            ? wc_get_page_screen_id( 'shop-order' )
-            : 'shop_order';
+            # Check hpos
+            if(class_exists( CustomOrdersTableController::class )){
+                $screen = wc_get_container()->get( CustomOrdersTableController::class )->custom_orders_table_usage_is_enabled()
+                ? wc_get_page_screen_id( 'shop-order' )
+                : 'shop_order';
+            }
+            else{
+                $screen = 'shop_order';
+            }
             
             add_meta_box('invoice_other_fields', __('Накладна', 'woocommerce'), array( $this, 'invoice_meta_box_info' ), $screen, 'side');
         }

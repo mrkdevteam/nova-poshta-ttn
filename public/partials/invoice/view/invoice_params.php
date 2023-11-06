@@ -53,8 +53,21 @@
                         </label>
                     </th>
                 <td>
+                    <?php 
+                        $weight_unit_new = get_option('woocommerce_weight_unit');
+                        switch($weight_unit_new){
+                            case 'kg':
+                            $weight_unit_new = 'кг';
+                            break;
+                            case 'g':
+                            $weight_unit_new = 'г';
+                            break;
+                            default:
+                            break;
+                        }
+                    ?>
                     <input type="text" name="mrkvnp_invoice_cargo_weight" id="mrkvnp_invoice_cargo_weight"
-                        value="<?php echo $invoiceModel->getCargoWeight( $order_obj ); ?>" /><span> кг</span>
+                        value="<?php echo $invoiceModel->getCargoWeight( $order_obj ); ?>" /><span> <?php echo $weight_unit_new; ?></span>
                 </td>
                 </tr>
                 <tr>

@@ -276,17 +276,6 @@ error_log('NOVA_POSHTA_TTN_ADDRESS_SHIPPING_METHOD 4');error_log(NOVA_POSHTA_TTN
       */
      private function getDescription()
      {
-         $href = "https://wordpress.org/support/view/plugin-reviews/nova-poshta-ttn?filter=5#postform";
-         $link = '<a href="' . $href . '" target="_blank" class="np-rating-link">&#9733;&#9733;&#9733;&#9733;&#9733;</a>';
-
-         $descriptions = array();
-         $descriptions[] = __('Address Shipping with popular Ukrainian logistic company Nova Poshta', NOVA_POSHTA_TTN_DOMAIN);
-         if (NPttn()->options->pluginRated) {
-             $descriptions[] = __('Thank you for encouraging us!', NOVA_POSHTA_TTN_DOMAIN);
-         } else {
-             $descriptions[] = sprintf(__("If you like our work, please leave us a %s rating!", NOVA_POSHTA_TTN_DOMAIN), $link);
-         }
-         // return implode($descriptions, '<br>');
-         return implode( '<br>', $descriptions );
+         return '';
      }
  }

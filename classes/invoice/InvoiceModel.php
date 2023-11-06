@@ -356,6 +356,12 @@ class InvoiceModel
             ? \sanitize_text_field( $_POST['mrkvnp_invoice_cargo_weight'] )
             : $default_weight;
 
+        $weight_unit_new = get_option('woocommerce_weight_unit');
+        if($weight_unit_new == 'g' && isset( $_POST['mrkvnp_invoice_cargo_weight'] )){
+            $default_weight  = $default_weight / 1000;
+            $order_weight = $order_weight / 1000;
+        }
+
         return $order_weight > 0 ? (string) floatval( $order_weight ) : $default_weight;
     }
 
