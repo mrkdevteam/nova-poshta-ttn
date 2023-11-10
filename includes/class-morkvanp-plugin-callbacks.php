@@ -148,7 +148,12 @@ use plugins\NovaPoshta\classes\invoice\Sender;
          $region = esc_attr( get_option( 'region' ) );
 
          $shipping_settings = get_option( 'woocommerce_nova_poshta_shipping_method_settings' ); //1.6.x support
-         $region = ( null !== $shipping_settings["area_name"] ) ? $shipping_settings["area_name"] : ''; //1.6.x support
+         if(isset($shipping_settings["area_name"])){
+            $region = ( null !== $shipping_settings["area_name"] ) ? $shipping_settings["area_name"] : ''; //1.6.x support
+         }
+         else{
+            $region = ''; //1.6.x support
+         }
 
         if ( get_option( 'mrkvnp_invoice_sender_region_name' ) ) {
             $region = get_option('mrkvnp_invoice_sender_region_name');
@@ -173,7 +178,12 @@ use plugins\NovaPoshta\classes\invoice\Sender;
           * Get settings of WooShipping plugin
           */
          $shipping_settings = get_option( 'woocommerce_nova_poshta_shipping_method_settings' );
-         $value1 = ( null !== $shipping_settings["city_name"] ) ? $shipping_settings["city_name"] : '';
+         if(isset($shipping_settings["city_name"])){
+            $value1 = ( null !== $shipping_settings["city_name"] ) ? $shipping_settings["city_name"] : '';
+         }
+         else{
+            $value1 = '';
+         }
 
          if ( get_option( 'mrkvnp_invoice_sender_city_name' ) ) {
              $value1 = get_option( 'mrkvnp_invoice_sender_city_name' );
@@ -193,7 +203,12 @@ use plugins\NovaPoshta\classes\invoice\Sender;
      {
          $shipping_settings = get_option('woocommerce_nova_poshta_shipping_method_settings');
          // $shipping_settings["warehouse_name"];
-         $warehouse = ( null !== $shipping_settings["warehouse_name"] ) ? $shipping_settings["warehouse_name"] : '';
+         if(isset($shipping_settings["warehouse_name"])){
+            $warehouse = ( null !== $shipping_settings["warehouse_name"] ) ? $shipping_settings["warehouse_name"] : '';
+         }
+         else{
+            $warehouse = '';
+         }
 
 
          if (get_option('mrkvnp_invoice_sender_warehouse_name')) {

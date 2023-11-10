@@ -250,7 +250,13 @@ class Sender extends Singleton
                 ),
             );
             $obj = $this->invoiceModel()->sendPostRequest( $this->api_url, $getSenderAddressesRef );
-            return $obj['data'][0]['Ref'];
+
+            if(isset($obj) && isset($obj['data']) && isset($obj['data'][0]) && isset($obj['data'][0]['Ref'])){
+                return $obj['data'][0]['Ref'];
+            }
+            else{
+                return '';
+            }
         } else return $this->sender_warehouse_ref;
     }
 
