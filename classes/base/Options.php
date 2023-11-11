@@ -114,7 +114,7 @@ class Options extends Base
      */
     protected function getSenderArea()
     {
-        return $this->shippingMethodSettings[self::AREA];
+        return $this->shippingMethodSettings ? $this->shippingMethodSettings[self::AREA] : '';
     }
 
     /**
@@ -122,7 +122,7 @@ class Options extends Base
      */
     protected function getSenderCity()
     {
-        return $this->shippingMethodSettings[self::CITY];
+        return $this->shippingMethodSettings ? $this->shippingMethodSettings[self::CITY] : '';
     }
 
     /**
@@ -130,7 +130,7 @@ class Options extends Base
      */
     protected function getSenderWarehouse()
     {
-        return $this->shippingMethodSettings[self::WAREHOUSE];
+        return $this->shippingMethodSettings ? $this->shippingMethodSettings[self::WAREHOUSE] : '';
     }
 
     protected function getPluginRated()

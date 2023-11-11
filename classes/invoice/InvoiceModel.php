@@ -435,31 +435,33 @@ class InvoiceModel
         if ( ! is_object( $this->order_obj ) ) return false;
         $orderItems = $this->order_obj->get_items( 'shipping' );
         $itemObj = array_shift( $orderItems );
-        $itemData = $itemObj->get_data();
-        $shipMethodId = $itemData['method_id'];
-        if ( ! get_option('mrkvnp_invoice_sender_warehouse_type' ) &&
-            ( strpos( $shipMethodId, 'nova_poshta_shipping_method_poshtomat' ) !== false ) ) {
-            return 'WarehousePostomat';
-        }
-        if ( ! get_option('mrkvnp_invoice_sender_warehouse_type' ) &&
-            ( strpos( $shipMethodId, 'nova_poshta_shipping_method' ) !== false ) ) {
-            return 'WarehouseWarehouse';
-        }
-        if ( ! get_option('mrkvnp_invoice_sender_warehouse_type' ) &&
-            ( strpos( $shipMethodId, 'npttn_address_shipping_method' ) !== false ) ) {
-            return 'WarehouseDoors';
-        }
-        if ( get_option('mrkvnp_invoice_sender_warehouse_type' ) &&
-            ( strpos( $shipMethodId, 'nova_poshta_shipping_method_poshtomat' ) !== false ) ) {
-            return 'DoorsWarehouse';
-        }
-        if ( get_option('mrkvnp_invoice_sender_warehouse_type' ) &&
-            ( strpos( $shipMethodId, 'nova_poshta_shipping_method' ) !== false ) ) {
-            return 'DoorsPostomat';
-        }
-        if ( get_option('mrkvnp_invoice_sender_warehouse_type' ) &&
-            ( strpos( $shipMethodId, 'npttn_address_shipping_method' ) !== false ) ) {
-            return 'DoorsDoors';
+        if(isset($itemObj)){
+            $itemData = $itemObj->get_data();
+            $shipMethodId = $itemData['method_id'];
+            if ( ! get_option('mrkvnp_invoice_sender_warehouse_type' ) &&
+                ( strpos( $shipMethodId, 'nova_poshta_shipping_method_poshtomat' ) !== false ) ) {
+                return 'WarehousePostomat';
+            }
+            if ( ! get_option('mrkvnp_invoice_sender_warehouse_type' ) &&
+                ( strpos( $shipMethodId, 'nova_poshta_shipping_method' ) !== false ) ) {
+                return 'WarehouseWarehouse';
+            }
+            if ( ! get_option('mrkvnp_invoice_sender_warehouse_type' ) &&
+                ( strpos( $shipMethodId, 'npttn_address_shipping_method' ) !== false ) ) {
+                return 'WarehouseDoors';
+            }
+            if ( get_option('mrkvnp_invoice_sender_warehouse_type' ) &&
+                ( strpos( $shipMethodId, 'nova_poshta_shipping_method_poshtomat' ) !== false ) ) {
+                return 'DoorsWarehouse';
+            }
+            if ( get_option('mrkvnp_invoice_sender_warehouse_type' ) &&
+                ( strpos( $shipMethodId, 'nova_poshta_shipping_method' ) !== false ) ) {
+                return 'DoorsPostomat';
+            }
+            if ( get_option('mrkvnp_invoice_sender_warehouse_type' ) &&
+                ( strpos( $shipMethodId, 'npttn_address_shipping_method' ) !== false ) ) {
+                return 'DoorsDoors';
+            }
         }
     }
 
