@@ -1,19 +1,4 @@
     jQuery(function(){
-      jQuery(document).on('click','.settingsgrid .mrkvnpsavebutton',function(){
-    var has_empty = false;
-    jQuery('#mrkvnpformsettings input[required]:not([type="radio"])').each(function (i, el) {
-          var data = jQuery(el).val();
-          // console.log(i + ': ' + data);
-          var len = data.length;
-          if (len<1) {
-            has_empty = true;
-          }
-        });
-        jQuery('div.mrkvnp-settings-tab-content div#tab-1 form p.submit #submit').trigger('click');
-        if(!has_empty){
-            jQuery('.settingsgrid .mrkvnpsavebutton').addClass('sent-request'); 
-        }
-  });
       var sp00 = document.getElementsByClassName("checkb");
 
       if(sp00){

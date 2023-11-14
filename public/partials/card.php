@@ -23,11 +23,6 @@
 		</div>
 	</div>
 	<?php
-		if(isset($_GET['page']) && $_GET['page'] == 'morkvanp_plugin'){
-			?>
-				<div class="button mrkvnpsavebutton"><?php echo __('Зберегти зміни', 'nova-poshta-ttn'); ?></div>
-			<?php
-		}
 
 		$path = NOVA_POSHTA_TTN_SHIPPING_PLUGIN_DIR . '/public/partials/morkvanp-plugin-invoices-page.php';
 		if (!file_exists($path)) { ?>

@@ -512,7 +512,16 @@ select option:active {
 }
 
 div.mrkvnp-settings-tab-content div#tab-1 form p.submit #submit{
-	display: none;
+	margin-top: 30px;
+}
+#mrkvnpformsettings input:required{
+	border-color: red;
+}
+#mrkvnpformsettings input:valid{
+	border-color: #E8E8EA;
+}
+#mrkvnpformsettings input[name="mrkvnp_invoice_cargo_type"]:required{
+	border-color: #E8E8EA;
 }
 
 label.inl {
@@ -825,16 +834,6 @@ div.mrkvnp-settings-tab-content .h2 span {
 div.mrkvnp-settings-tab-content a,
 div.settingsgrid div.rightgrid a {
     color: #d9602b;
-}
-div.mrkvnp-settings-tab-content div#tab-1 form p.submit {
-	bottom: 3vh;
-    display: flex;
-    justify-content: flex-end;
-	margin-bottom: 40px;
-	position: fixed;
-    right: 0;
-    width: 20%;
-    height: 35px;
 }
 div.mrkvnp-settings-tab-content form p.submit input#submit {
 	border: 0;
