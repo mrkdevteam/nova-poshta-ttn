@@ -74,7 +74,7 @@ class Checkout extends Base
         // Add 'np_street_name' custom field on 'Edit order' admin page
         $order_id = method_exists( $order, 'get_id' ) ? $order->get_id() : $order->id;
         $streetName = get_post_meta( $order_id, 'nova_poshta_region', true );
-        if ( $streetName )add_post_meta( $order_id, 'np_street_name', $regionRef, true );
+        if ( $streetName )add_post_meta( $order_id, 'np_street_name', $streetName, true );
     }
 
     public function addDefaultRegionCustomField( $order ) {
@@ -107,6 +107,18 @@ class Checkout extends Base
         $is_shipping_phone = ( ! empty( get_post_meta( $order_id, 'shipping_phone', true ) )
             ? sanitize_text_field( get_post_meta( $order_id, 'shipping_phone', true ) )
             : false );
+
+        $streetName = get_post_meta( $order_id, 'nova_poshta_region', true );
+        if ( $streetName )add_post_meta( $order_id, 'np_street_name', $streetName, true );
+
+        $regionRef = get_post_meta( $order_id, 'billing_nova_poshta_region', true );
+        if ( $regionRef )add_post_meta( $order_id, 'np_region_ref', $regionRef, true );
+
+        $cityRef = get_post_meta( $order_id, '_billing_nova_poshta_city', true );
+        if ( $cityRef )add_post_meta( $order_id, 'np_city_ref', $cityRef, true );
+
+        $cityRef = get_post_meta( $order_id, '_billing_nova_poshta_warehouse', true );
+        if ( $cityRef )add_post_meta( $order_id, 'np_warehouse_ref', $cityRef, true );
     }
 
     /**

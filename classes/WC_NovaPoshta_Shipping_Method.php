@@ -71,6 +71,13 @@ if ( ! class_exists( 'WC_NovaPoshta_Shipping_Method' ) ) :
                     'default' => __('Nova Poshta', NOVA_POSHTA_TTN_DOMAIN)
                 ),
 
+                Options::USE_SHIPPING_PRICE_ON_DELIVERY => array(
+                    'title' => __('Enable Price for Delivery.', NOVA_POSHTA_TTN_DOMAIN),
+                    'label' => __('If checked, shipping price will be add for delivery.', NOVA_POSHTA_TTN_DOMAIN),
+                    'type' => 'checkbox',
+                    'default' => 'no',
+                    'description' => '',
+                ),
                 Options::USE_FIXED_PRICE_ON_DELIVERY => array(
                     'title' => __('Set Fixed Price for Delivery.', NOVA_POSHTA_TTN_DOMAIN),
                     'label' => __('If checked, fixed price will be set for delivery.', NOVA_POSHTA_TTN_DOMAIN),
@@ -124,100 +131,20 @@ if ( ! class_exists( 'WC_NovaPoshta_Shipping_Method' ) ) :
                 'calc_tax' => 'per_item'
             );
 
-            $location = Checkout::instance()->getLocation();
-            $cityRecipient = Customer::instance()->getMetadata('nova_poshta_city', $location)
-                //for backward compatibility with woocommerce 2.x.x
-                ?: Customer::instance()->getMetadata('nova_poshta_city', '');
+            $cartTotal = WC()->cart->cart_contents_total;
 
-                // Розрахунок вартості доставки через API Нової Пошти (початок)
-                $cityRecipient =  isset($_COOKIE['city']) ? $_COOKIE['city'] : "fc5f1e3c-928e-11e9-898c-005056b24375"; //sorry but Abazivka
-                $rate['cost'] = 0;
-                $citySender = NPttn()->options->senderCity;
-                $serviceType = 'WarehouseWarehouse';
-                if(get_option('mrkvnp_invoice_sender_warehouse_type')){
-                    $serviceType = 'DoorsWarehouse';
-                }
-                $items = WC()->cart->get_cart(); // Розрахунок Об'ємної ваги Відправлення
-                $volumeWeight = 0.00;
-                foreach($items as $item => $values) {
-                    $product[$item] = $values['data'];
-                    $item_length = ( null !== $product[$item]->get_length() ) ? floatval( $product[$item]->get_length() ) : 0.00;
-                    $length = $item_length;
-                    $item_width = ( null !== $product[$item]->get_width() ) ? floatval( $product[$item]->get_width() ) : 0.00;
-                    $width = $item_width;
-                    $item_height = ( null !== $product[$item]->get_height() ) ? floatval( $product[$item]->get_height() ) : 0.00;
-                    $height = $item_height;
-                    $volumeWeight += $length * $width * $height / 4000;
-                }
-                $weight_coef = $this->convert_weight_unit();
-                $actualWeight = ( WC()->cart->cart_contents_weight > 0 ) ? WC()->cart->cart_contents_weight * $weight_coef : 0.5;
-                $cartWeight = max( $actualWeight, $volumeWeight );  // Береться більше значення між Фактичною вагою і Об'ємною вагою
-                $cartTotal = WC()->cart->cart_contents_total;
-                try {
-                    $result = NPttn()->api->getDocumentPrice($citySender, $cityRecipient, $serviceType, $cartWeight, $cartTotal);
-                    $cost = is_array( $result ) ? array_shift($result) : 0;
-                    $rate['cost'] = ArrayHelper::getValue($cost, 'Cost', 0);
-                    NPttn()->log->error('calculated citySender-'.$citySender." cityRecipient-". $cityRecipient. " serviceType-". $serviceType." cartWeight-". $cartWeight." cartTotal-". $cartTotal);
-                } catch (Exception $e) {
-                    NPttn()->log->error($e->getMessage());
-                    NPttn()->log->error($cityRecipient);
-                }
-                // $rate = apply_filters('woo_shipping_for_nova_poshta_before_add_rate', $rate, $cityRecipient);
-                // Розрахунок вартості доставки через API Нової Пошти (кінець)
-            if ( ! $this->get_option( Options::FREE_SHIPPING_MIN_SUM ) && ! ( 'no' == $this->get_option( Options::USE_FIXED_PRICE_ON_DELIVERY ) ) ||
-                $this->get_option( Options::FREE_SHIPPING_MIN_SUM ) && ! ( 'no' == $this->get_option( Options::USE_FIXED_PRICE_ON_DELIVERY ) ) ) {
-                // Мінімальна сума для безкоштовної доставки не визначена і встановлена фіксована вартість доставки
-                if ( \get_option( 'mrkvnp_is_show_delivery_price' ) ) {
-                    // Show
-                    if ( \get_option( 'mrkvnp_is_add_delivery_price' ) ) {
+            if(('no' != $this->get_option( Options::USE_SHIPPING_PRICE_ON_DELIVERY ))){
+                    if(! ( 'no' == $this->get_option( Options::USE_FIXED_PRICE_ON_DELIVERY ) )){
                         $rate['cost'] = $this->get_option( Options::FIXED_PRICE );
-                    } else {
-                        $rate['cost'] = 0.00;
-                        add_filter( 'woocommerce_cart_shipping_method_full_label', array($this, 'mrkv_display_fixed_shipping_cost' ), 10, 2 );
                     }
-                } else {
-                    // Not show
-                    add_filter( 'woocommerce_cart_shipping_method_full_label', array($this, 'mrkv_no_display_shipping_cost' ), 10, 2 );
-                    $rate['cost'] = $this->get_option( Options::FIXED_PRICE );
-                }
-            } elseif ( $this->get_option( Options::FREE_SHIPPING_MIN_SUM ) && ( 'no' == $this->get_option( Options::USE_FIXED_PRICE_ON_DELIVERY ) ) ) {
-                // Мінімальна сума для безкоштовної доставки визначена і не встановлена фіксована вартість доставки
-
-                if ( \get_option( 'mrkvnp_is_show_delivery_price' ) ) {
-                    // Show
-                    if ( $this->get_option( Options::FREE_SHIPPING_MIN_SUM ) <= $cartTotal ) {
-                        // Вартість кошику більше Мінімальної суми для безкоштовної доставки
-                        $rate['label'] = ( null != $this->get_option( Options::FREE_SHIPPING_TEXT ) ) ? $this->get_option( Options::FREE_SHIPPING_TEXT ) : $this->title;
-                        // $rate['cost'] = 0.00;
-                        // add_filter( 'woocommerce_cart_shipping_method_full_label', array($this, 'mrkv_display_zero_shipping_cost' ), 10, 2 );
-                    } else {
-                        // Вартість кошику менше Мінімальної суми для безкоштовної доставки
-                        if ( \get_option( 'mrkvnp_is_add_delivery_price' ) ) {
-                            $rate = apply_filters('woo_shipping_for_nova_poshta_before_add_rate', $rate, $cityRecipient);
-                        } else {
-                            // add_filter( 'woocommerce_cart_shipping_method_full_label', array($this, 'mrkv_display_custom_shipping_cost' ), 10, 2 );
-                            // $rate = apply_filters('woo_shipping_for_nova_poshta_before_add_rate', $rate, $cityRecipient);
-                        }
-                    }
-                } else {
-                    // Not show
-                    if ( $this->get_option( Options::FREE_SHIPPING_MIN_SUM ) <= $cartTotal ) {
-                        // Вартість кошику більше Мінімальної суми для безкоштовної доставки
-                        $rate['label'] = ( null != $this->get_option( Options::FREE_SHIPPING_TEXT ) ) ? $this->get_option( Options::FREE_SHIPPING_TEXT ) : $this->title;
-                        if ( \get_option( 'mrkvnp_is_add_delivery_price' ) ) {
-                            add_filter( 'woocommerce_cart_shipping_method_full_label', array($this, 'mrkv_no_display_shipping_cost' ), 10, 2 );
-                            // $rate = apply_filters('woo_shipping_for_nova_poshta_before_add_rate', $rate, $cityRecipient);
-                            $rate['cost'] = 0.00;
-                        } else {
-                            $rate['cost'] = 0.00;
-                        }
-                    } else {
-                        // Вартість кошику менше Мінімальної суми для безкоштовної доставки
-                        add_filter( 'woocommerce_cart_shipping_method_full_label', array($this, 'mrkv_no_display_shipping_cost' ), 10, 2 );
-                        $rate = apply_filters('woo_shipping_for_nova_poshta_before_add_rate', $rate, $cityRecipient);
-                    }
-                }
             }
+
+            if($this->get_option( Options::FREE_SHIPPING_MIN_SUM ) && $this->get_option( Options::FREE_SHIPPING_MIN_SUM ) <= $cartTotal ){
+                $rate['cost'] = 0.00;
+                $rate['label'] = ( null != $this->get_option( Options::FREE_SHIPPING_TEXT ) ) ? $this->get_option( Options::FREE_SHIPPING_TEXT ) : $this->title;
+                add_filter( 'woocommerce_cart_shipping_method_full_label', array($this, 'mrkv_no_display_shipping_cost' ), 10, 2 );
+            }
+
             $this->add_rate($rate);
         }
 

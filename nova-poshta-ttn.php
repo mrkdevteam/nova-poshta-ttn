@@ -4,7 +4,7 @@
  * Plugin Name: Shipping for Nova Poshta
  * Plugin URI: https://morkva.co.ua/shop/nova-poshta-ttn-pro-lifetime
  * Description: Плагін 2-в-1: спосіб доставки Нова Пошта та генерація накладних Нова Пошта.
- * Version: 1.18.4
+ * Version: 1.18.5
  * Author: MORKVA
  * Text Domain: nova-poshta-ttn
  * Domain Path: /i18n/
@@ -505,10 +505,10 @@ function pnp_adjust_shipping_rate($rates)
         if (isset($_COOKIE['city'])) {
             $billing_city = $_COOKIE['city'];
         }
-        if ( ( $rate->get_method_id() == 'nova_poshta_shipping_method' ) && ( \get_option( 'mrkvnp_is_add_delivery_price' ) ) ) {
+        if ( ( $rate->get_method_id() == 'nova_poshta_shipping_method' )) {
             $cost = $rate->cost;
             $rate->cost = $cost;
-        } elseif ( ( $rate->get_method_id() == 'nova_poshta_shipping_method' ) && ! ( \get_option( 'mrkvnp_is_add_delivery_price' ) ) ) {
+        } elseif ( ( $rate->get_method_id() == 'nova_poshta_shipping_method' )) {
             $rate->cost = 0;
         }
     }
@@ -519,7 +519,7 @@ add_filter('woocommerce_package_rates', 'pnp_adjust_shipping_rate', 50, 1);
 /*
 clear shipping rates cache because woocommerce caching these values
 */
-function clear_wc_shipping_rates_cache_np()
+/*function clear_wc_shipping_rates_cache_np()
 {
     $packages = WC()
         ->cart
@@ -533,7 +533,7 @@ function clear_wc_shipping_rates_cache_np()
             ->$shipping_session);
     }
 }
-add_filter('woocommerce_checkout_update_order_review', 'clear_wc_shipping_rates_cache_np');
+add_filter('woocommerce_checkout_update_order_review', 'clear_wc_shipping_rates_cache_np');*/
 
 // Add shipping price for 'Nova Poshta Poshtomat' ('nova_poshta_shipping_method_poshtomat') on Checkout page
 function mrkvnp_adjust_shipping_rate_poshtomat($rates)
@@ -541,10 +541,10 @@ function mrkvnp_adjust_shipping_rate_poshtomat($rates)
     global $woocommerce;
     $index = 0;
     foreach ($rates as $rate) {
-        if ( ( $rate->get_method_id() == 'nova_poshta_shipping_method_poshtomat' ) && \get_option( 'mrkvnp_is_add_delivery_price' ) ) {
+        if ( ( $rate->get_method_id() == 'nova_poshta_shipping_method_poshtomat' )) {
             $cost = $rate->cost;
-            $rate->cost = get_address_shipping_cost();
-        } elseif ( ( $rate->get_method_id() == 'nova_poshta_shipping_method_poshtomat' ) && ! \get_option( 'mrkvnp_is_add_delivery_price' ) ) {
+            $rate->cost = $cost;
+        } elseif ( ( $rate->get_method_id() == 'nova_poshta_shipping_method_poshtomat' )) {
             $rate->cost = 0;
         }
     }
@@ -558,10 +558,10 @@ function adjust_shipping_rate_np($rates)
     global $woocommerce;
     $index = 0;
     foreach ($rates as $rate) {
-        if ( ( $rate->get_method_id() == 'npttn_address_shipping_method' ) && \get_option( 'mrkvnp_is_add_delivery_price' ) ) {
+        if ( $rate->get_method_id() == 'npttn_address_shipping_method'  ) {
             $cost = $rate->cost;
-            $rate->cost = get_address_shipping_cost();
-        } elseif ( ( $rate->get_method_id() == 'npttn_address_shipping_method' ) && ! \get_option( 'mrkvnp_is_add_delivery_price' ) ) {
+            $rate->cost = $cost;
+        } elseif ( ( $rate->get_method_id() == 'npttn_address_shipping_method' ) ) {
             $rate->cost = 0;
         }
     }
@@ -576,7 +576,7 @@ function get_address_shipping_cost()
     $modal_settings = get_option( 'woocommerce_npttn_address_shipping_method_' . $method_index . '_settings' );
     if ( $modal_settings ) {
         $cart_total = intval(WC()->cart->get_total());
-        if ( $modal_settings['use_fixed_price_on_delivery'] && $modal_settings['fixed_price'] > 0 ) {
+        if ($modal_settings['use_shipping_price_on_delivery'] && $modal_settings['use_fixed_price_on_delivery'] && $modal_settings['fixed_price'] > 0 ) {
             return $modal_settings['fixed_price'];
         }
         if ( isset( $modal_settings['free_shipping_min_sum'] ) && $modal_settings['free_shipping_min_sum'] > 0 &&
@@ -591,7 +591,7 @@ function get_address_shipping_cost()
     if ($city == '' || $address == '') {
         return 0.00;
     } else {
-        return nova_poshta_address_delivery_calculate( $city, $address );
+        return 0.00;
     }
 }
 

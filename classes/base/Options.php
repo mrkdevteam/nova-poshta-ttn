@@ -28,6 +28,7 @@ class Options extends Base
     const API_KEY = 'api_key';
     const DEBUG = 'debug';
     const USE_FIXED_PRICE_ON_DELIVERY = 'use_fixed_price_on_delivery';
+    const USE_SHIPPING_PRICE_ON_DELIVERY = 'use_shipping_price_on_delivery';
     const FIXED_PRICE = 'fixed_price';
     const OPTION_CASH_ON_DELIVERY = 'on_delivery';
     const OPTION_FIXED_PRICE = 'fixed_price';

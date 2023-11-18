@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: Woo Shipping for Nova Poshta\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: Fri May 20 2016 22:39:49 GMT+0300 (Финляндия (лето))\n"
-"PO-Revision-Date: 2023-10-31 11:01+0200\n"
+"PO-Revision-Date: 2023-11-15 15:35+0200\n"
 "Last-Translator: admin <nezbryk@mail.ru>\n"
 "Language-Team: \n"
 "Language: ru\n"
@@ -143,6 +143,14 @@ msgstr ""
 #: ../classes/WC_NovaPoshta_Shipping_Method.php:110
 msgid "Set Fixed Price for Delivery."
 msgstr "Фиксированная цена на доставку"
+
+#: ../classes/WC_NovaPoshta_Shipping_Method.php:110
+msgid "Enable Price for Delivery."
+msgstr "Активировать стоимость доставки"
+
+#: ../classes/WC_NovaPoshta_Shipping_Method.php:110
+msgid "If checked, shipping price will be add for delivery."
+msgstr "Если выбрано, стоимость доставки будет добавлена к заказу"
 
 #: ../classes/WC_NovaPoshta_Shipping_Method.php:111
 msgid "If checked, fixed price will be set for delivery."
