@@ -8,7 +8,7 @@ Stable tag: 1.18.5
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Доставка на відділення, поштомат та адресу (з автопошуком вулиць). Створення ТТН.
+Доставка на відділення, поштомат та адресу (з автопошуком вулиць). Створення ТТН. Вбудований checkout-manager.
 
 == Description ==
 
