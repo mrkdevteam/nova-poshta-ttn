@@ -145,9 +145,10 @@ class MNP_Plugin_Loader
             add_action('manage_shop_order_posts_custom_column', array( $this, 'woo_column_get_data' ));
         }
 
-        add_action('add_meta_boxes', array( $this, 'add_invoice_meta_box' ));
-
         add_filter('wp_mail_from_name', array( $this, 'my_mail_from_name' ));
+
+        add_action( 'wp_ajax_mrkv_np_remove_ttn', array( $this, 'mrkv_np_remove_ttn_func' ) ); 
+        add_action( 'wp_ajax_nopriv_mrkv_np_remove_ttn', array( $this, 'mrkv_np_remove_ttn_func' ) );
     }
     /**
      * Add a new action to the collection to be registered with WordPress.
@@ -1247,15 +1248,18 @@ class MNP_Plugin_Loader
             if (isset($order_id)) {
                 $order_data = wc_get_order($order_id);
                 $order = $order_data->get_data();
-                // $_SESSION['order_data'] = $order;
-                // $_SESSION['order_id'] = $order_id;
             }
-            echo '<img src="'.NOVA_POSHTA_TTN_SHIPPING_PLUGIN_URL.'/includes/nova_poshta_25px.png"
-         style="height: 25px;width: 25px; margin-right: 20px; margin-top: 2px;">';
-            // echo "<a class='button button-primary send' href='admin.php?page=morkvanp_invoice'>Створити накладну</a>";
-            echo "<a class='button button-primary send' href='admin.php?page=morkvanp_invoice&post=$order_id'>Створити накладну</a>";
-        //  echo "<script src='". PLUGIN_URL . "public/js/script.js'></script>";
-            //  echo "<link href='". PLUGIN_URL . "public/css/style.css' />";
+            echo '<h4 style="margin-bottom:5px;">' . __('Створити накладну', 'nova-poshta-ttn') . '</h4>';
+            echo '<div><img src="'.NOVA_POSHTA_TTN_SHIPPING_PLUGIN_URL.'/includes/nova_poshta_25px.png"
+                style="height: 25px;width: 25px; margin-right: 20px; margin-top: 2px;">';
+            echo "<a class='button button-primary send' href='admin.php?page=morkvanp_invoice&post=$order_id'>Створити</a></div>";
+            echo '<h4 style="margin-bottom:5px;">' . __('Додати вручну створену накладну', 'nova-poshta-ttn') . '</h4>';
+            echo '<p style="color:#dc3232; margin-top:0;">Лише у Про-версії</p>';
+            echo '<div style="opacity: 0.7;"><input disabled type="text" name="mrkv_np_add_custom_ttn" value=""><span class="button button-primary mrkv_np_add_custom_ttn__send">' . __('Додати', 'nova-poshta-ttn') . '</span></div>';
+            echo '<h4 style="margin-bottom:5px;">' . __('Накладна', 'nova-poshta-ttn') . '</h4>';
+            
+            $this->invoice_meta_box_info($order_id);
+
         } else {
             if ( ! \get_option( 'mrkvnp_invoice_payer' ) ) {
                 echo '<style>#npttn_newttn{display:none;}</style>';
@@ -1280,7 +1284,7 @@ class MNP_Plugin_Loader
             $screen = 'shop_order';
         }
 
-        add_meta_box('npttn_newttn', __('Відправлення Нова Пошта', 'woocommerce'), array( $this, 'add_plugin_meta_box' ), $screen, 'side', 'core');
+        add_meta_box('npttn_newttn', __('Нова Пошта', 'woocommerce'), array( $this, 'add_plugin_meta_box' ), $screen, 'side', 'core');
     }
 
     /**
@@ -1361,45 +1365,12 @@ class MNP_Plugin_Loader
     }
 
     /**
-     * Add meta box with invoice information
-     *
-     * @since 1.1.0
-     */
-    public function add_invoice_meta_box()
-    {
-        if (isset($_GET["post"]) || isset($_GET["id"])) {
-            # Check hpos
-            if(class_exists( CustomOrdersTableController::class )){
-                $screen = wc_get_container()->get( CustomOrdersTableController::class )->custom_orders_table_usage_is_enabled()
-                ? wc_get_page_screen_id( 'shop-order' )
-                : 'shop_order';
-            }
-            else{
-                $screen = 'shop_order';
-            }
-            
-            add_meta_box('invoice_other_fields', __('Накладна', 'woocommerce'), array( $this, 'invoice_meta_box_info' ), $screen, 'side');
-        }
-    }
-
-    /**
      * Add info of invoice meta box
      *
      * @since 1.1.0
      */
-    public function invoice_meta_box_info()
+    public function invoice_meta_box_info($order_id)
     {
-        if (isset($_GET["post"]))
-        {
-            $order_id = $_GET["post"];
-        }
-        elseif(isset($_GET["id"])){
-            $order_id = $_GET["id"];
-        }
-        else{
-            return;
-        }
-
         global $wpdb;
         $api_key = get_option('mrkvnp_sender_api_key');
         $selected_order = wc_get_order($order_id);
@@ -1421,6 +1392,20 @@ class MNP_Plugin_Loader
             echo 'Номер накладної: ' . $meta_ttn;
             echo '<a style="margin: 5px;" href="https://my.novaposhta.ua/orders/printDocument/orders[]/' .  $invoice_number . '/type/pdf/apiKey/' .  $api_key . '" class="button" target="_blank">' . '<img src="' . plugins_url('img/004-printer.png', __FILE__) . '" height="15" width="15" />' . ' Друк накладної</a>';
             echo '<a style="margin: 5px;" href="https://my.novaposhta.ua/orders/printMarkings/orders[]/' . $invoice_number . '/type/pdf/apiKey/' . $api_key . '" class="button" target="_blank">' . '<img src="' . plugins_url('img/003-barcode.png', __FILE__) . '" height="15" width="15"  />' . ' Друк стікера</a>';
+            echo '<div style="margin: 5px;" href="" class="button mrkv-np-remove-ttn" target="_blank">' . '<img src="' . plugins_url('img/001-delete-button.png', __FILE__) . '" height="15" width="15"  />' . __('Видалити накладну', 'nova-poshta-ttn') . '</div>';
+            echo '<script>
+                jQuery(".mrkv-np-remove-ttn").click(function(event){
+                    event.preventDefault();
+                    jQuery.ajax({
+                        url: "'. admin_url( "admin-ajax.php" ) . '",
+                        type: "POST",
+                        data: "action=mrkv_np_remove_ttn&order_id=' . $order_id . '&ttn=' . $invoice_number . '", 
+                        success: function( data ) {
+                            location.reload();
+                        }
+                    });
+                });
+            </script>';
 
 
             $api_key = get_option('mrkvnp_sender_api_key');
@@ -1477,6 +1462,77 @@ class MNP_Plugin_Loader
         } else {
             echo 'Номер накладної: -';
         }
+    }
+
+    /**
+     * Remove invoice 
+     * */
+    public function mrkv_np_remove_ttn_func()
+    {
+        # Check order id
+        if(isset($_POST['order_id']) && isset($_POST['ttn']))
+        {
+            # Get order data
+            $invoice_number = $_POST['ttn'];
+            $order_id = $_POST['order_id'];
+
+            # Get api key
+            $api_key = get_option('mrkvnp_sender_api_key');
+            $api_url = 'https://api.novaposhta.ua/v2.0/json/';
+
+            # Get invoice ref
+            global $wpdb;
+            $resultstring = "SELECT `invoice_ref` FROM {$wpdb->prefix}novaposhta_ttn_invoices WHERE `order_id` = '{$order_id}'";
+            $invoice_ref = $wpdb->get_var($resultstring);
+
+            # Check invoice ref
+            if($invoice_ref)
+            {
+                # Set method delete
+                $methodProperties_delete = array(
+                    "DocumentRefs" => $invoice_ref
+                );
+
+                # Create params for delete
+                $deleteBulkInvoices = array(
+                    "apiKey" => $api_key,
+                    "modelName" => "InternetDocument",
+                    "calledMethod" => "delete",
+                    "methodProperties" => $methodProperties_delete
+                );
+
+                # Set args data
+                $args = array(
+                    'timeout' => 30,
+                    'redirection' => 10,
+                    'httpversion' => '1.0',
+                    'blocking' => true,
+                    'headers' => array( "content-type" => "application/json" ),
+                    'body' => \json_encode( $deleteBulkInvoices ),
+                    'cookies' => array(),
+                    'sslverify' => false,
+                );
+
+                # Send request 
+                $response = wp_remote_post( $api_url, $args );
+
+                # Set database name
+                $delete_table_name = $wpdb->prefix . 'novaposhta_ttn_invoices';
+                # Set database name
+                $delete_table_name_meta = $wpdb->prefix . 'postmeta';
+                
+                # Delete ttn meta
+                delete_post_meta( $order_id , "novaposhta_ttn" );
+
+                # Delete ttn from db
+                $delete_from_db = $wpdb->delete( $delete_table_name, array( 'invoice_ref' => $invoice_ref ) );
+
+                # Delete ttn from db
+                $delete_from_db = $wpdb->delete( $delete_table_name_meta, array( 'post_id' => $order_id, 'meta_key' => 'novaposhta_ttn' ) );
+            }
+
+            die;
+        }   
     }
 
     /**

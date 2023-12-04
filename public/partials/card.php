@@ -6,10 +6,12 @@
 			</div>
 			<div class="card-body">
 				<p>
-					Якщо у вас виникли проблеми із створенням накладної або щось інше, то звертайтесь до нашої підтримки в Facebook.
+					Якщо у вас виникли проблеми із створенням накладної або щось інше, то звертайтесь до нашої підтримки.
 				</p>
+				<h5><a href="mailto:support@morkva.co.ua" class="wpbtn button" target="_blank"> Написати</a></h5>
 				<h5><a href="https://t.me/morkva_support_bot" class="wpbtn button" target="_blank"><?php echo '<img class="imginwpbtn" src="' .
-					plugins_url('img/telegram.png', __FILE__) . '" />'; ?> Написати в чат</a></h5>
+					plugins_url('img/telegram.png', __FILE__) . '" />'; ?> Написати</a></h5>
+
 
 				<p>Щось не працює? (версія <?php echo MNP_PLUGIN_VERSION; ?>)<br>Можливо в оновленій версії уже вирішена ваша проблема.</p>
 				<?php
@@ -22,30 +24,18 @@
 			</div>
 		</div>
 	</div>
-	<?php
-
-		$path = NOVA_POSHTA_TTN_SHIPPING_PLUGIN_DIR . '/public/partials/morkvanp-plugin-invoices-page.php';
-		if (!file_exists($path)) { ?>
-			<div class="card">
-				<div class="card-header">
-					<h3>Pro версія</h3>
-				</div>
-				<div class="card-body">
-					<p></p>
-					<ul>
-						<li>Зворотній платіж (післяплата)</li>
-						<li>Автоматичне створення накладних при оформленні замовлення</li>
-						<li>Відслідкувати статуси відправлень</li>
-						<li>Змінити оголошену вартість</li>
-						<li>... та багато іншого</li>
-					</ul>
-					Оновіться до Pro-версії зараз!
-					<p></p>
-					<h5>
-						<a href="https://www.morkva.co.ua/woocommerce-plugins/avtomatychna-heneratsiia-nakladnykh-nova-poshta/" class="button button-primary">Хочу Pro</a>
-					</h5>
-				</div>
+	<div class="updatedpro mtb16 p0" >
+		<div class="card">
+			<div class="card-header">
+				<h3>Про версія</h3>
 			</div>
-	<?php } ?>
+			<div class="card-body">
+				<p>Отримайте більше функціоналу з Про-версією</p>
+				<h5>
+					<a href="https://morkva.co.ua/shop/nova-poshta-ttn-pro-lifetime/" class="button button-primary">Детальніше</a>
+				</h5>
+			</div>
+		</div>
+	</div>
 	<div class="clear"></div>
 </div>
