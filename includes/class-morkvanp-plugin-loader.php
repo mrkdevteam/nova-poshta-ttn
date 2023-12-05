@@ -149,6 +149,12 @@ class MNP_Plugin_Loader
 
         add_action( 'wp_ajax_mrkv_np_remove_ttn', array( $this, 'mrkv_np_remove_ttn_func' ) ); 
         add_action( 'wp_ajax_nopriv_mrkv_np_remove_ttn', array( $this, 'mrkv_np_remove_ttn_func' ) );
+
+        # Add order column
+        add_filter( 'woocommerce_account_orders_columns', array( $this, 'mrkv_np_add_account_orders_column' ), 10, 1 );
+
+        add_action( 'woocommerce_my_account_my_orders_column_order-ship-to', array( $this, 'mrkv_np_add_account_orders_column_rows' ) );
+
     }
     /**
      * Add a new action to the collection to be registered with WordPress.
@@ -1560,5 +1566,64 @@ class MNP_Plugin_Loader
         var_dump($variable);
         // print_r($variable);
         echo '</pre>';
+    }
+
+    /**
+     * Add custom column to my account
+     * @param array All columns
+     * @return array All columns
+     * */
+    public function mrkv_np_add_account_orders_column($columns)
+    {
+        # Create new column
+        $new_columns = array();
+
+        # Loop all columns
+        foreach ($columns as $key => $name) 
+        {
+            $new_columns[ $key ] = $name;
+
+            # Add ship-to after order status column
+            if ('order-status' === $key) 
+            {
+                $new_columns['order-ship-to'] = __('НП ТТН', 'nova-poshta-ttn');
+            }
+        }
+        return $new_columns;
+    }
+
+    /**
+     * Add content to custom column My account
+     * @param object Order
+     * */
+    public function mrkv_np_add_account_orders_column_rows($order)
+    {
+        # Get order id
+        $order_id = $order->get_id();
+
+        # Get ttn data
+        $meta_ttn = get_post_meta($order_id, 'novaposhta_ttn', true);
+
+        # Legacy support
+        if (empty($meta_ttn)) 
+        {
+            # Get ttn from database
+            global $wpdb;
+            $result = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}novaposhta_ttn_invoices WHERE order_id = '$order_id'", ARRAY_A);
+
+            # Check reult
+            if (isset($result[0]['order_invoice'])) 
+            {
+                $meta_ttn = $result[0]['order_invoice'];
+            }
+        }
+
+        if($meta_ttn)
+        {
+            echo '<a target="_blank" href=https://novaposhta.ua/tracking/?cargo_number='.$meta_ttn.'>' . $meta_ttn . '</a>';
+        }
+        else{
+            echo '-';
+        }
     }
 }

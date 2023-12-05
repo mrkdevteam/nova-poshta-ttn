@@ -4,7 +4,7 @@
  * Plugin Name: Shipping for Nova Poshta
  * Plugin URI: https://morkva.co.ua/shop/nova-poshta-ttn-pro-lifetime
  * Description: Плагін 2-в-1: спосіб доставки Нова Пошта та генерація накладних Нова Пошта.
- * Version: 1.18.7
+ * Version: 1.18.8
  * Author: MORKVA
  * Text Domain: nova-poshta-ttn
  * Domain Path: /i18n/
@@ -894,29 +894,3 @@ function mrkv_np_remove_notice_ajax(){
     /* Delete transient, only display this notice once. */
     delete_transient( 'mrkv-admin-novaposhta-settings' );
 }
-
-
-
-function np_wc_add_my_account_orders_column($columns)
-{
-    $new_columns = array();
-    foreach ($columns as $key => $name) {
-        $new_columns[ $key ] = $name;
-        // add ship-to after order status column
-        if ('order-status' === $key) {
-            $new_columns['order-ship-to'] = __('TTN', 'textdomain');
-        }
-    }
-    return $new_columns;
-}
-
-add_filter('woocommerce_my_account_my_orders_columns', 'np_wc_add_my_account_orders_column');
-
-function np_wc_my_orders_ship_to_column($order)
-{
-    $outputdataid = get_post_meta($order->get_id(), 'novaposhta_ttn', true);
-    $link = '<a target="_blank" href=https://novaposhta.ua/tracking/?cargo_number='.$outputdataid.'>ТТН</a>';
-    echo ! empty($outputdataid) ? $link : '–';
-}
-add_action('woocommerce_my_account_my_orders_column_order-ship-to', 'np_wc_my_orders_ship_to_column');
-

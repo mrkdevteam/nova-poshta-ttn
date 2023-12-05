@@ -4,7 +4,7 @@ Tags: Nova Poshta, нова пошта, новая почта, nova post
 Requires at least: 5.0
 Tested up to: 6.3
 Requires PHP: 7.0
-Stable tag: 1.18.7
+Stable tag: 1.18.8
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -82,6 +82,9 @@ https://youtu.be/YAW4wtwHTB0
 
 
 == Що нового? ==
+
+= 1.18.8 =
+* [new] додали вивід ТТН у переліку замовлень на сторінці "Мій акаунт"
 
 = 1.18.7 =
 * [new] змінили блок оформлення ТТН у замовленні
