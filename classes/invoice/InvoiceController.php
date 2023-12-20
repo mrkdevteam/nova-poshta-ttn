@@ -341,6 +341,11 @@ class InvoiceController {
 	$orderObj = $this->getOrderObj( $this->order_id );
 	$recipient_address_ref = $orderObj->get_meta('_billing_nova_poshta_warehouse')
 		?? $orderObj->get_meta('_shipping_nova_poshta_warehouse');
+
+	if(!$recipient_address_ref){
+		$recipient_address_ref = $orderObj->get_meta('_shipping_nova_poshta_warehouse');
+	}
+
 	$orderPaymentMethod = $orderObj->get_payment_method();
 	$dimentions = $this->invoiceModel()->calcOrderDimensions( $this->getOrderData( $this->order_id ) );
 		    $max_length_prod = $dimentions[0];
