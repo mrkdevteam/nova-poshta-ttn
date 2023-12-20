@@ -37,20 +37,23 @@ class Customer extends Base
      */
     public function getMetadata($key, $location)
     {
-        if (method_exists($this->wooCustomer, 'get_meta_data')) {
-            $data = $this->wooCustomer->get_meta_data();
-            /** @var WC_Meta_Data $item */
-            foreach ($data as $item) {
-                $itemData = $item->get_data();
-                if ($itemData['key'] === $location . '_' . $key) {
-                    return $itemData['value'];
+        if($this->wooCustomer){
+            if (method_exists($this->wooCustomer, 'get_meta_data')) {
+                $data = $this->wooCustomer->get_meta_data();
+                /** @var WC_Meta_Data $item */
+                foreach ($data as $item) {
+                    $itemData = $item->get_data();
+                    if ($itemData['key'] === $location . '_' . $key) {
+                        return $itemData['value'];
+                    }
                 }
+                return '';
+            } else {
+                //for backward compatibility with woocommerce 2.x.x
+                return '';
             }
-            return '';
-        } else {
-            //for backward compatibility with woocommerce 2.x.x
-            return '';
         }
+        return '';
     }
 
     /**

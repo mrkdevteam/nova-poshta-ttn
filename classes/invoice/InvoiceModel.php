@@ -1,6 +1,7 @@
 <?php
 
 namespace plugins\NovaPoshta\classes\invoice;
+use Automattic\WooCommerce\Utilities\OrderUtil;
 
 // If this file is called directly, abort.
 defined( 'ABSPATH' ) or die();
@@ -90,11 +91,27 @@ class InvoiceModel
                 ! empty( $_POST['mrkvnp_invoice_recipient_middle_name'] ) ) {
             return \sanitize_text_field( $_POST['mrkvnp_invoice_recipient_middle_name'] );
         }
-        if ( ! empty( get_post_meta( $order_id, '_billing_mrkvnp_patronymics', true ) ) ) {
-            return get_post_meta( $order_id, '_billing_mrkvnp_patronymics', true );
+        if(class_exists( \Automattic\WooCommerce\Utilities\OrderUtil::class ) && OrderUtil::custom_orders_table_usage_is_enabled())
+        {
+            $order = wc_get_order( $order_id );
+
+            if ( ! empty( $order->get_meta('_billing_mrkvnp_patronymics') ) ) {
+                return $order->get_meta('_billing_mrkvnp_patronymics');
+            }
+            if ( ! empty( $order->get_meta('_shipping_mrkvnp_patronymics') ) ) {
+                return $order->get_meta('_shipping_mrkvnp_patronymics');
+            }
+
+            $order->save();
         }
-        if ( ! empty( get_post_meta( $order_id, '_shipping_mrkvnp_patronymics', true ) ) ) {
-            return get_post_meta( $order_id, '_shipping_mrkvnp_patronymics', true );
+        else
+        {
+            if ( ! empty( get_post_meta( $order_id, '_billing_mrkvnp_patronymics', true ) ) ) {
+                return get_post_meta( $order_id, '_billing_mrkvnp_patronymics', true );
+            }
+            if ( ! empty( get_post_meta( $order_id, '_shipping_mrkvnp_patronymics', true ) ) ) {
+                return get_post_meta( $order_id, '_shipping_mrkvnp_patronymics', true );
+            }
         }
         return '';
     }
@@ -676,7 +693,16 @@ class InvoiceModel
             );
             $order = \wc_get_order( $order_id ); // Get current order object
             // Update invoice number in meta box 'Накладна' in the admin order edit page (right sidebar)
-            update_post_meta( $order_id, 'novaposhta_ttn', $order_invoice );
+
+            if(class_exists( \Automattic\WooCommerce\Utilities\OrderUtil::class ) && OrderUtil::custom_orders_table_usage_is_enabled())
+            {
+                $order->update_meta_data( 'novaposhta_ttn', $order_invoice );
+            }
+            else
+            {
+                update_post_meta( $order_id, 'novaposhta_ttn', $order_invoice );                
+            }
+            
             // Add a custom order note in the admin order edit page (right sidebar)
             $order->add_order_note( 'Номер накладної: ' . $order_invoice . '. Нова Пошта' );
             $order->save();
@@ -943,9 +969,21 @@ class InvoiceModel
                     $invoiceData = $wpdb->get_results( "SELECT * FROM `" . $delete_table_name . "` WHERE  invoice_ref = '" . $document_ref . "'", ARRAY_A );
                     $order_id = $invoiceData[$i]['order_id'];
                     $orderinvoices[$i] = $invoiceData[$i]['order_invoice'];
-                    if ( get_post_meta( $order_id, "novaposhta_ttn") == $orderinvoices[$i] ) {
-                        delete_post_meta( $order_id , "novaposhta_ttn" );
+                    if(class_exists( \Automattic\WooCommerce\Utilities\OrderUtil::class ) && OrderUtil::custom_orders_table_usage_is_enabled())
+                    {
+                        $order = wc_get_order( $order_id );
+                        if ( $order->get_meta('novaposhta_ttn') == $orderinvoices[$i] ) {
+                            $order->delete_meta_data( "novaposhta_ttn" );
+                        }
+                        $order->save();
                     }
+                    else
+                    {
+                        if ( get_post_meta( $order_id, "novaposhta_ttn") == $orderinvoices[$i] ) {
+                            delete_post_meta( $order_id , "novaposhta_ttn" );
+                        } 
+                    }
+                    
                     $delete_from_db = $wpdb->delete( $delete_table_name, array( 'invoice_ref' => $document_ref ) );
                 }
                 if ( $obj['errors'] ) {

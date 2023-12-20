@@ -283,7 +283,11 @@ class Sender extends Singleton
             return $obj['data'][0]['Ref'];
         }
         else{
-            return '';
+            $ref = '';
+            if (get_option('mrkvnp_invoice_sender_warehouse_ref')) {
+                $ref = get_option('mrkvnp_invoice_sender_warehouse_ref');
+            }
+            return $ref;
         }
     }
 

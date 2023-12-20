@@ -10,6 +10,7 @@ use plugins\NovaPoshta\classes\Checkout;
 use plugins\NovaPoshta\classes\City;
 use plugins\NovaPoshta\classes\Warehouse;
 use plugins\NovaPoshta\classes\Poshtomat;
+use Automattic\WooCommerce\Utilities\OrderUtil;
 
 /**
  * Class Calculator
@@ -90,26 +91,79 @@ class CheckoutAddress extends Checkout
     public function addDefaultPatronymicsBillingCustomField($order)
     {
         $order_id = method_exists( $order, 'get_id' ) ? $order->get_id() : $order->id;
-        if ( ! empty( get_post_meta( $order_id, '_billing_mrkvnp_patronymics', true ) ) ) {
-            $patronymics = get_post_meta( $order_id, '_billing_mrkvnp_patronymics', true );
+
+        if(class_exists( \Automattic\WooCommerce\Utilities\OrderUtil::class ) && OrderUtil::custom_orders_table_usage_is_enabled())
+        {
+            $order = wc_get_order( $order_id );
+
+            if ( ! empty( $order->get_meta('_billing_mrkvnp_patronymics') ) ) {
+                $patronymics = $order->get_meta('_billing_mrkvnp_patronymics');
+            }
+            if ( isset( $patronymics ) ) {
+                if(!$order->get_meta('np_patronymics_name'))
+                {
+                    $order->add_meta_data( 'np_patronymics_name', $patronymics );
+                }
+                echo '<p><strong style="margin-left: 3px;">' . __( 'По батькові', NOVA_POSHTA_TTN_DOMAIN ) .
+                    ':</strong> ' . $patronymics . '</p>';
+            }
+
+            $order->save();
         }
-        if ( isset( $patronymics ) ) {
-            add_post_meta( $order_id, 'np_patronymics_name', $patronymics, true );
-            echo '<p><strong style="margin-left: 3px;">' . __( 'По батькові', NOVA_POSHTA_TTN_DOMAIN ) .
-                ':</strong> ' . $patronymics . '</p>';
+        else
+        {
+            if ( ! empty( get_post_meta( $order_id, '_billing_mrkvnp_patronymics', true ) ) ) {
+                $patronymics = get_post_meta( $order_id, '_billing_mrkvnp_patronymics', true );
+            }
+            if ( isset( $patronymics ) ) {
+                if(!get_post_meta( $order_id, 'np_patronymics_name', true ))
+                {
+                    add_post_meta( $order_id, 'np_patronymics_name', $patronymics, true );    
+                }
+                
+                echo '<p><strong style="margin-left: 3px;">' . __( 'По батькові', NOVA_POSHTA_TTN_DOMAIN ) .
+                    ':</strong> ' . $patronymics . '</p>';
+            }
         }
     }
 
     public function addDefaultPatronymicsShippingCustomField($order)
     {
         $order_id = method_exists( $order, 'get_id' ) ? $order->get_id() : $order->id;
-        if ( ! empty( get_post_meta( $order_id, '_shipping_mrkvnp_patronymics', true ) ) ) {
-            $patronymics = get_post_meta( $order_id, '_shipping_mrkvnp_patronymics', true );
+
+        if(class_exists( \Automattic\WooCommerce\Utilities\OrderUtil::class ) && OrderUtil::custom_orders_table_usage_is_enabled())
+        {
+            $order = wc_get_order( $order_id );
+
+            if ( ! empty( $order->get_meta('_shipping_mrkvnp_patronymics') ) ) {
+                $patronymics = $order->get_meta('_shipping_mrkvnp_patronymics');
+            }
+            if ( isset( $patronymics ) && ! empty( $patronymics ) ) {
+                if(!$order->get_meta('np_patronymics_name'))
+                {
+                    $order->add_meta_data( 'np_patronymics_name', $patronymics );
+                }
+                
+                echo '<p><strong style="margin-left: 3px;">' . __( 'По батькові', NOVA_POSHTA_TTN_DOMAIN ) .
+                    ':</strong> ' . $patronymics . '</p>';
+            }
+
+            $order->save();
         }
-        if ( isset( $patronymics ) && ! empty( $patronymics ) ) {
-            add_post_meta( $order_id, 'np_patronymics_name', $patronymics, true );
-            echo '<p><strong style="margin-left: 3px;">' . __( 'По батькові', NOVA_POSHTA_TTN_DOMAIN ) .
-                ':</strong> ' . $patronymics . '</p>';
+        else
+        {
+            if ( ! empty( get_post_meta( $order_id, '_shipping_mrkvnp_patronymics', true ) ) ) {
+                $patronymics = get_post_meta( $order_id, '_shipping_mrkvnp_patronymics', true );
+            }
+            if ( isset( $patronymics ) && ! empty( $patronymics ) ) {
+                if(!get_post_meta( $order_id, 'np_patronymics_name', true ))
+                {
+                    add_post_meta( $order_id, 'np_patronymics_name', $patronymics, true );    
+                }
+                
+                echo '<p><strong style="margin-left: 3px;">' . __( 'По батькові', NOVA_POSHTA_TTN_DOMAIN ) .
+                    ':</strong> ' . $patronymics . '</p>';
+            }
         }
     }
 
@@ -117,59 +171,197 @@ class CheckoutAddress extends Checkout
     {
         // Add 'np_street_name' custom field on 'Edit order' admin page
         $order_id = method_exists( $order, 'get_id' ) ? $order->get_id() : $order->id;
-        if ( ! empty( get_post_meta( $order_id, '_billing_mrkvnp_street', true ) ) ) {
-            $streetName = get_post_meta( $order_id, '_billing_mrkvnp_street', true );
-        } else {
-            $streetName = get_post_meta( $order_id, '_shipping_mrkvnp_street', true );
+
+        if(class_exists( \Automattic\WooCommerce\Utilities\OrderUtil::class ) && OrderUtil::custom_orders_table_usage_is_enabled())
+        {
+            $order = wc_get_order( $order_id );
+
+            if ( ! empty( $order->get_meta('_billing_mrkvnp_street') ) ) {
+                $streetName = $order->get_meta('_billing_mrkvnp_street');
+            } else {
+                $streetName = $order->get_meta('_shipping_mrkvnp_street');
+            }
+            if ( $streetName )
+            {
+                if(!$order->get_meta('np_street_name'))
+                {
+                    $order->add_meta_data( 'np_street_name', $streetName );
+                }
+            } 
+
+            $order->save();
         }
-        if ( $streetName ) add_post_meta( $order_id, 'np_street_name', $streetName, true );
+        else
+        {
+            if ( ! empty( get_post_meta( $order_id, '_billing_mrkvnp_street', true ) ) ) {
+                $streetName = get_post_meta( $order_id, '_billing_mrkvnp_street', true );
+            } else {
+                $streetName = get_post_meta( $order_id, '_shipping_mrkvnp_street', true );
+            }
+            if ( $streetName )
+            {
+                if(!get_post_meta( $order_id, 'np_street_name', true ))
+                {
+                    add_post_meta( $order_id, 'np_street_name', $streetName, true );
+                }
+            } 
+        }
     }
 
     public function addDefaultRegionCustomField($order) {
         // Add 'np_region_ref' custom field on 'Edit order' admin page
         $order_id = method_exists( $order, 'get_id' ) ? $order->get_id() : $order->id;
-        if ( ! empty( get_post_meta( $order_id, '_billing_nova_poshta_city', true ) ) ) {
-            $regionRef = get_post_meta( $order_id, '_billing_nova_poshta_city', true );
-        } else {
-            $regionRef = get_post_meta( $order_id, '_shipping_nova_poshta_city', true );
+
+        if(class_exists( \Automattic\WooCommerce\Utilities\OrderUtil::class ) && OrderUtil::custom_orders_table_usage_is_enabled())
+        {
+            $order = wc_get_order( $order_id );
+
+            if ( ! empty( $order->get_meta('_billing_nova_poshta_city')) ) {
+                $regionRef = $order->get_meta('_billing_nova_poshta_city');
+            } else {
+                $regionRef = $order->get_meta('_shipping_nova_poshta_city');
+            }
+            if ( $regionRef )
+            {
+                if(!$order->get_meta('np_region_ref'))
+                {
+                   $order->add_meta_data( 'np_region_ref', $regionRef ); 
+                }
+            } 
+
+            $order->save();
         }
-        if ( $regionRef ) add_post_meta( $order_id, 'np_region_ref', $regionRef, true );
+        else
+        {
+            if ( ! empty( get_post_meta( $order_id, '_billing_nova_poshta_city', true ) ) ) {
+                $regionRef = get_post_meta( $order_id, '_billing_nova_poshta_city', true );
+            } else {
+                $regionRef = get_post_meta( $order_id, '_shipping_nova_poshta_city', true );
+            }
+            if ( $regionRef )
+            {
+                if(!get_post_meta( $order_id, 'np_region_ref', true ))
+                {
+                   add_post_meta( $order_id, 'np_region_ref', $regionRef, true ); 
+                }
+            } 
+        }
     }
 
     public function addDefaultCityCustomField($order) {
         // Add 'np_city_ref' custom field on 'Edit order' admin page
         $order_id = method_exists( $order, 'get_id' ) ? $order->get_id() : $order->id;
-        if ( ! empty( get_post_meta( $order_id, '_billing_nova_poshta_city', true ) ) ) {
-            $cityRef = get_post_meta( $order_id, '_billing_nova_poshta_city', true );
-        } else {
-            $cityRef = get_post_meta( $order_id, '_shipping_nova_poshta_city', true );
+
+        if(class_exists( \Automattic\WooCommerce\Utilities\OrderUtil::class ) && OrderUtil::custom_orders_table_usage_is_enabled())
+        {
+            $order = wc_get_order( $order_id );
+
+            if ( ! empty( $order->get_meta('_billing_nova_poshta_city') ) ) {
+                $cityRef = $order->get_meta('_billing_nova_poshta_city');
+            } else {
+                $cityRef = $order->get_meta('_shipping_nova_poshta_city');
+            }
+            if ( $cityRef )
+            {
+                if(!$order->get_meta('np_city_ref'))
+                {
+                    $order->add_meta_data( 'np_city_ref', $cityRef );
+                }
+            } 
+
+            $order->save();
         }
-        if ( $cityRef ) add_post_meta( $order_id, 'np_city_ref', $cityRef, true );
+        else
+        {
+            if ( ! empty( get_post_meta( $order_id, '_billing_nova_poshta_city', true ) ) ) {
+                $cityRef = get_post_meta( $order_id, '_billing_nova_poshta_city', true );
+            } else {
+                $cityRef = get_post_meta( $order_id, '_shipping_nova_poshta_city', true );
+            }
+            if ( $cityRef )
+            {
+                if(!get_post_meta( $order_id, 'np_city_ref', true ))
+                {
+                    add_post_meta( $order_id, 'np_city_ref', $cityRef, true );
+                }  
+            } 
+        }
     }
 
     public function addDefaultShippingPhoneCustomField($order) {
         // Add 'np_shipping_phone' custom field on 'Edit order' admin page
         $shippingPhone = '';
         $order_id = method_exists( $order, 'get_id' ) ? $order->get_id() : $order->id;
-        if ( ! empty( get_post_meta( $order_id, '_shipping_phone', true ) ) ) {
-            $shippingPhone = get_post_meta( $order_id, '_shipping_phone', true );
+
+        if(class_exists( \Automattic\WooCommerce\Utilities\OrderUtil::class ) && OrderUtil::custom_orders_table_usage_is_enabled())
+        {
+            $order = wc_get_order( $order_id );
+
+            if ( ! empty( $order->get_shipping_phone() ) ) {
+                $shippingPhone = $order->get_shipping_phone();
+            }
+            if ( $shippingPhone )
+            {
+                if(!$order->get_meta('np_shipping_phone'))
+                {
+                    $order->add_meta_data( 'np_shipping_phone', $shippingPhone );
+                }
+            } 
+
+            $order->save();
         }
-        if ( $shippingPhone ) add_post_meta( $order_id, 'np_shipping_phone', $shippingPhone, true );
+        else
+        {
+            if ( ! empty( get_post_meta( $order_id, '_shipping_phone', true ) ) ) {
+                $shippingPhone = get_post_meta( $order_id, '_shipping_phone', true );
+            }
+            if ( $shippingPhone )
+            {
+                if(!get_post_meta( $order_id, 'np_shipping_phone', true ))
+                {
+                    add_post_meta( $order_id, 'np_shipping_phone', $shippingPhone, true );
+                }
+            } 
+        }
     }
 
     public function displayBillingPatronymicsInOrderMeta($order)
     {
-        if ( get_post_meta( $order->get_id(), '_billing_mrkvnp_patronymics' ) ) {
-            echo '<p><strong>' . __( 'По батькові', NOVA_POSHTA_TTN_DOMAIN ) .':</strong><br> ' .
-                get_post_meta( $order->get_id(), 'np_patronymics_name', true ) . '</p>';
+        if(class_exists( \Automattic\WooCommerce\Utilities\OrderUtil::class ) && OrderUtil::custom_orders_table_usage_is_enabled())
+        {
+            if ( $order->get_meta('_billing_mrkvnp_patronymics') ) {
+                echo '<p><strong>' . __( 'По батькові', NOVA_POSHTA_TTN_DOMAIN ) .':</strong><br> ' .
+                    $order->get_meta('np_patronymics_name') . '</p>';
+            }
+
+            $order->save();
+        }
+        else
+        {
+            if ( get_post_meta( $order->get_id(), '_billing_mrkvnp_patronymics' ) ) {
+                echo '<p><strong>' . __( 'По батькові', NOVA_POSHTA_TTN_DOMAIN ) .':</strong><br> ' .
+                    get_post_meta( $order->get_id(), 'np_patronymics_name', true ) . '</p>';
+            }
         }
     }
 
     public function displayShippingPatronymicsInOrderMeta($order)
     {
-        if ( get_post_meta( $order->get_id(), '_order_shipping' ) ) {
-            echo '<p><strong>' . __( 'По батькові', NOVA_POSHTA_TTN_DOMAIN ) .':</strong><br> ' .
-                get_post_meta( $order->get_id(), 'np_patronymics_name', true ) . '</p>';
+        if(class_exists( \Automattic\WooCommerce\Utilities\OrderUtil::class ) && OrderUtil::custom_orders_table_usage_is_enabled())
+        {
+            if ( $order->get_meta('_order_shipping') ) {
+                echo '<p><strong>' . __( 'По батькові', NOVA_POSHTA_TTN_DOMAIN ) .':</strong><br> ' .
+                    $order->get_meta('np_patronymics_name') . '</p>';
+            }
+
+            $order->save();
+        }
+        else
+        {
+            if ( get_post_meta( $order->get_id(), '_order_shipping' ) ) {
+                echo '<p><strong>' . __( 'По батькові', NOVA_POSHTA_TTN_DOMAIN ) .':</strong><br> ' .
+                    get_post_meta( $order->get_id(), 'np_patronymics_name', true ) . '</p>';
+            }
         }
     }
 
@@ -204,9 +396,22 @@ class CheckoutAddress extends Checkout
         if ( isset( $_POST['billing_nova_poshta_region'] ) ) {
             $billing_region = $_POST['billing_nova_poshta_region'];
         }
-        if ( ! get_post_meta($orderId, '_state' ) ) {
-            update_post_meta($orderId, '_state', $billing_region);
+
+        $order = wc_get_order( $orderId );
+
+        if(class_exists( \Automattic\WooCommerce\Utilities\OrderUtil::class ) && OrderUtil::custom_orders_table_usage_is_enabled())
+        {
+            if ( ! $order->get_meta('_state') ) {
+                $order->update_meta_data( '_state', $billing_region );
+            }
         }
+        else
+        {
+            if ( ! get_post_meta($orderId, '_state' ) ) {
+                update_post_meta($orderId, '_state', $billing_region);
+            }
+        }
+        
         $billing_city = "";
         if ( isset( $_POST['billing_city'] ) ) {
             $billing_city = $_POST['billing_city'];
@@ -215,14 +420,32 @@ class CheckoutAddress extends Checkout
         if ( isset( $_POST['billing_address_1'] ) ) {
             $billing_address = $_POST['billing_address_1'];
         }
-        if ( ! get_post_meta($orderId, '_billing_city' ) ) {
-            update_post_meta($orderId, '_billing_city', $billing_city);
-            update_post_meta($orderId, '_billing_address_1', $billing_address);
+
+        if(class_exists( \Automattic\WooCommerce\Utilities\OrderUtil::class ) && OrderUtil::custom_orders_table_usage_is_enabled())
+        {
+            if ( ! $order->get_meta('_billing_city') ) {
+                $order->update_meta_data( '_billing_city', $billing_city );
+                $order->update_meta_data( '_billing_address_1', $billing_address );
+            }
+            if ( ! $order->get_meta('_shipping_city') ) {
+                $order->update_meta_data( '_shipping_city', $billing_city );
+                $order->update_meta_data( '_shipping_address_1', $billing_address );
+            }
+
+            $order->save();
         }
-        if ( ! get_post_meta($orderId, '_shipping_city'  ) ) {
-            update_post_meta($orderId, '_shipping_city', $billing_city);
-            update_post_meta($orderId, '_shipping_address_1', $billing_address);
+        else
+        {
+            if ( ! get_post_meta($orderId, '_billing_city' ) ) {
+                update_post_meta($orderId, '_billing_city', $billing_city);
+                update_post_meta($orderId, '_billing_address_1', $billing_address);
+            }
+            if ( ! get_post_meta($orderId, '_shipping_city'  ) ) {
+                update_post_meta($orderId, '_shipping_city', $billing_city);
+                update_post_meta($orderId, '_shipping_address_1', $billing_address);
+            }
         }
+        
 
         if ( NPttnA()->isGet() ?: (NPttnA()->isANPttn() && NPttnA()->isCheckoutAddress()) ) {
             // Nova Poshta on address
@@ -232,52 +455,113 @@ class CheckoutAddress extends Checkout
             // $regionRef = isset( $_POST['npregionref'] ) ? sanitize_text_field($_POST['npregionref']) : '';
             $regionRef = isset( $_POST['npregionref'] ) ? sanitize_text_field($_POST['npregionref']) : '';
             $area = new Region($regionRef);
-            update_post_meta($orderId, '_' . $fieldGroup . '_nova_poshta_region', $area->description);
-            update_post_meta($orderId, '_' . $fieldGroup . '_state', $area->description);
+
+            if(class_exists( \Automattic\WooCommerce\Utilities\OrderUtil::class ) && OrderUtil::custom_orders_table_usage_is_enabled())
+            {
+                $order->update_meta_data( '_' . $fieldGroup . '_nova_poshta_region', $area->description );
+                $order->update_meta_data( '_' . $fieldGroup . '_state', $area->description );
+            }
+            else
+            {
+                update_post_meta($orderId, '_' . $fieldGroup . '_nova_poshta_region', $area->description);
+                update_post_meta($orderId, '_' . $fieldGroup . '_state', $area->description);
+            }
 
 
             $cityKey = City::key($fieldGroup);
             $cityRef = isset($_POST['npcityref']) ? sanitize_text_field($_POST['npcityref']) : sanitize_text_field($_POST[$cityKey]);
             $city = new City($cityRef);
-            update_post_meta($orderId, '_' . $fieldGroup . '_city', $city->description);
+            if(class_exists( \Automattic\WooCommerce\Utilities\OrderUtil::class ) && OrderUtil::custom_orders_table_usage_is_enabled())
+            {
+                $order->update_meta_data( '_' . $fieldGroup . '_city', $city->description );
+            }
+            else
+            {
+                update_post_meta($orderId, '_' . $fieldGroup . '_city', $city->description);
+            }
 
             $streetName = isset($_POST[$fieldGroup . '_mrkvnp_street'])
                 ? sanitize_text_field($_POST[$fieldGroup . '_mrkvnp_street']) : '';
             $house = isset($_POST[$fieldGroup . '_mrkvnp_house'])
                 ? sanitize_text_field($_POST[$fieldGroup . '_mrkvnp_house']) : '';
             $streetNameHouse = $streetName . ', ' . $house;
-            update_post_meta($orderId, '_' . $fieldGroup . '_address_1', $streetNameHouse);
-            $flat = isset($_POST[$fieldGroup . '_mrkvnp_flat'])
-                ? sanitize_text_field($_POST[$fieldGroup . '_mrkvnp_flat']) : '';
-            update_post_meta($orderId, '_' . $fieldGroup . '_address_2', $flat);
 
-            $patronymics = isset( $_POST[$fieldGroup . '_mrkvnp_patronymics'] )
-                ? sanitize_text_field($_POST[$fieldGroup . '_mrkvnp_patronymics']) : '';
-            $first_name = get_post_meta( $orderId, '_' . $fieldGroup . '_first_name', true );
-            update_post_meta( $orderId, '_' . $fieldGroup . '_mrkvnp_patronymics', $patronymics );
+            if(class_exists( \Automattic\WooCommerce\Utilities\OrderUtil::class ) && OrderUtil::custom_orders_table_usage_is_enabled())
+            {
+                $order->update_meta_data( '_' . $fieldGroup . '_address_1', $streetNameHouse );
+                
+                $flat = isset($_POST[$fieldGroup . '_mrkvnp_flat'])
+                    ? sanitize_text_field($_POST[$fieldGroup . '_mrkvnp_flat']) : '';
 
-            //TODO this part should be refactored
-            $shippingFieldGroup = Area::SHIPPING;
-            if ( $this->shipToDifferentAddress() ) {
-                update_post_meta($orderId, '_' . Region::key($shippingFieldGroup), $area->ref);
-                update_post_meta($orderId, '_' . City::key($shippingFieldGroup), $city->ref);
+                $order->update_meta_data( '_' . $fieldGroup . '_address_2', $flat );
+                
+
+                $patronymics = isset( $_POST[$fieldGroup . '_mrkvnp_patronymics'] )
+                    ? sanitize_text_field($_POST[$fieldGroup . '_mrkvnp_patronymics']) : '';
+
+                $first_name = $order->get_meta('_' . $fieldGroup . '_first_name');
+                $order->update_meta_data( '_' . $fieldGroup . '_mrkvnp_patronymics', $patronymics );
+
+                //TODO this part should be refactored
+                $shippingFieldGroup = Area::SHIPPING;
+                if ( $this->shipToDifferentAddress() ) {
+                    $order->update_meta_data( '_' . Region::key($shippingFieldGroup), $area->ref );
+                    $order->update_meta_data( '_' . City::key($shippingFieldGroup), $city->ref );
+                    $order->update_meta_data( '_' . $fieldGroup . '_address_1', $streetNameHouse );
+                } else {
+                    $order->update_meta_data( '_' . $fieldGroup . '_state', $area->description );
+                    $order->update_meta_data( '_' . $fieldGroup . '_city', $city->description );
+                    $order->update_meta_data( '_' . $fieldGroup . '_address_1', $streetNameHouse );
+                    $order->update_meta_data( '_' . $fieldGroup . '_address_2', $flat );
+                    $order->update_meta_data( '_' . $shippingFieldGroup . '_state', $area->description );
+                    $order->update_meta_data( '_' . $shippingFieldGroup . '_city', $city->description );
+                    $order->update_meta_data( '_' . $shippingFieldGroup . '_address_1', $streetNameHouse );
+                    $order->update_meta_data( '_' . $shippingFieldGroup . '_address_2', $flat );
+                }
+
+                $deliveryprice = isset( $_POST['deliveryprice'] ) ? $_POST['deliveryprice'] : '';
+                $order->update_meta_data( 'deliveryprice', $deliveryprice );
+
+                $shipping_phone = isset( $_POST['shipping_phone'] ) ? sanitize_text_field( $_POST['shipping_phone'] ) : '';
+                $order->update_meta_data( 'np_shipping_phone', $shipping_phone );
+            }
+            else
+            {
                 update_post_meta($orderId, '_' . $fieldGroup . '_address_1', $streetNameHouse);
-            } else {
-                update_post_meta($orderId, '_' . $fieldGroup . '_state', $area->description);
-                update_post_meta($orderId, '_' . $fieldGroup . '_city', $city->description);
-                update_post_meta($orderId, '_' . $fieldGroup . '_address_1', $streetNameHouse);
+                $flat = isset($_POST[$fieldGroup . '_mrkvnp_flat'])
+                    ? sanitize_text_field($_POST[$fieldGroup . '_mrkvnp_flat']) : '';
                 update_post_meta($orderId, '_' . $fieldGroup . '_address_2', $flat);
-                update_post_meta($orderId, '_' . $shippingFieldGroup . '_state', $area->description);
-                update_post_meta($orderId, '_' . $shippingFieldGroup . '_city', $city->description);
-                update_post_meta($orderId, '_' . $shippingFieldGroup . '_address_1', $streetNameHouse);
-                update_post_meta($orderId, '_' . $shippingFieldGroup . '_address_2', $flat);
+
+                $patronymics = isset( $_POST[$fieldGroup . '_mrkvnp_patronymics'] )
+                    ? sanitize_text_field($_POST[$fieldGroup . '_mrkvnp_patronymics']) : '';
+                $first_name = get_post_meta( $orderId, '_' . $fieldGroup . '_first_name', true );
+                update_post_meta( $orderId, '_' . $fieldGroup . '_mrkvnp_patronymics', $patronymics );
+
+                //TODO this part should be refactored
+                $shippingFieldGroup = Area::SHIPPING;
+                if ( $this->shipToDifferentAddress() ) {
+                    update_post_meta($orderId, '_' . Region::key($shippingFieldGroup), $area->ref);
+                    update_post_meta($orderId, '_' . City::key($shippingFieldGroup), $city->ref);
+                    update_post_meta($orderId, '_' . $fieldGroup . '_address_1', $streetNameHouse);
+                } else {
+                    update_post_meta($orderId, '_' . $fieldGroup . '_state', $area->description);
+                    update_post_meta($orderId, '_' . $fieldGroup . '_city', $city->description);
+                    update_post_meta($orderId, '_' . $fieldGroup . '_address_1', $streetNameHouse);
+                    update_post_meta($orderId, '_' . $fieldGroup . '_address_2', $flat);
+                    update_post_meta($orderId, '_' . $shippingFieldGroup . '_state', $area->description);
+                    update_post_meta($orderId, '_' . $shippingFieldGroup . '_city', $city->description);
+                    update_post_meta($orderId, '_' . $shippingFieldGroup . '_address_1', $streetNameHouse);
+                    update_post_meta($orderId, '_' . $shippingFieldGroup . '_address_2', $flat);
+                }
+
+                $deliveryprice = isset( $_POST['deliveryprice'] ) ? $_POST['deliveryprice'] : '';
+                update_post_meta( $orderId, 'deliveryprice', $deliveryprice );
+
+                $shipping_phone = isset( $_POST['shipping_phone'] ) ? sanitize_text_field( $_POST['shipping_phone'] ) : '';
+                update_post_meta( $orderId, 'np_shipping_phone', $shipping_phone );
             }
 
-            $deliveryprice = isset( $_POST['deliveryprice'] ) ? $_POST['deliveryprice'] : '';
-            update_post_meta( $orderId, 'deliveryprice', $deliveryprice );
-
-            $shipping_phone = isset( $_POST['shipping_phone'] ) ? sanitize_text_field( $_POST['shipping_phone'] ) : '';
-            update_post_meta( $orderId, 'np_shipping_phone', $shipping_phone );
+            $order->save();
         }
     }
 

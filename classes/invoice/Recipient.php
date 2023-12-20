@@ -3,6 +3,7 @@
 namespace plugins\NovaPoshta\classes\invoice;
 
 use plugins\NovaPoshta\classes\invoice\InvoiceModel;
+use Automattic\WooCommerce\Utilities\OrderUtil;
 
 // If this file is called directly, abort.
 defined( 'ABSPATH' ) or die();
@@ -139,6 +140,9 @@ class Recipient
         $shipping_first_name = ! empty( $this->order_data['billing']['first_name'] )
             ? esc_html( $this->order_data['billing']['first_name'] )
             : esc_html( $this->order_data['shipping']['first_name'] );
+
+        $shipping_first_name = str_replace("ʼ", "'", $shipping_first_name);
+
         $shipping_middle_name = $this->getRecipientMiddleName();
         if ( ! empty( $shipping_middle_name ) && strpos( $shipping_first_name, $shipping_middle_name ) !== false) {
             // If patronymics exists remove it from recipient first name
@@ -154,17 +158,44 @@ class Recipient
         $shipping_last_name = ! empty( $this->order_data['billing']['last_name'] )
             ? esc_html( $this->order_data['billing']['last_name'] )
             : esc_html( $this->order_data['shipping']['last_name'] );
+
+        $shipping_last_name = str_replace("ʼ", "'", $shipping_last_name);
+
         return $shipping_last_name;
     }
 
     public function getRecipientMiddleName()
     {
-        if ( ! empty( get_post_meta( $this->order_id, '_billing_mrkvnp_patronymics', true ) ) ) {
-            return get_post_meta( $this->order_id, '_billing_mrkvnp_patronymics', true );
+        if(class_exists( \Automattic\WooCommerce\Utilities\OrderUtil::class ) && OrderUtil::custom_orders_table_usage_is_enabled())
+        {
+            $order = wc_get_order( $this->order_id );
+            if ( ! empty( $order->get_meta('_billing_mrkvnp_patronymics') ) ) {
+                $patronymics = $order->get_meta('_billing_mrkvnp_patronymics');
+                $patronymics = str_replace("ʼ", "'", $patronymics);
+                return $patronymics;
+            }
+            if ( ! empty( $order->get_meta('_shipping_mrkvnp_patronymics') ) ) {
+                $patronymics = $order->get_meta('_shipping_mrkvnp_patronymics');
+                $patronymics = str_replace("ʼ", "'", $patronymics);
+                return $patronymics;
+            }
+
+            $order->save();
         }
-        if ( ! empty( get_post_meta( $this->order_id, '_shipping_mrkvnp_patronymics', true ) ) ) {
-            return get_post_meta( $this->order_id, '_shipping_mrkvnp_patronymics', true );
+        else
+        {
+           if ( ! empty( get_post_meta( $this->order_id, '_billing_mrkvnp_patronymics', true ) ) ) {
+                $patronymics = get_post_meta( $this->order_id, '_billing_mrkvnp_patronymics', true );
+                $patronymics = str_replace("ʼ", "'", $patronymics);
+                return $patronymics;
+            }
+            if ( ! empty( get_post_meta( $this->order_id, '_shipping_mrkvnp_patronymics', true ) ) ) {
+                $patronymics = get_post_meta( $this->order_id, '_shipping_mrkvnp_patronymics', true );
+                $patronymics = str_replace("ʼ", "'", $patronymics);
+                return $patronymics;
+            } 
         }
+        
         return '';
     }
 
@@ -314,11 +345,25 @@ class Recipient
 
     public function getRecipientCityRef($order_id)
     {
-        if ( ! empty( get_post_meta( $order_id, '_billing_nova_poshta_city', true ) ) ) {
-            return get_post_meta( $order_id, '_billing_nova_poshta_city', true );
-        } elseif ( ! empty( get_post_meta( $order_id, '_shipping_nova_poshta_city', true ) ) ) {
-            return get_post_meta( $order_id, '_shipping_nova_poshta_city', true );
-        } else return get_post_meta( $order_id, 'np_city_ref', true );
+        if(class_exists( \Automattic\WooCommerce\Utilities\OrderUtil::class ) && OrderUtil::custom_orders_table_usage_is_enabled())
+        {
+            $order = wc_get_order( $order_id );
+
+            if ( ! empty( $order->get_meta('_billing_nova_poshta_city') ) ) {
+                return $order->get_meta('_billing_nova_poshta_city');
+            } elseif ( ! empty( $order->get_meta('_shipping_nova_poshta_city') ) ) {
+                return $order->get_meta('_shipping_nova_poshta_city');
+            } else return $order->get_meta('np_city_ref');
+
+            $order->save();
+        }
+        else{
+            if ( ! empty( get_post_meta( $order_id, '_billing_nova_poshta_city', true ) ) ) {
+                return get_post_meta( $order_id, '_billing_nova_poshta_city', true );
+            } elseif ( ! empty( get_post_meta( $order_id, '_shipping_nova_poshta_city', true ) ) ) {
+                return get_post_meta( $order_id, '_shipping_nova_poshta_city', true );
+            } else return get_post_meta( $order_id, 'np_city_ref', true );
+        }
     }
 
     public function getRecipientRegionName($order_id)
@@ -332,11 +377,26 @@ class Recipient
 
     public function getRecipientRegionRef($order_id)
     {
-        if ( ! empty( get_post_meta( $order_id, '_billing_nova_poshta_region', true ) ) ) {
-            return get_post_meta( $order_id, '_billing_nova_poshta_region', true );
-        } elseif ( ! empty( get_post_meta( $order_id, '_shipping_nova_poshta_region', true ) ) ) {
-            return get_post_meta( $order_id, '_shipping_nova_poshta_region', true );
-        } else return get_post_meta( $order_id, 'np_region_ref', true );
+        if(class_exists( \Automattic\WooCommerce\Utilities\OrderUtil::class ) && OrderUtil::custom_orders_table_usage_is_enabled())
+        {
+            $order = wc_get_order( $order_id );
+
+            if ( ! empty( $order->get_meta('_billing_nova_poshta_region') ) ) {
+                return $order->get_meta('_billing_nova_poshta_region');
+            } elseif ( ! empty( $order->get_meta('_shipping_nova_poshta_region') ) ) {
+                return $order->get_meta('_shipping_nova_poshta_region');
+            } else return $order->get_meta('np_region_ref');
+
+            $order->save();
+        }
+        else
+        {
+            if ( ! empty( get_post_meta( $order_id, '_billing_nova_poshta_region', true ) ) ) {
+                return get_post_meta( $order_id, '_billing_nova_poshta_region', true );
+            } elseif ( ! empty( get_post_meta( $order_id, '_shipping_nova_poshta_region', true ) ) ) {
+                return get_post_meta( $order_id, '_shipping_nova_poshta_region', true );
+            } else return get_post_meta( $order_id, 'np_region_ref', true );
+        }
     }
 
     public function getRecipientCityByNameRef()

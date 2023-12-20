@@ -1,7 +1,20 @@
 <div class="wrap">
  <?php
  global $wpdb;
- $ttn = get_post_meta( $_GET['invoice'], 'novaposhta_ttn', true );
+
+ if(class_exists( \Automattic\WooCommerce\Utilities\OrderUtil::class ) && OrderUtil::custom_orders_table_usage_is_enabled())
+{
+  $order = wc_get_order( $_GET['invoice'] );
+
+  $ttn = $order->get_meta('novaposhta_ttn');
+
+  $order->save();
+}
+else
+{
+  $ttn = get_post_meta( $_GET['invoice'], 'novaposhta_ttn', true ); 
+}
+ 
 
 
   $date = strtotime('-14 days');

@@ -9,6 +9,7 @@ use plugins\NovaPoshta\classes\repository\AreaRepositoryFactory;
 use plugins\NovaPoshta\classes\City;
 use plugins\NovaPoshta\classes\Warehouse;
 use plugins\NovaPoshta\classes\Poshtomat;
+use Automattic\WooCommerce\Utilities\OrderUtil;
 
 /**
  * Class Checkout
@@ -73,29 +74,127 @@ class Checkout extends Base
     {
         // Add 'np_street_name' custom field on 'Edit order' admin page
         $order_id = method_exists( $order, 'get_id' ) ? $order->get_id() : $order->id;
-        $streetName = get_post_meta( $order_id, 'nova_poshta_region', true );
-        if ( $streetName )add_post_meta( $order_id, 'np_street_name', $streetName, true );
+
+        if(class_exists( \Automattic\WooCommerce\Utilities\OrderUtil::class ) && OrderUtil::custom_orders_table_usage_is_enabled())
+        {
+            $streetName = $order->get_meta('nova_poshta_region');
+            if ( $streetName )
+            {
+                if(!$order->get_meta('np_street_name'))
+                {
+                    $order->add_meta_data( 'np_street_name', $streetName );
+                }
+
+                $order->save();
+            }
+        }
+        else
+        {
+            $streetName = get_post_meta( $order_id, 'nova_poshta_region', true );
+            if ( $streetName )
+            {
+                if(!get_post_meta( $order_id, 'np_street_name', true ))
+                {
+                   add_post_meta( $order_id, 'np_street_name', $streetName, true ); 
+                }
+            }
+        }
     }
 
     public function addDefaultRegionCustomField( $order ) {
         // Add 'np_region_ref' custom field on 'Edit order' admin page
         $order_id = method_exists( $order, 'get_id' ) ? $order->get_id() : $order->id;
-        $regionRef = get_post_meta( $order_id, 'billing_nova_poshta_region', true );
-        if ( $regionRef )add_post_meta( $order_id, 'np_region_ref', $regionRef, true );
+
+        if(class_exists( \Automattic\WooCommerce\Utilities\OrderUtil::class ) && OrderUtil::custom_orders_table_usage_is_enabled())
+        {
+            $order = wc_get_order( $order_id );
+
+            $regionRef = $order->get_meta('billing_nova_poshta_region');
+            if ( $regionRef )
+            {
+                if(!$order->get_meta('np_region_ref'))
+                {
+                    $order->add_meta_data( 'np_region_ref', $regionRef );
+                }
+
+                $order->save();
+            }
+        }
+        else
+        {
+            $regionRef = get_post_meta( $order_id, 'billing_nova_poshta_region', true );
+            if ( $regionRef )
+            {
+                if(!get_post_meta( $order_id, 'np_region_ref', true ))
+                {
+                    add_post_meta( $order_id, 'np_region_ref', $regionRef, true );
+                }
+            }
+        }
     }
 
     public function addDefaultCityCustomField( $order ) {
         // Add 'np_city_ref' custom field on 'Edit order' admin page
         $order_id = method_exists( $order, 'get_id' ) ? $order->get_id() : $order->id;
-        $cityRef = get_post_meta( $order_id, '_billing_nova_poshta_city', true );
-        if ( $cityRef )add_post_meta( $order_id, 'np_city_ref', $cityRef, true );
+
+        if(class_exists( \Automattic\WooCommerce\Utilities\OrderUtil::class ) && OrderUtil::custom_orders_table_usage_is_enabled())
+        {
+            $order = wc_get_order( $order_id );
+
+            $cityRef = $order->get_meta('_billing_nova_poshta_city');
+            if ( $cityRef )
+            {
+                if(!$order->get_meta('np_city_ref'))
+                {
+                    $order->add_meta_data( 'np_city_ref', $cityRef );
+                }
+
+                $order->save();
+            }
+        }
+        else
+        {
+            $cityRef = get_post_meta( $order_id, '_billing_nova_poshta_city', true );
+            if ( $cityRef )
+            {
+                if(!get_post_meta( $order_id, 'np_city_ref', true ))
+                {
+                    add_post_meta( $order_id, 'np_city_ref', $cityRef, true );
+                }
+            }
+        }
     }
 
     public function addDefaultWarehouseCustomField( $order ) {
         // Add 'np_warehouse_ref' custom field on 'Edit order' admin page
         $order_id = method_exists( $order, 'get_id' ) ? $order->get_id() : $order->id;
-        $cityRef = get_post_meta( $order_id, '_billing_nova_poshta_warehouse', true );
-        if ( $cityRef )add_post_meta( $order_id, 'np_warehouse_ref', $cityRef, true );
+
+        if(class_exists( \Automattic\WooCommerce\Utilities\OrderUtil::class ) && OrderUtil::custom_orders_table_usage_is_enabled())
+        {
+            $order = wc_get_order( $order_id );
+
+            $cityRef = $order->get_meta('_billing_nova_poshta_warehouse');
+            if ( $cityRef )
+            {
+                if(!$order->get_meta('np_warehouse_ref'))
+                {
+                    $order->add_meta_data( 'np_warehouse_ref', $cityRef );
+                }
+
+                $order->save();
+            }
+        }
+        else
+        {
+            $cityRef = get_post_meta( $order_id, '_billing_nova_poshta_warehouse', true );
+            if ( $cityRef )
+            {
+                if(!get_post_meta( $order_id, 'np_warehouse_ref', true ))
+                {
+                    add_post_meta( $order_id, 'np_warehouse_ref', $cityRef, true );
+                }
+            }
+        }
     }
 
     public function displayShippingPhoneOnThankyou($order_id) {
@@ -104,21 +203,93 @@ class Checkout extends Base
         foreach ( $order_item_shipping as $key => $value ) {
             $is_nova_poshta_shipping_method = ( 'nova_poshta_shipping_method' == $value->get_data()['method_id'] ) ? true: false;
         }
-        $is_shipping_phone = ( ! empty( get_post_meta( $order_id, 'shipping_phone', true ) )
+
+        if(class_exists( \Automattic\WooCommerce\Utilities\OrderUtil::class ) && OrderUtil::custom_orders_table_usage_is_enabled())
+        {
+            $is_shipping_phone = ( ! empty( $order->get_shipping_phone() )
+            ? sanitize_text_field( $order->get_shipping_phone() )
+            : false );
+
+            $streetName = $order->get_meta('nova_poshta_region');
+            if ( $streetName )
+            {
+                if(!$order->get_meta('np_street_name'))
+                {
+                    $order->add_meta_data( 'np_street_name', $cityRef );
+                }
+            }
+
+            $regionRef = $order->get_meta('billing_nova_poshta_region');
+            if ( $regionRef )
+            {
+                if(!$order->get_meta('np_region_ref'))
+                {
+                    $order->add_meta_data( 'np_region_ref', $cityRef );
+                }            
+            }
+            
+            $cityRef = $order->get_meta('_billing_nova_poshta_city');
+            if ( $cityRef )
+            {
+                if(!$order->get_meta('np_city_ref'))
+                {
+                    $order->add_meta_data( 'np_city_ref', $cityRef );
+                }
+            }
+
+            $cityRef = $order->get_meta('_billing_nova_poshta_warehouse');
+            if ( $cityRef )
+            {
+                if(!$order->get_meta('np_warehouse_ref'))
+                {
+                    $order->add_meta_data( 'np_warehouse_ref', $cityRef );
+                }
+            }
+
+            $order->save();
+        }
+        else
+        {
+            $is_shipping_phone = ( ! empty( get_post_meta( $order_id, 'shipping_phone', true ) )
             ? sanitize_text_field( get_post_meta( $order_id, 'shipping_phone', true ) )
             : false );
 
-        $streetName = get_post_meta( $order_id, 'nova_poshta_region', true );
-        if ( $streetName )add_post_meta( $order_id, 'np_street_name', $streetName, true );
+            $streetName = get_post_meta( $order_id, 'nova_poshta_region', true );
+            if ( $streetName )
+            {
+                if(!get_post_meta( $order_id, 'np_street_name', true ))
+                {
+                    add_post_meta( $order_id, 'np_street_name', $streetName, true );
+                }
+            }
 
-        $regionRef = get_post_meta( $order_id, 'billing_nova_poshta_region', true );
-        if ( $regionRef )add_post_meta( $order_id, 'np_region_ref', $regionRef, true );
+            $regionRef = get_post_meta( $order_id, 'billing_nova_poshta_region', true );
+            if ( $regionRef )
+            {
+                if(!get_post_meta( $order_id, 'billing_nova_poshta_region', true ))
+                {
+                    add_post_meta( $order_id, 'np_region_ref', $regionRef, true );
+                }
+            }
 
-        $cityRef = get_post_meta( $order_id, '_billing_nova_poshta_city', true );
-        if ( $cityRef )add_post_meta( $order_id, 'np_city_ref', $cityRef, true );
+            $cityRef = get_post_meta( $order_id, '_billing_nova_poshta_city', true );
+            if ( $cityRef )
+            {
+                if(!get_post_meta( $order_id, 'np_city_ref', true ))
+                {
+                    add_post_meta( $order_id, 'np_city_ref', $cityRef, true );
+                }
+            }
 
-        $cityRef = get_post_meta( $order_id, '_billing_nova_poshta_warehouse', true );
-        if ( $cityRef )add_post_meta( $order_id, 'np_warehouse_ref', $cityRef, true );
+            $cityRef = get_post_meta( $order_id, '_billing_nova_poshta_warehouse', true );
+            if ( $cityRef )
+            {
+                if(!get_post_meta( $order_id, 'np_warehouse_ref', true ))
+                {
+                    add_post_meta( $order_id, 'np_warehouse_ref', $cityRef, true );
+                }
+            }
+        }
     }
 
     /**
@@ -201,13 +372,31 @@ class Checkout extends Base
         if ( isset( $_POST['billing_address_1'] ) ) {
             $billing_address = $_POST['billing_address_1'];
         }
-        if ( ! get_post_meta($orderId, '_billing_city' ) ) {
-            update_post_meta($orderId, '_billing_city', $billing_city);
-            update_post_meta($orderId, '_billing_address_1', $billing_address);
+
+        $order = wc_get_order( $orderId );
+
+        if(class_exists( \Automattic\WooCommerce\Utilities\OrderUtil::class ) && OrderUtil::custom_orders_table_usage_is_enabled())
+        {
+            if ( ! $order->get_meta('_billing_city')) {
+                $order->update_meta_data( '_billing_city', $billing_city );
+                $order->update_meta_data( '_billing_address_1', $billing_address );
+            }
+            if ( ! $order->get_meta('_shipping_city')) {
+                $order->update_meta_data( '_shipping_city', $billing_city );
+                $order->update_meta_data( '_shipping_address_1', $billing_address );
+            }
+
+            $order->save();
         }
-        if ( ! get_post_meta($orderId, '_shipping_city'  ) ) {
-            update_post_meta($orderId, '_shipping_city', $billing_city);
-            update_post_meta($orderId, '_shipping_address_1', $billing_address);
+        else{
+            if ( ! get_post_meta($orderId, '_billing_city' ) ) {
+                update_post_meta($orderId, '_billing_city', $billing_city);
+                update_post_meta($orderId, '_billing_address_1', $billing_address);
+            }
+            if ( ! get_post_meta($orderId, '_shipping_city'  ) ) {
+                update_post_meta($orderId, '_shipping_city', $billing_city);
+                update_post_meta($orderId, '_shipping_address_1', $billing_address);
+            }
         }
 
         if ( NPttn()->isNPttn() && NPttn()->isCheckout() ||
@@ -218,40 +407,91 @@ class Checkout extends Base
             $regionKey = Region::key($fieldGroup);
             $regionRef = isset( $_POST['npregionref'] ) ? sanitize_text_field($_POST['npregionref']) : '';
             $area = new Region($regionRef);
-            update_post_meta($orderId, '_' . $fieldGroup . '_state', $area->description);
+            if(class_exists( \Automattic\WooCommerce\Utilities\OrderUtil::class ) && OrderUtil::custom_orders_table_usage_is_enabled())
+            {
+                $order->update_meta_data( '_' . $fieldGroup . '_state', $area->description );
+            }
+            else
+            {
+               update_post_meta($orderId, '_' . $fieldGroup . '_state', $area->description); 
+            }
+            
 
             $cityKey = City::key($fieldGroup);
 
             $cityRef = isset($_POST['npcityref']) ? sanitize_text_field($_POST['npcityref']) : sanitize_text_field($_POST[$cityKey]);
             $city = new City($cityRef);
-            update_post_meta($orderId, '_' . $fieldGroup . '_city', $city->description);
+
+            if(class_exists( \Automattic\WooCommerce\Utilities\OrderUtil::class ) && OrderUtil::custom_orders_table_usage_is_enabled())
+            {
+                $order->update_meta_data( '_' . $fieldGroup . '_city', $city->description );
+            }
+            else
+            {
+                update_post_meta($orderId, '_' . $fieldGroup . '_city', $city->description);
+            }
 
             $warehouseKey = Warehouse::key($fieldGroup);
             $warehouseRef = isset($_POST['npwhref']) ? sanitize_text_field($_POST['npwhref']) : sanitize_text_field($_POST[$warehouseKey]);
 
             if ( NPttn()->isNPttn() && NPttn()->isCheckout() ) $warehouse = new Warehouse($warehouseRef);
             if ( NPttnPM()->isNPttnPM() && NPttnPM()->isCheckoutPoshtomat() ) $warehouse = new Poshtomat($warehouseRef);
-            update_post_meta($orderId, '_' . $fieldGroup . '_address_1', $warehouse->description);
 
-            //TODO this part should be refactored
-            $shippingFieldGroup = Area::SHIPPING;
-            if ($this->shipToDifferentAddress()) {
-                update_post_meta($orderId, '_' . Region::key($shippingFieldGroup), $area->ref);
-                update_post_meta($orderId, '_' . City::key($shippingFieldGroup), $city->ref);
-                update_post_meta($orderId, '_' . Warehouse::key($shippingFieldGroup), $warehouse->ref);
-                update_post_meta($orderId, '_' . $fieldGroup . '_state', $area->description);
-            } else {
-                update_post_meta($orderId, '_' . $fieldGroup . '_state', $area->description);
-                update_post_meta($orderId, '_' . $shippingFieldGroup . '_state', $area->description);
-                update_post_meta($orderId, '_' . $shippingFieldGroup . '_city', $city->description);
-                update_post_meta($orderId, '_' . $shippingFieldGroup . '_address_1', $warehouse->description);
+            if(class_exists( \Automattic\WooCommerce\Utilities\OrderUtil::class ) && OrderUtil::custom_orders_table_usage_is_enabled())
+            {
+                $order->update_meta_data('_' . $fieldGroup . '_address_1', $warehouse->description );
+            }
+            else
+            {
+               update_post_meta($orderId, '_' . $fieldGroup . '_address_1', $warehouse->description); 
+            }
+            
+            if(class_exists( \Automattic\WooCommerce\Utilities\OrderUtil::class ) && OrderUtil::custom_orders_table_usage_is_enabled())
+            {
+                //TODO this part should be refactored
+                $shippingFieldGroup = Area::SHIPPING;
+                if ($this->shipToDifferentAddress()) {
+                    $order->update_meta_data( '_' . Region::key($shippingFieldGroup), $area->ref );
+                    $order->update_meta_data( '_' . City::key($shippingFieldGroup), $city->ref );
+                    $order->update_meta_data( '_' . Warehouse::key($shippingFieldGroup), $warehouse->ref );
+                    $order->update_meta_data( '_' . $fieldGroup . '_state', $area->description );
+                } else {
+                    $order->update_meta_data( '_' . $fieldGroup . '_state', $area->description );
+                    $order->update_meta_data( '_' . $shippingFieldGroup . '_state', $area->description );
+                    $order->update_meta_data( '_' . $shippingFieldGroup . '_city', $city->description );
+                    $order->update_meta_data( '_' . $shippingFieldGroup . '_address_1', $warehouse->description );
+                }
+
+                $deliveryprice = isset( $_POST['deliveryprice'] ) ? $_POST['deliveryprice'] : '';
+                $order->update_meta_data('deliveryprice', $deliveryprice );
+
+                $shipping_phone = isset( $_POST['shipping_phone'] ) ? sanitize_text_field( $_POST['shipping_phone'] ) : '';
+                $order->update_meta_data('shipping_phone', $shipping_phone );;
+            }
+            else
+            {
+                //TODO this part should be refactored
+                $shippingFieldGroup = Area::SHIPPING;
+                if ($this->shipToDifferentAddress()) {
+                    update_post_meta($orderId, '_' . Region::key($shippingFieldGroup), $area->ref);
+                    update_post_meta($orderId, '_' . City::key($shippingFieldGroup), $city->ref);
+                    update_post_meta($orderId, '_' . Warehouse::key($shippingFieldGroup), $warehouse->ref);
+                    update_post_meta($orderId, '_' . $fieldGroup . '_state', $area->description);
+                } else {
+                    update_post_meta($orderId, '_' . $fieldGroup . '_state', $area->description);
+                    update_post_meta($orderId, '_' . $shippingFieldGroup . '_state', $area->description);
+                    update_post_meta($orderId, '_' . $shippingFieldGroup . '_city', $city->description);
+                    update_post_meta($orderId, '_' . $shippingFieldGroup . '_address_1', $warehouse->description);
+                }
+
+                $deliveryprice = isset( $_POST['deliveryprice'] ) ? $_POST['deliveryprice'] : '';
+                update_post_meta( $orderId, 'deliveryprice', $deliveryprice );
+
+                $shipping_phone = isset( $_POST['shipping_phone'] ) ? sanitize_text_field( $_POST['shipping_phone'] ) : '';
+                update_post_meta( $orderId, 'shipping_phone', $shipping_phone );
             }
 
-            $deliveryprice = isset( $_POST['deliveryprice'] ) ? $_POST['deliveryprice'] : '';
-            update_post_meta( $orderId, 'deliveryprice', $deliveryprice );
-
-            $shipping_phone = isset( $_POST['shipping_phone'] ) ? sanitize_text_field( $_POST['shipping_phone'] ) : '';
-            update_post_meta( $orderId, 'shipping_phone', $shipping_phone );
+            $order->save();
         }
 
     }

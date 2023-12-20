@@ -296,6 +296,7 @@ jQuery(document).ready(function() {
 		// Save local storage shipping method
 		if (localStorage) {
             localStorage.setItem('ship_method', '');
+            localStorage.setItem('billing_city_np', '');
         }
 
 		// Change shipping method with radio button 'Доставка'
@@ -304,7 +305,18 @@ jQuery(document).ready(function() {
 			// Check loacl storage
 			if (localStorage) {
 				// Get shipping method
-                var ship_method = jQuery('select.woocommerce-shipping-methods option:selected').val();
+                var ship_method = '';
+
+                if(jQuery('select.woocommerce-shipping-methods option:selected').length){
+                	ship_method = jQuery('select.woocommerce-shipping-methods option:selected').val();
+                }
+                if(jQuery('.woocommerce-shipping-methods input:checked').length){
+                	ship_method = jQuery('.woocommerce-shipping-methods input:checked').val();
+                }
+                if(jQuery('input.shipping_method:checked').length){
+                	ship_method = jQuery('input.shipping_method:checked').val();
+                }
+
                 // Check ship method
                 if(localStorage.getItem("ship_method") === null){  
                 	// Set shipping method                  
@@ -315,6 +327,17 @@ jQuery(document).ready(function() {
                     if(localStorage.getItem("ship_method") == ship_method){
                     	// Set shipping method     
                         localStorage.setItem('ship_method', ship_method);
+                        if((localStorage.getItem("billing_city_np") === null || localStorage.getItem("billing_city_np") === '') && cityRef){
+                        	localStorage.setItem('billing_city_np', cityRef);
+                        	calcNPAllDeliveries();
+                        	return;
+                        }
+
+                        if(cityRef && cityRef != localStorage.getItem("billing_city_np")){
+                        	if (cityRef) calcNPAllDeliveries();
+                        	return;
+                        }
+
                         return;
                     }
                     // Set shipping method     
@@ -608,6 +631,22 @@ jQuery(document).ready(function() {
 		const cityRef = (jQuery('#billing_nova_poshta_city').val())
 			? jQuery('#billing_nova_poshta_city').val()
 			: jQuery('#shipping_nova_poshta_city').val();
+
+		var has_empty = false;
+
+		if((localStorage.getItem("billing_city_np") === null || localStorage.getItem("billing_city_np") === '') && cityRef){
+        	localStorage.setItem('billing_city_np', cityRef);
+        	has_empty = true;
+        }
+
+        if(cityRef && cityRef == localStorage.getItem("billing_city_np") && !has_empty){
+        	return;
+        }
+
+        if(cityRef && cityRef != localStorage.getItem("billing_city_np")){
+        	localStorage.setItem('billing_city_np', cityRef);
+        }
+            
 		var data = {
 			action: action,
 			c2: cityRef,

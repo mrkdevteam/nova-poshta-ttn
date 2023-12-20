@@ -1382,7 +1382,16 @@ class MNP_Plugin_Loader
         $selected_order = wc_get_order($order_id);
 
         $order = $selected_order->get_data();
-        $meta_ttn = get_post_meta($order_id, 'novaposhta_ttn', true);
+
+        if(class_exists( \Automattic\WooCommerce\Utilities\OrderUtil::class ) && OrderUtil::custom_orders_table_usage_is_enabled())
+        {
+            $meta_ttn = $selected_order->get_meta('novaposhta_ttn');
+        }
+        else
+        {
+            $meta_ttn = get_post_meta($order_id, 'novaposhta_ttn', true);
+        }
+        
         if (empty($meta_ttn)) {//legacy support
             global $wpdb;
             $result = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}novaposhta_ttn_invoices WHERE order_id = '$order_id'", ARRAY_A);
@@ -1526,9 +1535,20 @@ class MNP_Plugin_Loader
                 $delete_table_name = $wpdb->prefix . 'novaposhta_ttn_invoices';
                 # Set database name
                 $delete_table_name_meta = $wpdb->prefix . 'postmeta';
-                
-                # Delete ttn meta
-                delete_post_meta( $order_id , "novaposhta_ttn" );
+
+                if(class_exists( \Automattic\WooCommerce\Utilities\OrderUtil::class ) && OrderUtil::custom_orders_table_usage_is_enabled())
+                {
+                    $order = wc_get_order( $order_id );
+                    # Delete ttn meta
+                    $order->delete_meta_data( "novaposhta_ttn" );
+
+                    $order->save();
+                }
+                else
+                {
+                    # Delete ttn meta
+                    delete_post_meta( $order_id , "novaposhta_ttn" );
+                }
 
                 # Delete ttn from db
                 $delete_from_db = $wpdb->delete( $delete_table_name, array( 'invoice_ref' => $invoice_ref ) );
@@ -1601,8 +1621,17 @@ class MNP_Plugin_Loader
         # Get order id
         $order_id = $order->get_id();
 
-        # Get ttn data
-        $meta_ttn = get_post_meta($order_id, 'novaposhta_ttn', true);
+        if(class_exists( \Automattic\WooCommerce\Utilities\OrderUtil::class ) && OrderUtil::custom_orders_table_usage_is_enabled())
+        {
+            # Get ttn data
+            $meta_ttn = $order->get_meta('novaposhta_ttn');
+        }
+        else
+        {
+            # Get ttn data
+            $meta_ttn = get_post_meta($order_id, 'novaposhta_ttn', true);   
+        }
+        
 
         # Legacy support
         if (empty($meta_ttn)) 
