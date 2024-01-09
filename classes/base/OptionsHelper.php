@@ -21,9 +21,7 @@ class OptionsHelper
             $result[''] = __('Choose region', NOVA_POSHTA_TTN_DOMAIN);
         }
         foreach ($locations as $location) {
-            if ( isset( $location->content->warehouse_type ) &&
-                ( '3' == $location->content->warehouse_type ||
-                    '1' == $location->content->warehouse_type ) ) {
+            if ( isset( $location->content->warehouse_type ) ) {
                 $result[$location->ref] = $location->description;
             }
             if ( ! isset( $location->content->warehouse_type ) ) {

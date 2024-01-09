@@ -70,7 +70,7 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', end
 	border-bottom-color: transparent;
 }
 
-.tab-content .tab-pane {
+/*.tab-content .tab-pane {
 	float: left;
 	width: 100%;
 	display: none;
@@ -79,7 +79,7 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', end
 .tab-content .tab-pane.active {
 	display: block;
 }
-
+*/
 /* Invoice Style Options */
 
 .field {

@@ -302,8 +302,12 @@ jQuery(document).ready(function() {
 		// Change shipping method with radio button 'Доставка'
 		jQuery( document.body ).on( 'updated_checkout', () => {
 
+			const cityRef = (jQuery('#billing_nova_poshta_city').is(":visible"))
+				? jQuery('#billing_nova_poshta_city').val()
+				: jQuery('#shipping_nova_poshta_city').val();
+
 			// Check loacl storage
-			if (localStorage) {
+			if (localStorage && (mrkvShippingMethods.length != 0)) {
 				// Get shipping method
                 var ship_method = '';
 
@@ -347,9 +351,6 @@ jQuery(document).ready(function() {
             }
             
 			let mrkvShippingMethods = document.querySelectorAll('#shipping_method .shipping_method');
-			const cityRef = (jQuery('#billing_nova_poshta_city').is(":visible"))
-				? jQuery('#billing_nova_poshta_city').val()
-				: jQuery('#shipping_nova_poshta_city').val();
 
 			// Make nova poshta fields empty
 			jQuery('#billing_nova_poshta_region').find('option:selected').prop("selected",false);
