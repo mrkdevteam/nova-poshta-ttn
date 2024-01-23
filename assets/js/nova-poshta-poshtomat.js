@@ -306,6 +306,8 @@ jQuery(document).ready(function() {
 				? jQuery('#billing_nova_poshta_city').val()
 				: jQuery('#shipping_nova_poshta_city').val();
 
+				let mrkvShippingMethods = document.querySelectorAll('#shipping_method .shipping_method');
+
 			// Check loacl storage
 			if (localStorage && (mrkvShippingMethods.length != 0)) {
 				// Get shipping method
@@ -350,7 +352,7 @@ jQuery(document).ready(function() {
 
             }
             
-			let mrkvShippingMethods = document.querySelectorAll('#shipping_method .shipping_method');
+			
 
 			// Make nova poshta fields empty
 			jQuery('#billing_nova_poshta_region').find('option:selected').prop("selected",false);

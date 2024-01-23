@@ -4,7 +4,7 @@ Tags: Nova Poshta, нова пошта, новая почта, nova post
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.0
-Stable tag: 1.18.15
+Stable tag: 1.18.16
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -82,6 +82,9 @@ https://youtu.be/YAW4wtwHTB0
 
 
 == Що нового? ==
+
+= 1.18.16 =
+* [hotfix] виправили помилку js на сторіці оформлення замовлення
 
 = 1.18.15 =
 * [hotfix] вивели поштомати у доставці на відділення  
