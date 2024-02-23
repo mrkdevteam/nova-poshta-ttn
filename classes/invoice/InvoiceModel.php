@@ -73,16 +73,16 @@ class InvoiceModel
 
     public function getShippingFirstName($order_data)
     {
-        return ! empty( $order_data['billing']['first_name'] )
-            ? esc_html( $order_data['billing']['first_name'] )
-            : esc_html( $order_data['shipping']['first_name'] );
+        return ! empty( $order_data['shipping']['first_name'] )
+            ? esc_html( $order_data['shipping']['first_name'] )
+            : esc_html( $order_data['billing']['first_name'] );
     }
 
     public function getShippingLastName($order_data)
     {
-        return ! empty( $order_data['billing']['last_name'] )
-            ? esc_html( $order_data['billing']['last_name'] )
-            : esc_html( $order_data['shipping']['last_name'] );
+        return ! empty( $order_data['shipping']['last_name'] )
+            ? esc_html( $order_data['shipping']['last_name'] )
+            : esc_html( $order_data['billing']['last_name'] );
     }
 
     public function getShippingMiddleName($order_id)
@@ -95,34 +95,36 @@ class InvoiceModel
         {
             $order = wc_get_order( $order_id );
 
-            if ( ! empty( $order->get_meta('_billing_mrkvnp_patronymics') ) ) {
-                return $order->get_meta('_billing_mrkvnp_patronymics');
-            }
             if ( ! empty( $order->get_meta('_shipping_mrkvnp_patronymics') ) ) {
                 return $order->get_meta('_shipping_mrkvnp_patronymics');
             }
+            if ( ! empty( $order->get_meta('_billing_mrkvnp_patronymics') ) ) {
+                return $order->get_meta('_billing_mrkvnp_patronymics');
+            }
+            
 
             $order->save();
         }
         else
         {
-            if ( ! empty( get_post_meta( $order_id, '_billing_mrkvnp_patronymics', true ) ) ) {
-                return get_post_meta( $order_id, '_billing_mrkvnp_patronymics', true );
-            }
             if ( ! empty( get_post_meta( $order_id, '_shipping_mrkvnp_patronymics', true ) ) ) {
                 return get_post_meta( $order_id, '_shipping_mrkvnp_patronymics', true );
             }
+            if ( ! empty( get_post_meta( $order_id, '_billing_mrkvnp_patronymics', true ) ) ) {
+                return get_post_meta( $order_id, '_billing_mrkvnp_patronymics', true );
+            }
+            
         }
         return '';
     }
 
     public function getShippingWarehouseName($order_data)
     {
-        if ( isset( $order_data['billing']['address_1'] ) &&
-                ! empty( $order_data['billing']['address_1'] ) ) {
-            return $order_data['billing']['address_1'];
+        if ( isset( $order_data['shipping']['address_1'] ) &&
+                ! empty( $order_data['shipping']['address_1'] ) ) {
+            return $order_data['shipping']['address_1'];
         }
-        return $order_data['shipping']['address_1'];
+        return $order_data['billing']['address_1'];
     }
 
     public function getShippingStreetName($order_data)
@@ -149,37 +151,37 @@ class InvoiceModel
         if ( isset( $_POST['mrkvnp_invoice_recipient_city_name'] ) && ! empty( $_POST['mrkvnp_invoice_recipient_city_name'] ) ) {
             return \sanitize_text_field( $_POST['mrkvnp_invoice_recipient_city_name'] );
         }
-        return ! empty( $order_data['billing']['city'] )
-            ? $order_data['billing']['city']
-            : $order_data['shipping']['city'];
+        return ! empty( $order_data['shipping']['city'] )
+            ? $order_data['shipping']['city']
+            : $order_data['billing']['city'];
     }
 
     public function getShippingStateName($order_data)
     {
-        return ! empty( $order_data['billing']['state'] )
-            ? $order_data['billing']['state']
-            : $order_data['shipping']['state'];
+        return ! empty( $order_data['shipping']['state'] )
+            ? $order_data['shipping']['state']
+            : $order_data['billing']['state'];
     }
 
     public function getShippingPhone($order_data)
     {
-        return ! empty( $order_data['billing']['phone'] )
-            ? str_replace( array('+', ' ', '(' , ')', '-'), '', \sanitize_text_field( $order_data['billing']['phone'] ) )
-            : str_replace( array('+', ' ', '(' , ')', '-'), '', \sanitize_text_field( $order_data['shipping']['phone'] ) );
+        return ! empty( $order_data['shipping']['phone'] )
+            ? str_replace( array('+', ' ', '(' , ')', '-'), '', \sanitize_text_field( $order_data['shipping']['phone'] ) )
+            : str_replace( array('+', ' ', '(' , ')', '-'), '', \sanitize_text_field( $order_data['billing']['phone'] ) );
     }
 
     public function getShippingEmail($order_data)
     {
-        return ! empty( $order_data['billing']['email'] )
-            ? $order_data['billing']['email']
-            : $order_data['shipping']['email'];
+        return ! empty( $order_data['shipping']['email'] )
+            ? $order_data['shipping']['email']
+            : $order_data['billing']['email'];
     }
 
     public function getShippingFlat($order_data)
     {
-        return ! empty( $order_data['billing']['address_2'] )
-            ? $order_data['billing']['address_2']
-            : $order_data['shipping']['address_2'];
+        return ! empty( $order_data['shipping']['address_2'] )
+            ? $order_data['shipping']['address_2']
+            : $order_data['billing']['address_2'];
     }
 
     public function createRecipientStreetRef()
@@ -939,7 +941,7 @@ class InvoiceModel
         }
         if ( $obj['errors'] ) {
             $apinp_errors = implode('<br>', $obj['errors'] );
-            echo '<script>alert('. '"Помилки з API Нова Пошта: ' . $apinp_errors . '"' . '); </script>';
+            //echo '<script>alert('. '"Помилки з API Нова Пошта: ' . $apinp_errors . '"' . '); </script>';
         } else {
             echo '<script>alert('. '"Накладна № ' . $document_number . ' видалена."' . '); location.reload(true); </script>';
         }
@@ -988,10 +990,10 @@ class InvoiceModel
                 }
                 if ( $obj['errors'] ) {
                     $apinp_errors = implode('<br>', $obj['errors'] );
-                    echo '<script>alert('. '"Помилки з API Нова Пошта: ' . $apinp_errors . '"' . '); </script>';
+                    //echo '<script>alert('. '"Помилки з API Нова Пошта: ' . $apinp_errors . '"' . '); </script>';
                 } else {
                     $orderinvoice = implode( ',', $orderinvoices );
-                    echo '<script>alert('. '"Накладні №№ ' . $orderinvoice . ' видалені."' . '); location.reload(true); </script>';
+                    //echo '<script>alert('. '"Накладні №№ ' . $orderinvoice . ' видалені."' . '); location.reload(true); </script>';
                 }
             } catch( exception $e ) {}
         }

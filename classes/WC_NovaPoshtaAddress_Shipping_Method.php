@@ -127,7 +127,7 @@
             'calc_tax' => 'per_item'
         );
 
-        $cartTotal = WC()->cart->cart_contents_total;
+        $cartTotal = WC()->cart->get_cart_subtotal();
 
         if(('no' != $this->get_option( Options::USE_SHIPPING_PRICE_ON_DELIVERY ))){
                 if(! ( 'no' == $this->get_option( Options::USE_FIXED_PRICE_ON_DELIVERY ) )){

@@ -311,6 +311,10 @@ class Sender extends Singleton
 
     public function getSenderCityRef()
     {
+        if (!empty(get_option('woocommerce_nova_poshta_shipping_method_city'))) {
+            return get_option('woocommerce_nova_poshta_shipping_method_city');
+        }
+        
         $senderCityRef = array(
             "apiKey" => $this->api_key,
             "modelName" => "Address",

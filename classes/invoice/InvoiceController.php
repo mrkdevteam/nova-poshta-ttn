@@ -87,6 +87,7 @@ class InvoiceController {
 	public $recipient_flat;
 	public $recipient_warehouse_ref;
 	public $recipient_type_of_warehouse;
+	public $recipient_warehouse_number;
 
 	public $recipient_ref;
 	public $recipient_contact_ref;
@@ -185,6 +186,7 @@ class InvoiceController {
 		}
 
 		$this->recipient_ref = $this->recipient()->recipient_ref;
+		$this->recipient_warehouse_number = $this->recipient()->getRecipientWarehouseNumber();
 		$this->recipient_contact_ref = $this->recipient()->recipient_contact_ref;
 
 		#---------- Order Data ----------
@@ -463,6 +465,17 @@ class InvoiceController {
 				"PackingNumber" => $this->packing_number
 			);
 		} else { // Відділення
+
+			$city_main = '';
+
+            if($orderObj->get_billing_city()){
+                $city_main = $orderObj->get_billing_city();
+            }
+            else
+            {
+                $city_main = $orderObj->get_shipping_city();
+            }
+
 			$recipient_address_name_show = $this->recipient_city_name . ', ' . $this->recipient_address_name;
 			$recipient_names_show = $this->recipient_names;
 			$methodProperties = array(
@@ -495,16 +508,18 @@ class InvoiceController {
 				// "ContactSender" => $this->sender_warehouse_ref,
 				"SendersPhone" => $this->sender_phones,
 				// Recipient
-				"Recipient" => $this->recipient_ref,
-                "RecipientAddress" => $recipient_address_ref,
-                "RecipientAddressName" => $this->recipient_address_name,
-                "ContactRecipient" => $this->recipient_contact_ref,
-				"CityRecipient" => $this->recipient_city_ref,
+				/*"Recipient" => $this->recipient_ref,
+                "RecipientAddress" => $this->recipient_warehouse_ref,*/
+                "RecipientAddressName" => $this->recipient_warehouse_number,
+                /*"ContactRecipient" => $this->recipient_contact_ref,*/
+				/*"CityRecipient" => $this->recipient_city_ref,*/
+				"RecipientCityName" => $city_main,
 				"RecipientHouse" => "",
 				"RecipientFlat" => "",
 				"RecipientName" => $this->recipient_names,
 				"RecipientType" => "PrivatePerson",
 				"RecipientsPhone" => $this->recipient_phone,
+				'SettlementType' => 'м.',
 				// Additional info
 				"AdditionalInformation"=>$this->invoice_description,
 				"InfoRegClientBarcodes" => $this->order_id,

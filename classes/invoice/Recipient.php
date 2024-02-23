@@ -137,9 +137,9 @@ class Recipient
 
     public function getRecipientFirstName()
     {
-        $shipping_first_name = ! empty( $this->order_data['billing']['first_name'] )
-            ? esc_html( $this->order_data['billing']['first_name'] )
-            : esc_html( $this->order_data['shipping']['first_name'] );
+        $shipping_first_name = ! empty( $this->order_data['shipping']['first_name'] )
+            ? esc_html( $this->order_data['shipping']['first_name'] )
+            : esc_html( $this->order_data['billing']['first_name'] );
 
         $shipping_first_name = str_replace("ʼ", "'", $shipping_first_name);
 
@@ -155,9 +155,9 @@ class Recipient
 
     public function getRecipientLastName()
     {
-        $shipping_last_name = ! empty( $this->order_data['billing']['last_name'] )
-            ? esc_html( $this->order_data['billing']['last_name'] )
-            : esc_html( $this->order_data['shipping']['last_name'] );
+        $shipping_last_name = ! empty( $this->order_data['shipping']['last_name'] )
+            ? esc_html( $this->order_data['shipping']['last_name'] )
+            : esc_html( $this->order_data['billing']['last_name'] );
 
         $shipping_last_name = str_replace("ʼ", "'", $shipping_last_name);
 
@@ -169,31 +169,33 @@ class Recipient
         if(class_exists( \Automattic\WooCommerce\Utilities\OrderUtil::class ) && OrderUtil::custom_orders_table_usage_is_enabled())
         {
             $order = wc_get_order( $this->order_id );
-            if ( ! empty( $order->get_meta('_billing_mrkvnp_patronymics') ) ) {
-                $patronymics = $order->get_meta('_billing_mrkvnp_patronymics');
-                $patronymics = str_replace("ʼ", "'", $patronymics);
-                return $patronymics;
-            }
+
             if ( ! empty( $order->get_meta('_shipping_mrkvnp_patronymics') ) ) {
                 $patronymics = $order->get_meta('_shipping_mrkvnp_patronymics');
                 $patronymics = str_replace("ʼ", "'", $patronymics);
                 return $patronymics;
             }
+            if ( ! empty( $order->get_meta('_billing_mrkvnp_patronymics') ) ) {
+                $patronymics = $order->get_meta('_billing_mrkvnp_patronymics');
+                $patronymics = str_replace("ʼ", "'", $patronymics);
+                return $patronymics;
+            }
+            
 
             $order->save();
         }
         else
         {
-           if ( ! empty( get_post_meta( $this->order_id, '_billing_mrkvnp_patronymics', true ) ) ) {
-                $patronymics = get_post_meta( $this->order_id, '_billing_mrkvnp_patronymics', true );
-                $patronymics = str_replace("ʼ", "'", $patronymics);
-                return $patronymics;
-            }
             if ( ! empty( get_post_meta( $this->order_id, '_shipping_mrkvnp_patronymics', true ) ) ) {
                 $patronymics = get_post_meta( $this->order_id, '_shipping_mrkvnp_patronymics', true );
                 $patronymics = str_replace("ʼ", "'", $patronymics);
                 return $patronymics;
             } 
+           if ( ! empty( get_post_meta( $this->order_id, '_billing_mrkvnp_patronymics', true ) ) ) {
+                $patronymics = get_post_meta( $this->order_id, '_billing_mrkvnp_patronymics', true );
+                $patronymics = str_replace("ʼ", "'", $patronymics);
+                return $patronymics;
+            }
         }
         
         return '';
@@ -202,9 +204,9 @@ class Recipient
     public function getRecipientPhone()
     {
         if ( isset( $this->order_id ) ) {
-            $recipient_shipping_phone = ! empty( $this->order_data['billing']['phone'] )
-                ? str_replace( array('+', ' ', '(' , ')', '-'), '', esc_html( $this->order_data['billing']['phone'] ) )
-                : str_replace( array('+', ' ', '(' , ')', '-'), '', esc_html( $this->order_data['shipping']['phone'] ) );
+            $recipient_shipping_phone = ! empty( $this->order_data['shipping']['phone'] )
+                ? str_replace( array('+', ' ', '(' , ')', '-'), '', esc_html( $this->order_data['shipping']['phone'] ) )
+                : str_replace( array('+', ' ', '(' , ')', '-'), '', esc_html( $this->order_data['billing']['phone'] ) );
             $shipping_phone = isset( $_POST['mrkvnp_invoice_recipient_phone'] )
                 ? \sanitize_text_field( $_POST['mrkvnp_invoice_recipient_phone'] )
                 : $recipient_shipping_phone;
@@ -224,11 +226,12 @@ class Recipient
     public function getRecipientCityName($order_id)
     {
         $order_data = $this->order_data;
-        if ( isset( $order_data['billing']['city'] ) && ! empty( $order_data['billing']['city'] ) ) {
-            $recipient_city_name = \sanitize_text_field( $order_data['billing']['city'] );
-        } elseif ( isset( $order_data['shipping']['city'] ) && ! empty( $order_data['shipping']['city'] ) ) {
+        if ( isset( $order_data['shipping']['city'] ) && ! empty( $order_data['shipping']['city'] ) ) {
             $recipient_city_name = \sanitize_text_field( $order_data['shipping']['city'] );
-        } else $recipient_city_name = '';
+        }
+        elseif ( isset( $order_data['billing']['city'] ) && ! empty( $order_data['billing']['city'] ) ) {
+            $recipient_city_name = \sanitize_text_field( $order_data['billing']['city'] );
+        }  else $recipient_city_name = '';
         return ( isset( $_POST['mrkvnp_invoice_recipient_city_name'] ) && ! empty( $_POST['mrkvnp_invoice_recipient_city_name'] ) )
             ? \sanitize_text_field( $_POST['mrkvnp_invoice_recipient_city_name'] ) : $recipient_city_name;
     }
@@ -250,7 +253,7 @@ class Recipient
         $obj = $this->invoiceModel()->sendPostRequest( $this->api_url, $recipientAddress );
         if ( $obj['errors'] ) {
             $apinp_errors = implode('<br>', $obj['errors'] );
-            echo '<script>alert('. '"API Нова Пошта: ' . 'Помилки при створенні одержувача - ' . $apinp_errors . '."' . '); </script>';
+            //echo '<script>alert('. '"API Нова Пошта: ' . 'Помилки при створенні одержувача - ' . $apinp_errors . '."' . '); </script>';
             wp_die( 'Помилки в даних відділення.' );
         }
         return $obj['data'][0]['Ref'];
@@ -273,7 +276,7 @@ class Recipient
         $obj = $this->invoiceModel()->sendPostRequest( $this->api_url, $recipientAddressName );
         if ( $obj['errors'] ) {
             $apinp_errors = implode('<br>', $obj['errors'] );
-            echo '<script>alert('. '"API Нова Пошта: ' . 'Помилки в даних доставки на адресу - ' . $apinp_errors . '."' . '); </script>';
+            //echo '<script>alert('. '"API Нова Пошта: ' . 'Помилки в даних доставки на адресу - ' . $apinp_errors . '."' . '); </script>';
             wp_die( 'Помилки в даних відділення.' );
         }
         return $obj['data'][0]['Description'];
@@ -284,13 +287,14 @@ class Recipient
         $streetHouseArr = array();
         $order = \wc_get_order( $order_id );
         $order_data = $order->get_data();
-        if ( isset( $order_data['billing']['address_1'] ) &&
-                ! empty( $order_data['billing']['address_1'] ) ) {
-            $streetName = $order_data['billing']['address_1'];
-        } elseif ( isset( $order_data['shipping']['address_1'] ) &&
+        if ( isset( $order_data['shipping']['address_1'] ) &&
                 ! empty( $order_data['shipping']['address_1'] ) ) {
             $streetName = $order_data['shipping']['address_1'];
-        } else {}
+        }
+        elseif ( isset( $order_data['billing']['address_1'] ) &&
+                ! empty( $order_data['billing']['address_1'] ) ) {
+            $streetName = $order_data['billing']['address_1'];
+        }  else {}
         $posBlank = strpos( $streetName, ' ');
         $posComma = strpos( $streetName, ',' );
         $streetLen   = $posComma - $posBlank - 1;
@@ -317,7 +321,7 @@ class Recipient
         $obj = $this->invoiceModel()->sendPostRequest( $this->api_url, $recipientStreet );
         if ( $obj['errors'] ) {
             $apinp_errors = implode('<br>', $obj['errors'] );
-            echo '<script>alert('. '"API Нова Пошта: ' . 'Помилки в назві вулиці одержувача - ' . $apinp_errors . '."' . '); </script>';
+            //echo '<script>alert('. '"API Нова Пошта: ' . 'Помилки в назві вулиці одержувача - ' . $apinp_errors . '."' . '); </script>';
             wp_die( 'Помилки в даних вулиці одрежувача.' );
         }
         return $obj['data'][0]['Ref'];
@@ -337,7 +341,7 @@ class Recipient
         $obj = $this->invoiceModel()->sendPostRequest( $this->api_url, $recipientStreet );
         if ( $obj['errors'] ) {
             $apinp_errors = implode('<br>', $obj['errors'] );
-            echo '<script>alert('. '"API Нова Пошта: ' . 'Помилки в даних вулиці одержувача - ' . $apinp_errors . '."' . '); </script>';
+            //echo '<script>alert('. '"API Нова Пошта: ' . 'Помилки в даних вулиці одержувача - ' . $apinp_errors . '."' . '); </script>';
             wp_die( 'Помилки в даних вулиці одрежувача.' );
         }
         return $obj['data'][0]['StreetsType'] . ' ' . $obj['data'][0]['Description'] . ',';
@@ -348,31 +352,33 @@ class Recipient
         if(class_exists( \Automattic\WooCommerce\Utilities\OrderUtil::class ) && OrderUtil::custom_orders_table_usage_is_enabled())
         {
             $order = wc_get_order( $order_id );
-
-            if ( ! empty( $order->get_meta('_billing_nova_poshta_city') ) ) {
-                return $order->get_meta('_billing_nova_poshta_city');
-            } elseif ( ! empty( $order->get_meta('_shipping_nova_poshta_city') ) ) {
+            if ( ! empty( $order->get_meta('_shipping_nova_poshta_city') ) ) {
                 return $order->get_meta('_shipping_nova_poshta_city');
-            } else return $order->get_meta('np_city_ref');
+            }
+            elseif ( ! empty( $order->get_meta('_billing_nova_poshta_city') ) ) {
+                return $order->get_meta('_billing_nova_poshta_city');
+            }  else return $order->get_meta('np_city_ref');
 
             $order->save();
         }
         else{
-            if ( ! empty( get_post_meta( $order_id, '_billing_nova_poshta_city', true ) ) ) {
-                return get_post_meta( $order_id, '_billing_nova_poshta_city', true );
-            } elseif ( ! empty( get_post_meta( $order_id, '_shipping_nova_poshta_city', true ) ) ) {
+            if ( ! empty( get_post_meta( $order_id, '_shipping_nova_poshta_city', true ) ) ) {
                 return get_post_meta( $order_id, '_shipping_nova_poshta_city', true );
-            } else return get_post_meta( $order_id, 'np_city_ref', true );
+            }
+            elseif ( ! empty( get_post_meta( $order_id, '_billing_nova_poshta_city', true ) ) ) {
+                return get_post_meta( $order_id, '_billing_nova_poshta_city', true );
+            }  else return get_post_meta( $order_id, 'np_city_ref', true );
         }
     }
 
     public function getRecipientRegionName($order_id)
     {
-        if ( isset( $_POST['billing_nova_poshta_region'] ) ) {
-            return \sanitize_text_field( $_POST['billing_nova_poshta_region'] );
-        } elseif ( isset( $_POST['shipping_nova_poshta_region'] ) ) {
+        if ( isset( $_POST['shipping_nova_poshta_region'] ) ) {
             return \sanitize_text_field( $_POST['shipping_nova_poshta_region'] );
-        } else return '';
+        }
+        elseif ( isset( $_POST['billing_nova_poshta_region'] ) ) {
+            return \sanitize_text_field( $_POST['billing_nova_poshta_region'] );
+        }  else return '';
     }
 
     public function getRecipientRegionRef($order_id)
@@ -381,21 +387,23 @@ class Recipient
         {
             $order = wc_get_order( $order_id );
 
-            if ( ! empty( $order->get_meta('_billing_nova_poshta_region') ) ) {
-                return $order->get_meta('_billing_nova_poshta_region');
-            } elseif ( ! empty( $order->get_meta('_shipping_nova_poshta_region') ) ) {
+            if ( ! empty( $order->get_meta('_shipping_nova_poshta_region') ) ) {
                 return $order->get_meta('_shipping_nova_poshta_region');
-            } else return $order->get_meta('np_region_ref');
+            }
+            elseif ( ! empty( $order->get_meta('_billing_nova_poshta_region') ) ) {
+                return $order->get_meta('_billing_nova_poshta_region');
+            }  else return $order->get_meta('np_region_ref');
 
             $order->save();
         }
         else
         {
-            if ( ! empty( get_post_meta( $order_id, '_billing_nova_poshta_region', true ) ) ) {
-                return get_post_meta( $order_id, '_billing_nova_poshta_region', true );
-            } elseif ( ! empty( get_post_meta( $order_id, '_shipping_nova_poshta_region', true ) ) ) {
+            if ( ! empty( get_post_meta( $order_id, '_shipping_nova_poshta_region', true ) ) ) {
                 return get_post_meta( $order_id, '_shipping_nova_poshta_region', true );
-            } else return get_post_meta( $order_id, 'np_region_ref', true );
+            }
+            elseif ( ! empty( get_post_meta( $order_id, '_billing_nova_poshta_region', true ) ) ) {
+                return get_post_meta( $order_id, '_billing_nova_poshta_region', true );
+            }  else return get_post_meta( $order_id, 'np_region_ref', true );
         }
     }
 
@@ -452,17 +460,28 @@ class Recipient
 		$obj = $this->invoiceModel()->sendPostRequest( $this->api_url, $recipientWarehouse );
         if ( empty( $obj['errors'] ) ) return $obj['data'][0]['Ref'];
         $apinp_errors = implode('<br>', $obj['errors'] );
-        echo '<script>alert('. '"API Нова Пошта: ' . 'Помилки в даних відділення одержувача - ' . $apinp_errors . '."' . '); </script>';
+        //echo '<script>alert('. '"API Нова Пошта: ' . 'Помилки в даних відділення одержувача - ' . $apinp_errors . '."' . '); </script>';
     }
 
     public function getRecipientWarehouseNumber() // Get warehouse number
     {
+        $order_data = $this->order_data;
+
+        $recipient_city_name = '';
+
+        if ( isset( $order_data['shipping']['city'] ) && ! empty( $order_data['shipping']['city'] ) ) {
+            $recipient_city_name = $order_data['shipping']['city'];
+        }
+        elseif ( isset( $order_data['billing']['city'] ) && ! empty( $order_data['billing']['city'] ) ) {
+            $recipient_city_name = $order_data['billing']['city'];
+        }  else $recipient_city_name = '';
+        
         $recipient_address_name = array(
             "apiKey" => $this->api_key,
             "modelName" => "Address",
             "calledMethod" => "getWarehouses",
             "methodProperties" => array(
-                "CityName" => $this->recipient_city_name,
+                "CityName" => $recipient_city_name,
                 "FindByString" => $this->recipient_warehouse_name
             )
         );
@@ -476,8 +495,8 @@ class Recipient
     public function getRecipientWarehouseName()
     {
         if ( isset( $this->order_id ) ) {
-            $shipping_warehouse_name = ! empty( $this->order_data['billing']['address_1'] )
-                ? $this->order_data['billing']['address_1'] : $this->order_data['shipping']['address_1'];
+            $shipping_warehouse_name = ! empty( $this->order_data['shipping']['address_1'] )
+                ? $this->order_data['shipping']['address_1'] : $this->order_data['billing']['address_1'];
             return $shipping_warehouse_name;
         }
     }
@@ -503,13 +522,14 @@ class Recipient
     {
         $order = \wc_get_order( $order_id );
         $order_data = $order->get_data();
-        if ( isset( $order_data['billing']['address_1'] ) &&
-                ! empty( $order_data['billing']['address_1'] ) ) {
-            $streetHouseString = $order_data['billing']['address_1'];
-        } elseif ( isset( $order_data['shipping']['address_1'] ) &&
+        if ( isset( $order_data['shipping']['address_1'] ) &&
                 ! empty( $order_data['shipping']['address_1'] ) ) {
             $streetHouseString = $order_data['shipping']['address_1'];
-        } else {
+        }
+        elseif ( isset( $order_data['billing']['address_1'] ) &&
+                ! empty( $order_data['billing']['address_1'] ) ) {
+            $streetHouseString = $order_data['billing']['address_1'];
+        }  else {
             return '';
         }
         $streetHouse = \trim( $streetHouseString );
@@ -521,13 +541,14 @@ class Recipient
     {
         $order = \wc_get_order( $order_id );
         $order_data = $order->get_data();
-        if ( isset( $order_data['billing']['address_2'] ) &&
-                ! empty( $order_data['billing']['address_2'] ) ) {
-            return $order_data['billing']['address_2'];
-        } elseif ( isset( $order_data['shipping']['address_2'] ) &&
+        if ( isset( $order_data['shipping']['address_2'] ) &&
                 ! empty( $order_data['shipping']['address_2'] ) ) {
             return $order_data['shipping']['address_2'];
-        } else {
+        }
+        elseif ( isset( $order_data['billing']['address_2'] ) &&
+                ! empty( $order_data['billing']['address_2'] ) ) {
+            return $order_data['billing']['address_2'];
+        }  else {
             return '';
         }
     }
@@ -536,13 +557,14 @@ class Recipient
     {
         $order = \wc_get_order( $order_id );
         $order_data = $order->get_data();
-        if ( isset( $order_data['billing']['address_2'] ) &&
-                ! empty( $order_data['billing']['address_2'] ) ) {
-            $flatNumberString = $order_data['billing']['address_2'];
-        } elseif ( isset( $order_data['shipping']['address_2'] ) &&
+        if ( isset( $order_data['shipping']['address_2'] ) &&
                 ! empty( $order_data['shipping']['address_2'] ) ) {
             $flatNumberString = $order_data['shipping']['address_2'];
-        } else {
+        }
+        elseif ( isset( $order_data['billing']['address_2'] ) &&
+                ! empty( $order_data['billing']['address_2'] ) ) {
+            $flatNumberString = $order_data['billing']['address_2'];
+        }  else {
             return '';
         }
         $addressNote = \trim( $flatNumberString );
