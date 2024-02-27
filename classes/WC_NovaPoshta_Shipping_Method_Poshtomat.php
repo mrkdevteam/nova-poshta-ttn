@@ -128,7 +128,7 @@ if ( ! class_exists( 'WC_NovaPoshta_Shipping_Method_Poshtomat' ) ) :
                 'calc_tax' => 'per_item'
             );
 
-            $cartTotal = WC()->cart->get_cart_subtotal();
+            $cartTotal = WC()->cart->get_subtotal();
 
             if(('no' != $this->get_option( Options::USE_SHIPPING_PRICE_ON_DELIVERY ))){
                     if(! ( 'no' == $this->get_option( Options::USE_FIXED_PRICE_ON_DELIVERY ) )){
