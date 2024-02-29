@@ -489,6 +489,15 @@ class Recipient
         if ( isset( $obj['data'][0]['Number'] ) ) {
             return $obj['data'][0]['Number'];
         }
+        else
+        {
+            preg_match_all('!\d+!', $this->recipient_warehouse_name, $matches);
+
+            if(isset($matches[0][0]))
+            {
+                return $matches[0][0];
+            }
+        }
         return '';
     }
 
