@@ -297,6 +297,16 @@ jQuery(document).ready(function() {
 		if (localStorage) {
             localStorage.setItem('ship_method', '');
             localStorage.setItem('billing_city_np', '');
+            localStorage.setItem('np_change_bil_ship', '');
+        }
+
+        if(jQuery('#ship-to-different-address-checkbox').length && jQuery('#ship-to-different-address-checkbox').is(':checked'))
+        {
+        	localStorage.setItem('np_change_bil_ship', jQuery('#ship-to-different-address-checkbox').is(':checked'));
+        }
+        else
+        {
+        	localStorage.setItem('np_change_bil_ship', false);
         }
 
 		// Change shipping method with radio button 'Доставка'
@@ -307,6 +317,20 @@ jQuery(document).ready(function() {
 				: jQuery('#shipping_nova_poshta_city').val();
 
 				let mrkvShippingMethods = document.querySelectorAll('#shipping_method .shipping_method');
+
+				var has_change_ship = false;
+
+			if(jQuery('#ship-to-different-address-checkbox').length)
+	        {
+	        	if(jQuery('#ship-to-different-address-checkbox').is(':checked') == localStorage.getItem("np_change_bil_ship"))
+	        	{
+	        		has_change_ship = false;
+	        	}
+	        	else
+	        	{
+	        		has_change_ship = true;
+	        	}
+	        }
 
 			// Check loacl storage
 			if (localStorage && (mrkvShippingMethods.length != 0)) {
@@ -330,7 +354,7 @@ jQuery(document).ready(function() {
                 }
                 else{
                 	// Check ship method
-                    if(localStorage.getItem("ship_method") == ship_method){
+                    if(localStorage.getItem("ship_method") == ship_method && !has_change_ship){
                     	// Set shipping method     
                         localStorage.setItem('ship_method', ship_method);
                         if((localStorage.getItem("billing_city_np") === null || localStorage.getItem("billing_city_np") === '') && cityRef){

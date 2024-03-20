@@ -418,7 +418,7 @@ class InvoiceModel
     {
         return isset( $_POST['invoice_datetime'] )
             ? \sanitize_text_field( $_POST['invoice_datetime'] )
-            : date( 'd.m.Y', strtotime( "+1 day" ) );
+            : date( 'd.m.Y');
     }
 
     public function getDeliveryPaymentMethod()
