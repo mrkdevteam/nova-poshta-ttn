@@ -4,7 +4,7 @@ Tags: Nova Poshta, нова пошта, новая почта, nova post
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.0
-Stable tag: 1.18.21
+Stable tag: 1.18.22
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -82,6 +82,9 @@ https://youtu.be/YAW4wtwHTB0
 
 
 == Що нового? ==
+
+= 1.18.22 =
+* [hotfix] виправили обов'язкове поле mrkvnp_street
 
 = 1.18.21 =
 * [hotfix] виправили localStorage при зміні отримувача

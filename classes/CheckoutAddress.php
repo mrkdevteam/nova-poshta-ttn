@@ -58,7 +58,7 @@ class CheckoutAddress extends Checkout
     {
         $fields['mrkvnp_street']   = array(
             'label'        => __( 'Street', NOVA_POSHTA_TTN_DOMAIN ),
-            'required'     => true,
+            'required'     => false,
             'class'        => array( 'form-row-wide', 'my-custom-class' ),
             'priority'     => 130,
             'placeholder'  => __( 'Введіть перші три літери..', NOVA_POSHTA_TTN_DOMAIN ),
