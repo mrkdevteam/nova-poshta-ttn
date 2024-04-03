@@ -416,9 +416,10 @@ class InvoiceModel
 
     public function getInvoiceDateTime()
     {
-        return isset( $_POST['invoice_datetime'] )
-            ? \sanitize_text_field( $_POST['invoice_datetime'] )
-            : date( 'd.m.Y');
+        # Change Timezone
+        date_default_timezone_set("Europe/Kiev");
+
+        return date( 'd.m.Y');
     }
 
     public function getDeliveryPaymentMethod()
