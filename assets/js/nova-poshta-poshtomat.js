@@ -24,7 +24,25 @@ jQuery(document).ready(function() {
 	    	addSelect2() {
 				let fieldNames = NPWarehouse.makefieldNamesIds(this.npwhOnFields, this.fieldsLocation);
 	    		for (let i = 0; i < fieldNames.length; i++) {
-				  	jQuery(fieldNames[i]).select2();
+				  	jQuery(fieldNames[i]).select2({ 
+				  		"language" : {
+				  			"noResults": function(){
+				  				var current_lang = jQuery('html').attr('lang');
+
+								var not_found_text = 'No results found';
+
+								if(current_lang == 'uk' || current_lang == 'uk-UA')
+								{
+									not_found_text = 'Нічого не знайдено';
+								}
+								if(current_lang == 'ru' || current_lang == 'ru-RU')
+								{
+									not_found_text = 'Результаты не найдены';
+								}
+					           return not_found_text;
+					       }
+				  		}
+				  	 });
 				}
 	    	}
 
@@ -346,6 +364,9 @@ jQuery(document).ready(function() {
                 if(jQuery('input.shipping_method:checked').length){
                 	ship_method = jQuery('input.shipping_method:checked').val();
                 }
+                if(jQuery('input.shipping_method').length == 1){
+                	ship_method = jQuery('input.shipping_method').val();
+                }
 
                 // Check ship method
                 if(localStorage.getItem("ship_method") === null){  
@@ -577,10 +598,24 @@ jQuery(document).ready(function() {
 									);
 							});
 						} else {
+
+							var current_lang = jQuery('html').attr('lang');
+
+							var not_found_text = 'No results found';
+
+							if(current_lang == 'uk' || current_lang == 'uk-UA')
+							{
+								not_found_text = 'Нічого не знайдено';
+							}
+							if(current_lang == 'ru' || current_lang == 'ru-RU')
+							{
+								not_found_text = 'Результаты не найдены';
+							}
+
 							mrkvnpWhSelect
 								.append(jQuery("<option></option>")
 									.attr("value", 'not_found')
-									.text('No results found')
+									.text(not_found_text)
 							);
 						}
 						jQuery('#'+mrkvnpFL+'_nova_poshta_city_field').removeClass('statenp-loading');
