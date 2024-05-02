@@ -15,7 +15,10 @@ class MNP_Plugin_Admin {
 	}
 
 	public function enqueue_styles() {
- 		wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/mystyle.css', array(), $this->version, 'all' );
+		if(!(isset($_GET['post_type']) && $_GET['post_type'] == 'wck_fieldset') && !(isset($_GET['post']) && isset($_GET['action']) && $_GET['action'] == 'edit'))
+		{
+			wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/mystyle.css', array(), $this->version, 'all' );
+		}
 	}
 
 

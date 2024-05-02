@@ -985,7 +985,8 @@ class MNP_Plugin_Loader
             ),
             array(
                 'id' => 'mrkvnp_invoice_volume',
-                'title' => __('Об\'ємна вага відправлення:','nova-poshta-ttn'),
+                'title' => __('Об\'ємна вага відправлення:','nova-poshta-ttn') . '<br><span style="font-weight:normal;font-size: smaller;"> Вмикайте це налаштування,
+                    якщо ВСІ товари на сайті мають вагу і розміри.</span>',
                 'callback' => array( $this->callbacks, 'mrkvnpInvoiceDefaultVolume' ),
                 'page' => 'morkvanp_plugin',
                 'section' => 'mrkvnp_default_settings',
@@ -1006,17 +1007,16 @@ class MNP_Plugin_Loader
                     'class' => 'mrkvnp-pt0 mrkvnp-chkbx mrkvnp-tr-pr-110t mrkvnp-th-colorgray'
                 )
             ),
-            array(
+            /*array(
                 'id' => 'mrkvnp_caption_calc_shipcost',
-                'title' => '<span style="font-weight:normal;font-size: smaller;"> Вмикайте це налаштування,
-                    якщо ВСІ товари на сайті мають вагу і розміри.</span>',
+                'title' => '',
                 'callback' => function () {},
                 'page' => 'morkvanp_plugin',
                 'section' => 'mrkvnp_default_settings',
                 'args' => array(
                     'class' => 'mrkvnp-pt0 mrkvnp-pb20 mrkvnp-tr-pr-125t'
                 )
-            ),
+            ),*/
 
             // *** Automation
             array(
