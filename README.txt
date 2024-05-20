@@ -2,9 +2,10 @@
 Contributors: bandido, olegkovalyov
 Tags: Nova Poshta, нова пошта, новая почта, nova post
 Requires at least: 5.0
-Tested up to: 6.4
+Tested up to: 6.5
 Requires PHP: 7.0
-Stable tag: 1.18.26
+Stable tag: 1.18.27
+WC tested up to: 8.8
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -82,6 +83,10 @@ https://youtu.be/YAW4wtwHTB0
 
 
 == Що нового? ==
+
+= 1.18.27 =
+* WooCommerce 8.8 - сумісний
+* WP 6.5 - сумісний
 
 = 1.18.26 =
 * [fix] виправили стилі плагіну
