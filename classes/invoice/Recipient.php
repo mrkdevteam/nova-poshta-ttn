@@ -149,7 +149,7 @@ class Recipient
             $shipping_first_name = substr( $shipping_first_name, 0,
                 strlen( $shipping_first_name ) - strlen( $shipping_middle_name ) - 1 );
         }
-        return $shipping_first_name;
+        return stripslashes($shipping_first_name);
 
     }
 
@@ -161,7 +161,7 @@ class Recipient
 
         $shipping_last_name = str_replace("ʼ", "'", $shipping_last_name);
 
-        return $shipping_last_name;
+        return stripslashes($shipping_last_name);
     }
 
     public function getRecipientMiddleName()

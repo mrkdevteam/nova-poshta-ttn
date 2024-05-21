@@ -356,8 +356,8 @@ class InvoiceController {
 	if ( 'WarehouseDoors' == $serviceType ||
 			'DoorsDoors' == $serviceType ) {
 		$recipient_names_show = $this->recipient_middle_name
-			? $this->recipient_names . ' ' . $this->recipient_middle_name
-			: $this->recipient_names;
+			? stripslashes($this->recipient_names) . ' ' . $this->recipient_middle_name
+			: stripslashes($this->recipient_names);
 		$recipient_address_ref = $this->recipient()->createRecipientAddressRef( $this->order_id );
 		$recipient_street_ref = $this->recipient()->getRecipientStreetRef( $this->order_id );
 		$recipient_contact_ref = $this->recipient()->getRecipientContactRef( $this->order_id );
@@ -401,7 +401,7 @@ class InvoiceController {
 			"CityRecipient" => $this->recipient_city_ref,
 			"RecipientHouse" => $recipient_building_number,
 			"RecipientFlat" => $recipient_flat_number,
-			"RecipientName" => $this->recipient_names,
+			"RecipientName" => stripslashes($this->recipient_names),
 			"RecipientType" => "PrivatePerson",
 			"RecipientsPhone" => $this->recipient_phone,
 			// Additional info
@@ -421,7 +421,7 @@ class InvoiceController {
 	}
 	else {
 		$recipient_address_name_show = $this->recipient_address_name;
-		$recipient_names_show = $this->recipient_names;
+		$recipient_names_show = stripslashes($this->recipient_names);
 		if ( $this->recipient()->isRecipientTypeOfWarehousePoshtomat() ) {  // Поштомат
 			$methodProperties = array(
 				// General params
@@ -477,7 +477,7 @@ class InvoiceController {
             }
 
 			$recipient_address_name_show = $this->recipient_city_name . ', ' . $this->recipient_address_name;
-			$recipient_names_show = $this->recipient_names;
+			$recipient_names_show = stripslashes($this->recipient_names);
 			$methodProperties = array(
 				// General params
 				"NewAddress" => "1", // Використання нового адресного довідника 1- ТАК, 0 - НІ
@@ -516,7 +516,7 @@ class InvoiceController {
 				"RecipientCityName" => $city_main,
 				"RecipientHouse" => "",
 				"RecipientFlat" => "",
-				"RecipientName" => $this->recipient_names,
+				"RecipientName" => stripslashes($this->recipient_names),
 				"RecipientType" => "PrivatePerson",
 				"RecipientsPhone" => $this->recipient_phone,
 				'SettlementType' => 'м.',
