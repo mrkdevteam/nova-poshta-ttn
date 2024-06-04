@@ -531,7 +531,7 @@ jQuery(document).ready(function() {
 					'parent_ref': areaRef
 				},
 				beforeSend: function() {
-					jQuery('#'+mrkvnpFL+'_nova_poshta_region_field').addClass('statenp-loading');
+					jQuery(mrkvnpAreaSelect).closest('#'+mrkvnpFL+'_nova_poshta_region_field').addClass('statenp-loading');
 				},
 				success: function(json) {
 					try {
@@ -548,7 +548,7 @@ jQuery(document).ready(function() {
 								);
 						});
 						mrkvnpWhSelect.find('option:not(:first-child)').remove();
-						jQuery('#'+mrkvnpFL+'_nova_poshta_region_field').removeClass('statenp-loading');
+						jQuery(mrkvnpAreaSelect).closest('#'+mrkvnpFL+'_nova_poshta_region_field').removeClass('statenp-loading');
 					} catch (s) {
 					    // console.log("Error. Response from server was: " + json);
 					}
