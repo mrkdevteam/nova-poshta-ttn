@@ -576,14 +576,16 @@ class CheckoutAddress extends Checkout
             // Nova Poshta on address
             $location = $this->getLocation();
 
+            if ( ! $_POST[$location . '_nova_poshta_region'] )
+                wc_add_notice( __( '<b>Поле Область</b> - обов\'язкове поле.' ), 'error' );
+            if ( ! $_POST[$location . '_nova_poshta_city'] )
+                wc_add_notice( __( '<b>Поле Місто</b> - обов\'язкове поле.' ), 'error' );
             if ( ! $_POST[$location . '_mrkvnp_patronymics'] )
                 wc_add_notice( __( '<b>Поле По батькові</b> - обов\'язкове поле.' ), 'error' );
             if ( ! $_POST[$location . '_mrkvnp_street'] )
                 wc_add_notice( __( '<b>Поле Вулиця</b> - обов\'язкове поле.' ), 'error' );
             if ( ! $_POST[$location . '_mrkvnp_house'] )
                 wc_add_notice( __( '<b>Поле Номер будинку</b> - обов\'язкове поле.' ), 'error' );
-            if ( ! $_POST[$location . '_nova_poshta_city'] )
-                wc_add_notice( __( '<b>Поле Місто</b> - обов\'язкове поле.' ), 'error' );
 
             $region = ArrayHelper::getValue($_POST, Region::key($location));
             $city = ArrayHelper::getValue($_POST, City::key($location));
