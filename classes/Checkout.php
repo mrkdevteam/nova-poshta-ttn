@@ -732,20 +732,35 @@ class Checkout extends Base
             );
         }
 
+        $region_name = __('Region', NOVA_POSHTA_TTN_DOMAIN);
+        $city_name = __('City', NOVA_POSHTA_TTN_DOMAIN);
+
+        $choose_region_text = __('Choose region', NOVA_POSHTA_TTN_DOMAIN);
+        $choose_city_text = __('Choose city', NOVA_POSHTA_TTN_DOMAIN);
+
+        if (get_locale() == 'uk_UA'){
+            $region_name = __('Область', NOVA_POSHTA_TTN_DOMAIN);
+            $city_name = __('Місто', NOVA_POSHTA_TTN_DOMAIN);
+
+            $choose_region_text = __('Оберіть область', NOVA_POSHTA_TTN_DOMAIN);
+            $choose_city_text = __('Оберіть місто', NOVA_POSHTA_TTN_DOMAIN);
+        }
+
         if ( $value_for_checkout_selects == '3fields' ) {
             $factory = AreaRepositoryFactory::instance();
             $fields[Region::key($location)] = [
-                'label' => __('Region', NOVA_POSHTA_TTN_DOMAIN),
+                'label' => $region_name,
                 'type' => 'select',
                 'default' => '',
                 'options' => OptionsHelper::getList($factory->regionRepo()->findAll(), true),
                 'class' => array(),
                 'priority'     => 120,
                 'custom_attributes' => array(),
+                'placeholder' => $choose_region_text
             ];
 
             $fields[City::key($location)] = [
-                'label' => __('City', NOVA_POSHTA_TTN_DOMAIN),
+                'label' => $city_name,
                 'type' => 'select',
                 'required' => $required,
                 'options' => OptionsHelper::getList($factory->cityRepo()->findByParentRefAndNameSuggestion($area, true)),
@@ -753,7 +768,7 @@ class Checkout extends Base
                 'priority'     => 122,
                 'value' => '',
                 'custom_attributes' => array(),
-                'placeholder' => __('Choose city', NOVA_POSHTA_TTN_DOMAIN),
+                'placeholder' => $choose_city_text,
             ];
             $warehouse_options = OptionsHelper::getList( $factory->warehouseRepo()->findByParentRefAndNameSuggestion($city) );
             $fields[Warehouse::key($location)] = [

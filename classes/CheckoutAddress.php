@@ -56,15 +56,27 @@ class CheckoutAddress extends Checkout
 
     public function addMrkvnpFields($fields)
     {
+        $street_name = __('Street', NOVA_POSHTA_TTN_DOMAIN);
+        $house_name = __('House number', NOVA_POSHTA_TTN_DOMAIN);
+        $falt_name = __('Flat', NOVA_POSHTA_TTN_DOMAIN);
+        $middle_name = __('Middle name', NOVA_POSHTA_TTN_DOMAIN);
+
+        if (get_locale() == 'uk_UA'){
+            $street_name = __('Вулиця', NOVA_POSHTA_TTN_DOMAIN);
+            $house_name = __('Номер будинку', NOVA_POSHTA_TTN_DOMAIN);
+            $falt_name = __('Квартира', NOVA_POSHTA_TTN_DOMAIN);
+            $middle_name = __('По батькові', NOVA_POSHTA_TTN_DOMAIN);
+        }
+
         $fields['mrkvnp_street']   = array(
-            'label'        => __( 'Street', NOVA_POSHTA_TTN_DOMAIN ),
+            'label'        => $street_name,
             'required'     => false,
             'class'        => array( 'form-row-wide', 'my-custom-class' ),
             'priority'     => 130,
             'placeholder'  => __( 'Введіть перші три літери..', NOVA_POSHTA_TTN_DOMAIN ),
         );
         $fields['mrkvnp_house'] = array(
-            'label'        => __('House number', NOVA_POSHTA_TTN_DOMAIN),
+            'label'        => $house_name,
             'type'         => 'text',
             'required'     => false,
             'class'        => array('form-row-first'),
@@ -72,7 +84,7 @@ class CheckoutAddress extends Checkout
             'clear'        => true
         );
         $fields['mrkvnp_flat'] = array(
-            'label'        => __('Flat', NOVA_POSHTA_TTN_DOMAIN),
+            'label'        => $falt_name,
             'type'         => 'text',
             'required'     => false,
             'class'        => array('form-row-last'),
@@ -80,7 +92,7 @@ class CheckoutAddress extends Checkout
             'clear'        => true
         );
         $fields['mrkvnp_patronymics']   = array(
-            'label'        => __( 'Middle name', NOVA_POSHTA_TTN_DOMAIN ),
+            'label'        => $middle_name,
             'required'     => false,
             'class'        => array( 'form-row-wide', 'my-custom-class' ),
             'priority'     => 136,
