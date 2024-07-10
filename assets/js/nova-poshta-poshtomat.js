@@ -391,6 +391,10 @@ jQuery(document).ready(function() {
 
                         return;
                     }
+                    if(localStorage.getItem("ship_method") == ship_method)
+                    {
+                		return;
+                    }
                     // Set shipping method     
                     localStorage.setItem('ship_method', ship_method);
                 }

@@ -39,12 +39,37 @@ class Sender extends Singleton
 	public $sender_address_name;
     public $sender_addresses_ref;
 
-    public function __construct()
+    public $sender_object;
+
+    public $order_id;
+    public $invoice_model_obj;
+
+    public function __construct($order_id = '', $invoice_model = '')
     {
+        if($invoice_model)
+        {
+            $this->invoice_model_obj = $invoice_model;
+        }
+        else
+        {   
+            $this->invoice_model_obj = new InvoiceModel();
+        }
+        if($order_id)
+        {
+            $this->order_id = $order_id;
+        }
+        else
+        {
+            $this->order_id = $this->invoice_model_obj->getOrderId();
+        }
+        
         $this->api_key = \sanitize_text_field( \get_option( 'mrkvnp_sender_api_key' ) );
 
         $this->sender_counterparties_ref = $this->getSenderCounterpartiesRef();
         $this->sender_ref = $this->sender_counterparties_ref;
+
+        $this->sender_object = $this->getSendersContactsRef();
+
         $this->sender_contacts_ref = $this->getSenderContactsRef();
 
         $this->sender_names = $this->getSenderNames();
@@ -73,7 +98,7 @@ class Sender extends Singleton
 
     public function invoiceModel()
     {
-        return new InvoiceModel();
+        return $this->invoice_model_obj;
     }
 
      #------------ Methods for Invoice from the sender warehouse -----------------
@@ -138,81 +163,31 @@ class Sender extends Singleton
 
     public function getSenderNames()
     {
-        $getSenderNames = array(
-            "apiKey" => $this->api_key,
-            "modelName" => "Counterparty",
-            "calledMethod" => "getCounterpartyContactPersons",
-            "methodProperties" => array(
-                "Ref" => $this->sender_counterparties_ref,
-                "Page" => 1
-            ),
-        );
-        $obj = $this->invoiceModel()->sendPostRequest( $this->api_url, $getSenderNames );
-        if ( isset( $obj['data'] ) && ! empty( $obj['data'] ) ) return $obj['data'][0]['Description'];
+        if ( isset( $this->sender_object['data'] ) && ! empty( $this->sender_object['data'] ) ) return $this->sender_object['data'][0]['Description'];
         return false;
     }
 
     public function getSenderLastName()
     {
-        $getSenderLastName = array(
-            "apiKey" => $this->api_key,
-            "modelName" => "Counterparty",
-            "calledMethod" => "getCounterpartyContactPersons",
-            "methodProperties" => array(
-                "Ref" => $this->sender_counterparties_ref,
-                "Page" => 1
-            ),
-        );
-        $obj = $this->invoiceModel()->sendPostRequest( $this->api_url, $getSenderLastName );
-        if ( isset( $obj['data'] ) && ! empty( $obj['data'] ) ) return $obj['data'][0]['LastName'];
+        if ( isset( $this->sender_object['data'] ) && ! empty( $this->sender_object['data'] ) ) return $this->sender_object['data'][0]['LastName'];
         return false;
     }
 
     public function getSenderFirstName()
     {
-        $getSenderFirstName = array(
-            "apiKey" => $this->api_key,
-            "modelName" => "Counterparty",
-            "calledMethod" => "getCounterpartyContactPersons",
-            "methodProperties" => array(
-                "Ref" => $this->sender_counterparties_ref,
-                "Page" => 1
-            ),
-        );
-        $obj = $this->invoiceModel()->sendPostRequest( $this->api_url, $getSenderFirstName );
-        if ( isset( $obj['data'] ) && ! empty( $obj['data'] ) ) return $obj['data'][0]['FirstName'];
+        if ( isset( $this->sender_object['data'] ) && ! empty( $this->sender_object['data'] ) ) return $this->sender_object['data'][0]['FirstName'];
         return false;
     }
 
     public function getSenderMiddleName()
     {
-        $getSenderMiddleName = array(
-            "apiKey" => $this->api_key,
-            "modelName" => "Counterparty",
-            "calledMethod" => "getCounterpartyContactPersons",
-            "methodProperties" => array(
-                "Ref" => $this->sender_counterparties_ref,
-                "Page" => 1
-            ),
-        );
-        $obj = $this->invoiceModel()->sendPostRequest( $this->api_url, $getSenderMiddleName );
-        if ( isset( $obj['data'] ) && ! empty( $obj['data'] ) ) return $obj['data'][0]['MiddleName'];
+        if ( isset( $this->sender_object['data'] ) && ! empty( $this->sender_object['data'] ) ) return $this->sender_object['data'][0]['MiddleName'];
         return false;
     }
 
     public function getSenderPhones()
     {
-        $getSenderPhones = array(
-            "apiKey" => $this->api_key,
-            "modelName" => "Counterparty",
-            "calledMethod" => "getCounterpartyContactPersons",
-            "methodProperties" => array(
-                "Ref" => $this->sender_counterparties_ref,
-                "Page" => 1
-            ),
-        );
-        $obj = $this->invoiceModel()->sendPostRequest( $this->api_url, $getSenderPhones );
-        if ( isset( $obj['data'] ) && ! empty( $obj['data'] ) ) return $obj['data'][0]['Phones'];
+        if ( isset( $this->sender_object['data'] ) && ! empty( $this->sender_object['data'] ) ) return $this->sender_object['data'][0]['Phones'];
         return false;
     }
 

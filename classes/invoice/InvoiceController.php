@@ -121,9 +121,17 @@ class InvoiceController {
 
 	public $packing_number;
 
+	public $invoice_model_obj;
+	public $order_obj_main;
+	public $recipient_obj;
+	public $sender_obj;
+
 	public function __construct($order_id)
 	{
 		$this->order_id = $order_id;
+		$order = wc_get_order($order_id );
+        $this->order_obj_main = $order;
+		$this->invoice_model_obj = new InvoiceModel($this->order_id);
 		$query_string = $_SERVER['QUERY_STRING'];
 		parse_str($query_string, $query_params);
 		if ( 'morkvanp_invoice' !== $query_params['page'] ) return;
@@ -143,6 +151,7 @@ class InvoiceController {
 
 		$this->api_key = $this->getApiKey();
 
+		$this->sender_obj = new Sender($this->order_id, $this->invoice_model_obj);
 		$this->sender_names = $this->sender()->sender_names;
 		$this->sender_last_name = $this->sender()->sender_last_name;
 		$this->sender_first_name = $this->sender()->sender_first_name;
@@ -163,6 +172,7 @@ class InvoiceController {
 
 		#---------- Recipient Data ----------
 
+		$this->recipient_obj = new Recipient($this->order_id, $this->invoice_model_obj);
 		$this->recipient_names = $this->recipient()->recipient_names;
 		$this->recipient_first_name = $this->recipient()->recipient_first_name;
 		$this->recipient_middle_name = $this->recipient()->recipient_middle_name;
@@ -230,17 +240,17 @@ class InvoiceController {
 
 	public function sender()
 	{
-		return Sender::getInstance();
+		return $this->sender_obj;
 	}
 
 	public function recipient()
 	{
-		return new Recipient();
+		return $this->recipient_obj;
 	}
 
 	public function invoiceModel()
 	{
-		return new InvoiceModel();
+		return $this->invoice_model_obj;
 	}
 
 	public function getApiKey()
@@ -252,7 +262,7 @@ class InvoiceController {
 
 	public function getOrderObj($order_id)
 	{
-		return  \wc_get_order($order_id);
+		return  $this->order_obj_main;
 	}
 
     public function getShippingMethodId($order_id)

@@ -37,9 +37,26 @@ class Recipient
 
     public $servicetype;
 
-    public function __construct()
+    public $invoice_model_obj;
+
+    public function __construct($order_id = '', $invoice_model = '')
     {
-        $this->order_id = $this->invoiceModel()->getOrderId();
+        if($invoice_model)
+        {
+            $this->invoice_model_obj = $invoice_model;
+        }
+        else
+        {   
+            $this->invoice_model_obj = new InvoiceModel();
+        }
+        if($order_id)
+        {
+            $this->order_id = $order_id;
+        }
+        else
+        {
+            $this->order_id = $this->invoice_model_obj->getOrderId();
+        }
 
         $this->api_key = \sanitize_text_field( get_option( 'mrkvnp_sender_api_key' ) );
 
@@ -79,7 +96,7 @@ class Recipient
 
     public function invoiceModel()
     {
-        return new InvoiceModel();
+        return $this->invoice_model_obj;
     }
 
     public function getOrderData($order_id)
