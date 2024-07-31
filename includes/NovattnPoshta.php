@@ -55,7 +55,7 @@ class NovattnPoshta extends Base
      */
     public function isWoocommerce()
     {
-        return in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_option('active_plugins')));
+        return class_exists( 'woocommerce' );
     }
 
     /**
@@ -295,7 +295,7 @@ class NovattnPoshta extends Base
      */
     public function addNovaPoshtaShippingMethod($methods)
     {
-        $methods[] = 'WC_NovaPoshta_Shipping_Method';
+        $methods['nova_poshta_shipping_method'] = 'WC_NovaPoshta_Shipping_Method';
         return $methods;
     }
 

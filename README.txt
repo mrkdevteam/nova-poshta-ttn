@@ -2,9 +2,9 @@
 Contributors: bandido, olegkovalyov
 Tags: Nova Poshta, нова пошта, новая почта, nova post
 Requires at least: 5.0
-Tested up to: 6.5
+Tested up to: 6.6
 Requires PHP: 7.0
-Stable tag: 1.19.0
+Stable tag: 1.19.1
 WC tested up to: 8.8
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -83,6 +83,9 @@ https://youtu.be/YAW4wtwHTB0
 
 
 == Що нового? ==
+
+= 1.19.1 =
+* WP 6.6 - сумісний
 
 = 1.19.0 =
 * [fix] покращили швидкість створення ТТН

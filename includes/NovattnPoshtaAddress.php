@@ -71,7 +71,7 @@ class NovattnPoshtaAddress extends NovattnPoshta
     public function addNovaPoshtaAddressShippingMethod($methods)
     {
         // $methods[] = 'WC_NovaPoshta_Shipping_Method';
-        $methods[] = 'WC_NovaPoshtaAddress_Shipping_Method';
+        $methods['npttn_address_shipping_method'] = 'WC_NovaPoshtaAddress_Shipping_Method';
         // $methods[] = 'WC_NovaPoshta_Shipping_Method_Poshtomat';
         return $methods;
     }
