@@ -91,12 +91,24 @@ class CheckoutAddress extends Checkout
             'priority'     => 134,
             'clear'        => true
         );
-        $fields['mrkvnp_patronymics']   = array(
-            'label'        => $middle_name,
-            'required'     => false,
-            'class'        => array( 'form-row-wide', 'my-custom-class' ),
-            'priority'     => 136,
-        );
+
+        $patronymics_classes = array( 'form-row-wide', 'my-custom-class' );
+
+        if(!get_option( 'mrkvnp_invoice_patranomic_disable' ))
+        {
+            if(!get_option( 'mrkvnp_invoice_patranomic_required' ))
+            {
+                $patronymics_classes[] = 'mrkv-np-not-required';
+            }
+
+            $fields['mrkvnp_patronymics']   = array(
+                'label'        => $middle_name,
+                'required'     => false,
+                'class'        => $patronymics_classes,
+                'priority'     => 136,
+            );
+        }
+
         return $fields;
     }
 
@@ -584,7 +596,7 @@ class CheckoutAddress extends Checkout
     public function saveNovaPoshtaAddressOptions()
     {
         // Nova Poshta on address
-        if ( NPttnA()->isPost() && NPttnA()->isANPttn() && NPttnA()->isCheckoutAddress() ) {
+        if ( NPttnA()->isPost() && NPttnA()->isANPttn() && NPttnA()->isCheckoutAddress() ) { 
             // Nova Poshta on address
             $location = $this->getLocation();
 
@@ -592,7 +604,7 @@ class CheckoutAddress extends Checkout
                 wc_add_notice( __( '<b>Поле Область</b> - обов\'язкове поле.' ), 'error' );
             if ( ! $_POST[$location . '_nova_poshta_city'] )
                 wc_add_notice( __( '<b>Поле Місто</b> - обов\'язкове поле.' ), 'error' );
-            if ( ! $_POST[$location . '_mrkvnp_patronymics'] )
+            if ( ! $_POST[$location . '_mrkvnp_patronymics'] && get_option( 'mrkvnp_invoice_patranomic_required' ) && !get_option( 'mrkvnp_invoice_patranomic_disable' ))
                 wc_add_notice( __( '<b>Поле По батькові</b> - обов\'язкове поле.' ), 'error' );
             if ( ! $_POST[$location . '_mrkvnp_street'] )
                 wc_add_notice( __( '<b>Поле Вулиця</b> - обов\'язкове поле.' ), 'error' );

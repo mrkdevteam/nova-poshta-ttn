@@ -55,7 +55,7 @@ class NovattnPoshta extends Base
      */
     public function isWoocommerce()
     {
-        return class_exists( 'woocommerce' );
+        return class_exists( 'woocommerce' )  || in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ) );
     }
 
     /**

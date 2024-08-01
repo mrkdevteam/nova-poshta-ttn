@@ -258,12 +258,16 @@ jQuery(document).ready(function() {
 	            }
 	        }
 
-	        setAsteriskColor() {
+	        setAsteriskColor() { 
 	        	jQuery('#' + this.fieldsLocation + '_nova_poshta_city_field label abbr').removeClass('required');
 	        	jQuery('#' + this.fieldsLocation + '_nova_poshta_region_field label > .optional').html('<span class="asterisk-color">*</span>');
 	        	jQuery('#' + this.fieldsLocation + '_mrkvnp_street_field label > .optional').html('<span class="asterisk-color">*</span>');
             	jQuery('#' + this.fieldsLocation + '_mrkvnp_house_field label > .optional').html('<span class="asterisk-color">*</span>');
                 jQuery('#' + this.fieldsLocation + '_mrkvnp_patronymics_field label > .optional').html('<span class="asterisk-color">*</span>');
+                if(!jQuery('#' + this.fieldsLocation + '_mrkvnp_patronymics_field').hasClass('mrkv-np-not-required'))
+            	{
+            		jQuery('#' + this.fieldsLocation + '_mrkvnp_patronymics_field label > .optional').html('<span class="asterisk-color">*</span>');
+            	}
 	        }
 
 	  	}
@@ -776,6 +780,10 @@ jQuery(document).ready(function() {
 			}
 		});
 	}
-
+	if(!jQuery('#billing_mrkvnp_patronymics_field').hasClass('.mrkv-np-not-required'))
+	{
+		jQuery('#billing_mrkvnp_patronymics_field label > .optional').html('<span class="asterisk-color">*</span>');
+		jQuery('#shipping_mrkvnp_patronymics_field label > .optional').html('<span class="asterisk-color">*</span>');
+	}
 
 }); // jQuery(document).ready(function()

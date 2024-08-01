@@ -936,6 +936,10 @@ table.form-table tbody tr.mrkvnp-tr-pr-110t {
 	position: relative;
 	top: -110px;
 }
+table.form-table tbody tr.mrkvnp-tr-pr-50t{
+	position: relative;
+	top: -50px;
+}
 table.form-table tbody tr.mrkvnp-tr-pr-125t {
 	margin-bottom: -125px;
 	position: relative;

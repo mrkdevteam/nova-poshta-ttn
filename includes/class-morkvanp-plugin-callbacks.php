@@ -57,6 +57,32 @@ use plugins\NovaPoshta\classes\invoice\Sender;
         </label>';
      }
 
+     public function mrkvnpInvoicePatranomicRequired()
+     {
+        $activate = \get_option( 'mrkvnp_invoice_patranomic_required' );
+         $checked = $activate;
+         $current = 1;
+         $echo = false;
+        echo '<label class="form-switch">
+          <input type="checkbox" class="regular-text" name="mrkvnp_invoice_patranomic_required" value="1" ' .
+            checked( $checked, $current, $echo ) . ' />
+          <i></i>
+        </label>';
+     }
+
+     public function mrkvnpInvoicePatranomicDisabled()
+     {
+        $activate = \get_option( 'mrkvnp_invoice_patranomic_disable' );
+         $checked = $activate;
+         $current = 1;
+         $echo = false;
+        echo '<label class="form-switch">
+          <input type="checkbox" class="regular-text" name="mrkvnp_invoice_patranomic_disable" value="1" ' .
+            checked( $checked, $current, $echo ) . ' />
+          <i></i>
+        </label>';
+     }
+
      public function setIndividualCheckoutText()
      {
          $activate = \get_option( 'mrkvnp_individual_checkout_text' );

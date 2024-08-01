@@ -493,7 +493,14 @@ class MNP_Plugin_Loader
                 'option_group' => 'morkvanp_options_group',
                 'option_name' => 'mrkvnp_is_order_auto_status_changing'
             ),
-
+            array(
+                'option_group' => 'morkvanp_options_group',
+                'option_name' => 'mrkvnp_invoice_patranomic_required'
+            ),
+            array(
+                'option_group' => 'morkvanp_options_group',
+                'option_name' => 'mrkvnp_invoice_patranomic_disable'
+            ),
             
 
 
@@ -1004,7 +1011,7 @@ class MNP_Plugin_Loader
                 'section' => 'mrkvnp_default_settings',
                 'args' => array(
                     'label_for' => 'mrkvnp_calc_shipcost_from_orderparms',
-                    'class' => 'mrkvnp-pt0 mrkvnp-chkbx mrkvnp-tr-pr-110t mrkvnp-th-colorgray'
+                    'class' => 'mrkvnp-pt0 mrkvnp-chkbx mrkvnp-tr-pr-50t mrkvnp-th-colorgray'
                 )
             ),
             /*array(
@@ -1017,6 +1024,29 @@ class MNP_Plugin_Loader
                     'class' => 'mrkvnp-pt0 mrkvnp-pb20 mrkvnp-tr-pr-125t'
                 )
             ),*/
+
+            array(
+                'id' => 'mrkvnp_invoice_patranomic_required',
+                'title' => __('По батькові','morkvanp-plugin') . '<br><span style="font-weight:normal;font-size: smaller;">Зробити поле по батькові обов\'язковим</span>',
+                'callback' => array( $this->callbacks, 'mrkvnpInvoicePatranomicRequired' ),
+                'page' => 'morkvanp_plugin',
+                'section' => 'mrkvnp_default_settings',
+                'args' => array(
+                    'label_for' => 'mrkvnp_invoice_patranomic_required',
+                    'class' => 'mrkvnp-tr-flex-row mrkvnp-tr-pr-95t mrkvnp-pt-20'
+                )
+            ),
+            array(
+                'id' => 'mrkvnp_invoice_patranomic_disable',
+                'title' => __('Вимкнути По батькові','morkvanp-plugin') . '<br><span style="font-weight:normal;font-size: smaller;">Вимкнути поле по батькові зі сторінки оформлення</span>',
+                'callback' => array( $this->callbacks, 'mrkvnpInvoicePatranomicDisabled' ),
+                'page' => 'morkvanp_plugin',
+                'section' => 'mrkvnp_default_settings',
+                'args' => array(
+                    'label_for' => 'mrkvnp_invoice_patranomic_disable',
+                    'class' => 'mrkvnp-tr-flex-row mrkvnp-tr-pr-95t mrkvnp-pt-20'
+                )
+            ), 
 
             // *** Automation
             array(
