@@ -907,7 +907,7 @@ table.form-table tbody tr th {
 	padding-bottom: 0;
 }
 table.form-table tbody tr.mrkvnp-pt0 {
-	display: table-caption;
+	display: block;
 }
 table.form-table tbody tr.mrkvnp-tr-dn {
 	display: none;
