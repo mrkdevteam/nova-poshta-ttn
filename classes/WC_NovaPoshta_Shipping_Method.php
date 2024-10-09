@@ -104,6 +104,13 @@ if ( ! class_exists( 'WC_NovaPoshta_Shipping_Method' ) ) :
                     'placeholder' => 'Ваш текст',
                     'description' => __('Введіть текст, який замінить назву способу доставки при досягненні мінімальної суми замовлення<br>Наприклад: "БЕЗКОШТОВНО на відділення Нової Пошти".', NOVA_POSHTA_TTN_DOMAIN),
                 ),
+                'mrkv_nova_exclude_poshtomat' => array(
+                    'title' => __('Показувати лише відділення', NOVA_POSHTA_TTN_DOMAIN),
+                    'label' => __('Якщо обрано, то поштомати будуть виключені з переліку', NOVA_POSHTA_TTN_DOMAIN),
+                    'type' => 'checkbox',
+                    'default' => 'no',
+                    'description' => '',
+                ),
 
                 'settings' => array(
                     'title' => __('', NOVA_POSHTA_TTN_DOMAIN),
