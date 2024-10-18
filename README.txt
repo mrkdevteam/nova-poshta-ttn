@@ -4,13 +4,16 @@ Tags: Nova Poshta, нова пошта, новая почта, доставка
 Requires at least: 5.0
 Tested up to: 6.6
 Requires PHP: 7.0
-Stable tag: 1.19.4
+Stable tag: 1.19.5
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
 Доставка на відділення, поштомат та адресу (з автопошуком вулиць). Створення ТТН. Вбудований checkout-manager.
 
 == Description ==
+
+= Важливо! =
+Ми переписали плагін з нуля, спробуйте новий плагін для всіх способів доставки по Україні - [UA Shipping](https://wordpress.org/plugins/morkva-ua-shipping)
 
 * Підтримка останніх версії WordPress та WooCommerce
 * Підтримка високопродуктивне сховище HPOS від WooCommerce
@@ -103,6 +106,9 @@ https://youtu.be/YAW4wtwHTB0
 
 
 == Що нового? ==
+
+= 1.19.5 =
+* [new] змінили опис
 
 = 1.19.4 =
 * [new] додали налаштування виключення поштоматів із переліку відділень
