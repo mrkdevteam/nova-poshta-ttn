@@ -1,5 +1,9 @@
 <div style="margin-top:35px;" class="rightgrid">
 	<div class="updatedpro mtb16 p0" >
+		<a style="min-width: 255px; max-width: 520px; display: block;" href="https://wordpress.org/plugins/morkva-ua-shipping/" target="blanc"><img style="    width: calc(100% + 20px);
+    margin-left: -10px;
+    margin-right: -10px;
+    margin-top: 13px;" src="<?php echo plugins_url('img/try-uashipping.png', __FILE__); ?>" alt="UA shipping"></a>
 		<div class="card">
 			<div class="card-header">
 				<h3>Підтримка</h3>
