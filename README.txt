@@ -4,7 +4,7 @@ Tags: Nova Poshta, нова пошта, новая почта, нова почт
 Requires at least: 5.0
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 1.19.6
+Stable tag: 1.19.7
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -108,6 +108,9 @@ https://youtu.be/47-VrH_QJAE
 
 
 == Що нового? ==
+
+= 1.19.7 =
+* [fix] виправили знайдену вразливість через patchstack 
 
 = 1.19.6 =
 * WP 6.7 - сумісний
