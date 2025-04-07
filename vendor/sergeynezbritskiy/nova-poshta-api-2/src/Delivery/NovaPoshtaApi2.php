@@ -312,8 +312,8 @@ class NovaPoshtaApi2 {
 	 */
 	function getCities($page = 0, $limit = null, $findByString = '', $ref = '') {
 		return $this->request('Address', 'getCities', array(
-			'Page' => $page,
-			'Limit' => $limit,
+			'Page' => is_null($page) ? null : (string) $page,
+			'Limit' => is_null($limit) ? null : (string) $limit,
 			'FindByString' => $findByString,
 			'Ref' => $ref,
 		));
