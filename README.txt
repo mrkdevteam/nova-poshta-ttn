@@ -13,7 +13,8 @@ License URI: http://www.gnu.org/licenses/gpl-2.0.html
 == Description ==
 
 = ☝️ Важливо! =
-Спробуйте **новий** плагін для всіх способів доставки по Україні. **Перейдіть зараз** на сторінку [UA Shipping](https://wordpress.org/plugins/morkva-ua-shipping)
+Цей плагін більше **не підтримується**.
+**Користуйтеся новим** і покращений плагіном з доставкою **Нова Пошта**, **Укрпошта**, **Розетка та Nova Global** - [UA Shipping](https://wordpress.org/plugins/morkva-ua-shipping).
 
 * Підтримка високопродуктивне сховище HPOS від WooCommerce
 * Підтримка зон доставки WooCommerce
