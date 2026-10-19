@@ -3,11 +3,11 @@
  * Plugin Name: Shipping for Nova Poshta
  * Plugin URI: https://morkva.co.ua/shop/nova-poshta-ttn-pro-lifetime
  * Description: Плагін 2-в-1: спосіб доставки Нова Пошта та генерація накладних Нова Пошта.
- * Version: 1.19.8
+ * Version: 1.19.9
  * Author: MORKVA
  * Text Domain: nova-poshta-ttn
  * Domain Path: /i18n/
- * Tested up to: 6.7
+ * Tested up to: 7.1
  * WC requires at least: 3.8
  * WC tested up to: 9.4
  */
@@ -894,3 +894,52 @@ function mrkv_np_remove_notice_ajax(){
     /* Delete transient, only display this notice once. */
     delete_transient( 'mrkv-admin-novaposhta-settings' );
 }
+
+add_action('admin_notices', 'mrkv_np_deprecate_notice');
+
+function mrkv_np_deprecate_notice() {
+    if (get_user_meta(get_current_user_id(), 'mrkv_np_deprecated_notice_dismissed', true)) {
+        return;
+    }
+
+    if (!current_user_can('manage_woocommerce') && !current_user_can('activate_plugins')) {
+        return;
+    }
+
+    $plugin_url = 'https://wordpress.org/plugins/morkva-ua-shipping/';
+    
+    ?>
+    <div class="notice notice-warning is-dismissible" id="mrkv-np-deprecated-notice">
+        <p>
+            <strong>Увага!</strong> Плагін Nova Poshta TTN для WooCommerce застарів і більше не підтримується. 
+            Будь ласка, переходьте на новий універсальний плагін 
+            <a href="<?php echo esc_url($plugin_url); ?>" target="_blank">Morkva UA Shipping</a>, 
+            який підтримує Нову Пошту, Укрпошту та сучасний блочний чекаут (Checkout Blocks)!
+        </p>
+    </div>
+    <script>
+    jQuery(document).ready(function($) {
+        $(document).on('click', '#mrkv-np-deprecated-notice .notice-dismiss', function() {
+            $.ajax({
+                url: ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'mrkv_np_dismiss_notice',
+                    nonce: '<?php echo wp_create_nonce('mrkv_np_dismiss_nonce'); ?>'
+                }
+            });
+        });
+    });
+    </script>
+    <?php
+}
+
+add_action('wp_ajax_mrkv_np_dismiss_notice', function() {
+    check_ajax_referer('mrkv_np_dismiss_nonce', 'nonce');
+    
+    if (current_user_can('manage_woocommerce') || current_user_can('activate_plugins')) {
+        update_user_meta(get_current_user_id(), 'mrkv_np_deprecated_notice_dismissed', true);
+    }
+    
+    wp_die();
+});

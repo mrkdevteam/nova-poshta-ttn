@@ -148,7 +148,6 @@ class MNP_Plugin_Loader
         add_filter('wp_mail_from_name', array( $this, 'my_mail_from_name' ));
 
         add_action( 'wp_ajax_mrkv_np_remove_ttn', array( $this, 'mrkv_np_remove_ttn_func' ) ); 
-        add_action( 'wp_ajax_nopriv_mrkv_np_remove_ttn', array( $this, 'mrkv_np_remove_ttn_func' ) );
 
         # Add order column
         add_filter( 'woocommerce_account_orders_columns', array( $this, 'mrkv_np_add_account_orders_column' ), 10, 1 );
@@ -1438,13 +1437,19 @@ class MNP_Plugin_Loader
             echo '<a style="margin: 5px;" href="https://my.novaposhta.ua/orders/printDocument/orders[]/' .  $invoice_number . '/type/pdf/apiKey/' .  $api_key . '" class="button" target="_blank">' . '<img src="' . plugins_url('img/004-printer.png', __FILE__) . '" height="15" width="15" />' . ' Друк накладної</a>';
             echo '<a style="margin: 5px;" href="https://my.novaposhta.ua/orders/printMarkings/orders[]/' . $invoice_number . '/type/pdf/apiKey/' . $api_key . '" class="button" target="_blank">' . '<img src="' . plugins_url('img/003-barcode.png', __FILE__) . '" height="15" width="15"  />' . ' Друк стікера</a>';
             echo '<div style="margin: 5px;" href="" class="button mrkv-np-remove-ttn" target="_blank">' . '<img src="' . plugins_url('img/001-delete-button.png', __FILE__) . '" height="15" width="15"  />' . __('Видалити накладну', 'nova-poshta-ttn') . '</div>';
+            $nonce = wp_create_nonce('mrkv_np_remove_ttn_nonce');
             echo '<script>
                 jQuery(".mrkv-np-remove-ttn").click(function(event){
                     event.preventDefault();
                     jQuery.ajax({
-                        url: "'. admin_url( "admin-ajax.php" ) . '",
+                        url: "' . admin_url( "admin-ajax.php" ) . '",
                         type: "POST",
-                        data: "action=mrkv_np_remove_ttn&order_id=' . $order_id . '&ttn=' . $invoice_number . '", 
+                        data: {
+                            action: "mrkv_np_remove_ttn",
+                            order_id: ' . intval($order_id) . ',
+                            ttn: "' . esc_js($invoice_number) . '",
+                            nonce: "' . esc_js($nonce) . '"
+                        },
                         success: function( data ) {
                             location.reload();
                         }
@@ -1514,81 +1519,88 @@ class MNP_Plugin_Loader
      * */
     public function mrkv_np_remove_ttn_func()
     {
-        # Check order id
-        if(isset($_POST['order_id']) && isset($_POST['ttn']))
-        {
-            # Get order data
-            $invoice_number = $_POST['ttn'];
-            $order_id = $_POST['order_id'];
+        if (!current_user_can('edit_shop_orders')) {
+            wp_send_json_error(__('You do not have permission to edit orders.', 'nova-poshta-ttn'), 403);
+        }
 
-            # Get api key
-            $api_key = get_option('mrkvnp_sender_api_key');
-            $api_url = 'https://api.novaposhta.ua/v2.0/json/';
+        if (!isset($_POST['nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'])), 'mrkv_np_remove_ttn_nonce')) {
+            wp_send_json_error(__('Security check failed.', 'nova-poshta-ttn'), 403);
+        }
 
-            # Get invoice ref
-            global $wpdb;
-            $resultstring = "SELECT `invoice_ref` FROM {$wpdb->prefix}novaposhta_ttn_invoices WHERE `order_id` = '{$order_id}'";
-            $invoice_ref = $wpdb->get_var($resultstring);
+        if (empty($_POST['order_id']) || empty($_POST['ttn'])) {
+            wp_send_json_error(__('Invalid parameters.', 'nova-poshta-ttn'), 400);
+        }
 
-            # Check invoice ref
-            if($invoice_ref)
-            {
-                # Set method delete
-                $methodProperties_delete = array(
-                    "DocumentRefs" => $invoice_ref
-                );
+        $order_id = absint($_POST['order_id']);
+        $invoice_number = sanitize_text_field(wp_unslash($_POST['ttn']));
 
-                # Create params for delete
-                $deleteBulkInvoices = array(
-                    "apiKey" => $api_key,
-                    "modelName" => "InternetDocument",
-                    "calledMethod" => "delete",
-                    "methodProperties" => $methodProperties_delete
-                );
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'novaposhta_ttn_invoices';
+        
+        $invoice_ref = $wpdb->get_var($wpdb->prepare(
+            "SELECT invoice_ref FROM {$table_name} WHERE order_id = %d AND (invoice_number = %s OR invoice_ref = %s)",
+            $order_id,
+            $invoice_number,
+            $invoice_number
+        ));
 
-                # Set args data
-                $args = array(
-                    'timeout' => 30,
-                    'redirection' => 10,
-                    'httpversion' => '1.0',
-                    'blocking' => true,
-                    'headers' => array( "content-type" => "application/json" ),
-                    'body' => \json_encode( $deleteBulkInvoices ),
-                    'cookies' => array(),
-                    'sslverify' => false,
-                );
+        if (!$invoice_ref) {
+            wp_send_json_error(__('Waybill not found for this order.', 'nova-poshta-ttn'), 404);
+        }
 
-                # Send request 
-                $response = wp_remote_post( $api_url, $args );
+        $api_key = get_option('mrkvnp_sender_api_key');
+        $api_url = 'https://api.novaposhta.ua/v2.0/json/';
 
-                # Set database name
-                $delete_table_name = $wpdb->prefix . 'novaposhta_ttn_invoices';
-                # Set database name
-                $delete_table_name_meta = $wpdb->prefix . 'postmeta';
+        $deleteBulkInvoices = array(
+            "apiKey" => $api_key,
+            "modelName" => "InternetDocument",
+            "calledMethod" => "delete",
+            "methodProperties" => array(
+                "DocumentRefs" => $invoice_ref
+            )
+        );
 
-                if(class_exists( \Automattic\WooCommerce\Utilities\OrderUtil::class ) && OrderUtil::custom_orders_table_usage_is_enabled())
-                {
-                    $order = wc_get_order( $order_id );
-                    # Delete ttn meta
-                    $order->delete_meta_data( "novaposhta_ttn" );
+        $args = array(
+            'timeout'     => 30,
+            'redirection' => 10,
+            'httpversion' => '1.0',
+            'blocking'    => true,
+            'headers'     => array("content-type" => "application/json"),
+            'body'        => json_encode($deleteBulkInvoices),
+            'cookies'     => array(),
+            'sslverify'   => true,
+        );
 
-                    $order->save();
-                }
-                else
-                {
-                    # Delete ttn meta
-                    delete_post_meta( $order_id , "novaposhta_ttn" );
-                }
+        $response = wp_remote_post($api_url, $args);
 
-                # Delete ttn from db
-                $delete_from_db = $wpdb->delete( $delete_table_name, array( 'invoice_ref' => $invoice_ref ) );
+        if (is_wp_error($response)) {
+            wp_send_json_error(__('API connection error.', 'nova-poshta-ttn'), 500);
+        }
 
-                # Delete ttn from db
-                $delete_from_db = $wpdb->delete( $delete_table_name_meta, array( 'post_id' => $order_id, 'meta_key' => 'novaposhta_ttn' ) );
+        $body = wp_remote_retrieve_body($response);
+        $data = json_decode($body, true);
+
+        if (isset($data['success']) && $data['success'] === false) {
+            $error_messages = isset($data['errors']) ? implode(', ', $data['errors']) : __('Unknown API error', 'nova-poshta-ttn');
+            wp_send_json_error($error_messages, 400);
+        }
+
+        if (class_exists(\Automattic\WooCommerce\Utilities\OrderUtil::class) && \Automattic\WooCommerce\Utilities\OrderUtil::custom_orders_table_usage_is_enabled()) {
+            $order = wc_get_order($order_id);
+            if ($order) {
+                $order->delete_meta_data("novaposhta_ttn");
+                $order->save();
             }
+        } else {
+            delete_post_meta($order_id, "novaposhta_ttn");
+        }
 
-            die;
-        }   
+        $wpdb->delete($table_name, array('invoice_ref' => $invoice_ref));
+        
+        $delete_table_name_meta = $wpdb->prefix . 'postmeta';
+        $wpdb->delete($delete_table_name_meta, array('post_id' => $order_id, 'meta_key' => 'novaposhta_ttn'));
+
+        wp_send_json_success(__('Waybill removed successfully.', 'nova-poshta-ttn'));
     }
 
     /**

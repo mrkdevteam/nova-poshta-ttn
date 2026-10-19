@@ -2,9 +2,9 @@
 Contributors: bandido
 Tags: Nova Poshta, нова пошта, новая почта, нова почта
 Requires at least: 5.0
-Tested up to: 6.7
+Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.19.8
+Stable tag: 1.19.9
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -109,6 +109,9 @@ https://youtu.be/47-VrH_QJAE
 
 
 == Що нового? ==
+
+= 1.19.9 =
+* WP 7.1 - сумісний
 
 = 1.19.8 =
 * [fix] виправили завантаження відділень
